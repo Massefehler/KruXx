@@ -61,3 +61,11 @@
 
 # Rules for Room
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
+
+## Rules for InnerTubeX (stream extraction) + QuickJS (cipher solver, JNI)
+# Serializable models and the EJS/QuickJS bridge are reached through generated
+# serializers and JNI callbacks; keep the library intact (it is small).
+-keep class com.metrolist.innertubex.** { *; }
+-dontwarn com.metrolist.innertubex.**
+-keep class com.dokar.quickjs.** { *; }
+-dontwarn com.dokar.quickjs.**

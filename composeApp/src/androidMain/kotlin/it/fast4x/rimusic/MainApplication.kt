@@ -16,6 +16,7 @@ import app.kreate.di.initKoin
 import app.kreate.logging.CoilLogger
 import app.kreate.logging.KoinBufferedLogger
 import app.kreate.logging.setupLogging
+import co.touchlab.kermit.Logger
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -25,9 +26,13 @@ import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
 import com.metrolist.innertube.YouTube
+import com.metrolist.music.utils.InnerTubeXPlayer
 import io.ktor.client.HttpClient
 import it.fast4x.rimusic.utils.AppLifecycleTracker
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import me.knighthat.innertube.Innertube
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
@@ -53,6 +58,15 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         YouTube.cookie = Preferences.YOUTUBE_COOKIES.value
         YouTube.visitorData = Preferences.YOUTUBE_VISITOR_DATA.value
         YouTube.dataSyncId = Preferences.YOUTUBE_SYNC_ID.value
+
+        // Stream extraction (InnerTubeX). Warm up player config, cipher solver and
+        // PO-token WebView in the background so the first play doesn't pay for it.
+        InnerTubeXPlayer.initialize( this )
+        CoroutineScope( Dispatchers.IO ).launch {
+            delay( 2_500 )
+            runCatching { InnerTubeXPlayer.prewarm() }
+                .onFailure { Logger.withTag( "InnerTubeXPlayer" ).w( "prewarm failed (${it::class.simpleName})" ) }
+        }
 
         // Register network callback
         getSystemService<ConnectivityManager>()?.run {

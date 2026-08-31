@@ -13,7 +13,7 @@ coil3 = "3.5.0"
 room = "2.8.4"
 sqlite = "2.6.2"
 media3 = "1.10.1"
-ktor = "3.5.0"
+ktor = "3.5.2"
 palette = "1.0.0"
 desugaring = "2.1.5"
 appcompat = "1.7.1"
@@ -38,6 +38,7 @@ lombok = "1.18.46"
 junit5 = "6.1.0"
 webkit = "1.15.0"
 newpipe-extractor = "v0.26.0"
+innertubex = "v0.3.0"
 compose-kmp = "1.11.1"
 license-report = "3.1.4"
 material3-kmp = "1.9.0"
@@ -113,8 +114,9 @@ hypnoticcanvas = { group = "com.mikepenz.hypnoticcanvas", name = "hypnoticcanvas
 hypnoticcanvas-shaders = { group = "com.mikepenz.hypnoticcanvas", name = "hypnoticcanvas-shaders", version.ref = "hypnoticcanvas" }
 
 # Newpipe extractor
-nanojson = { group = "com.github.TeamNewPipe", name = "nanojson", version = "e9d656ddb49a412a5a0a5d5ef20ca7ef09549996" }
 metrolist-extractor = { module = "com.github.MetrolistGroup:MetrolistExtractor", version = "6305155" }
+# YouTube stream extraction (client selection, cipher via QuickJS/EJS, remote player configs)
+innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex", version.ref = "innertubex" }
 
 # Annotations
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }

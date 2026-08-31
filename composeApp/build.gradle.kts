@@ -75,9 +75,9 @@ kotlin {
         }
         androidMain.dependencies {
             implementation( projects.metrolistInnertube )
+            implementation( libs.innertubex )
 
             implementation(libs.kotlinx.coroutines.guava)
-            implementation(libs.nanojson)
             implementation(libs.androidx.webkit)
 
             implementation( libs.androidx.glance.widgets )

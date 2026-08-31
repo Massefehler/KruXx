@@ -13,12 +13,16 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.database.models.PersistentQueue
+import app.kreate.di.invalidateRejectedStreamOf
+import co.touchlab.kermit.Logger
+import com.metrolist.music.utils.InnerTubeXPlayer
 import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.enums.NotificationButtons
 import it.fast4x.rimusic.enums.QueueLoopType
@@ -58,6 +62,10 @@ class ExoPlayerListener(
     private var volumeNormalizationJob: Job = Job()
     private var errorTimestamp = 0L
     private var lastErrorMessage = ""
+
+    /** Per-song count of stream re-resolutions after a CDN rejection (see [tryRecoverStreamError]). */
+    private val streamRetryCounts = HashMap<String, Int>()
+    private val recoveryScope = CoroutineScope( Dispatchers.IO )
 
     var loudnessEnhancer: LoudnessEnhancer? = null
         private set
@@ -141,6 +149,58 @@ class ExoPlayerListener(
             player.startRadio()
     }
 
+    /**
+     * Signed stream urls expire or get rejected (HTTP 403/410) when YouTube rotates keys or a
+     * client stops being served. In that case drop the cached url, let InnerTubeX re-resolve
+     * the song (possibly with another client) and resume from the current position.
+     * At most [MAX_STREAM_RETRIES] attempts per song, then the error is surfaced as usual.
+     *
+     * @return `true` if a retry was scheduled and the error must not be reported.
+     */
+    @MainThread
+    private fun tryRecoverStreamError( error: PlaybackException ): Boolean {
+        val mediaId = player.currentMediaItem?.mediaId ?: return false
+
+        val responseCode = findCause<HttpDataSource.InvalidResponseCodeException>( error )?.responseCode
+        val isStreamRejection = (responseCode != null && responseCode in STREAM_REJECTION_CODES)
+                || error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+        if( !isStreamRejection ) return false
+
+        val attempts = streamRetryCounts[mediaId] ?: 0
+        if( attempts >= MAX_STREAM_RETRIES ) {
+            streamRetryCounts.remove( mediaId )
+            return false
+        }
+        streamRetryCounts[mediaId] = attempts + 1
+
+        val failedClient = invalidateRejectedStreamOf( mediaId )
+        if( failedClient == "WEB_REMIX" )
+            InnerTubeXPlayer.markWebRemixFailed( mediaId )
+        recoveryScope.launch {
+            runCatching { InnerTubeXPlayer.refreshAfterStreamRejection() }
+        }
+        Logger.withTag( "ExoPlayerListener" ).w(
+            "Stream of $mediaId rejected (HTTP $responseCode, client=$failedClient) - re-resolving, attempt ${attempts + 1}/$MAX_STREAM_RETRIES"
+        )
+
+        val index = player.currentMediaItemIndex
+        val position = player.currentPosition
+        val playWhenReady = player.playWhenReady
+        player.prepare()
+        player.seekTo( index, position )
+        player.playWhenReady = playWhenReady
+        return true
+    }
+
+    private inline fun <reified T: Throwable> findCause( t: Throwable? ): T? {
+        var cause = t
+        while( cause != null ) {
+            if( cause is T ) return cause
+            cause = cause.cause
+        }
+        return null
+    }
+
     @MainThread
     private fun traverseErrorStack( t: Throwable ): Throwable =
         when( t ) {
@@ -202,6 +262,8 @@ class ExoPlayerListener(
     }
 
     override fun onPlayerError( error: PlaybackException ) {
+        if( tryRecoverStreamError( error ) ) return
+
         val rootCause = traverseErrorStack( error )
 
         when( rootCause ) {
@@ -227,6 +289,8 @@ class ExoPlayerListener(
         ) {
             val isBufferingOrReady =
                 player.playbackState == Player.STATE_BUFFERING || player.playbackState == Player.STATE_READY
+            if( player.playbackState == Player.STATE_READY )
+                streamRetryCounts.clear()
             if (isBufferingOrReady && player.playWhenReady) {
                 sendOpenEqualizerIntent()
             } else {
@@ -236,5 +300,11 @@ class ExoPlayerListener(
                 }
             }
         }
+    }
+
+    private companion object {
+        const val MAX_STREAM_RETRIES = 2
+        /** 403: signature/PO token rejected or expired, 410: url gone, 416: bounded range refused */
+        val STREAM_REJECTION_CODES = setOf( 403, 410, 416 )
     }
 }
