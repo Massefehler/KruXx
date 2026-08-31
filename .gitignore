@@ -35,3 +35,6 @@
 .env
 .secrets
 .vars
+
+### Python
+__pycache__/

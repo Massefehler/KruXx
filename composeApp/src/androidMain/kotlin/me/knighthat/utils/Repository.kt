@@ -8,7 +8,8 @@ object Repository {
     const val GITHUB_API = "https://api.github.com"
 
     const val OWNER = "knighthat"
-    const val REPO = "$OWNER/${BuildConfig.APP_NAME}"
+    // Always the upstream repository, independent of the (possibly renamed) app name
+    const val REPO = "$OWNER/${BuildConfig.REPO_NAME}"
     const val REPO_URL = "$GITHUB/$REPO"
 
     const val LATEST_TAG_URL = "$REPO/releases/latest"

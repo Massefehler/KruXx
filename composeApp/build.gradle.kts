@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 val APP_NAME = "Kreate"
+val KRUXX_APP_NAME = "KruXx"
 
 private fun String.sha256(): String {
     val digest = MessageDigest.getInstance( "SHA-256" )
@@ -190,6 +191,8 @@ android {
                 UNIVERSAL VARIABLES
          */
         buildConfigField( "String", "APP_NAME", "\"$APP_NAME\"" )
+        // Upstream repository name; stays "Kreate" even for renamed flavors (see Repository.kt)
+        buildConfigField( "String", "REPO_NAME", "\"$APP_NAME\"" )
     }
 
     namespace = "app.kreate.android"
@@ -254,6 +257,15 @@ android {
 
             // App's properties
             versionNameSuffix = "-izzy"
+        }
+        // Personal fork "KruXx": own application id so it installs next to the
+        // official Kreate, own name/icon (see src/androidKruxx), no in-app updater.
+        create( "kruxx" ) {
+            dimension = "platform"
+
+            applicationId = "de.kruxx.music"
+            buildConfigField( "String", "APP_NAME", "\"$KRUXX_APP_NAME\"" )
+            manifestPlaceholders["appName"] = KRUXX_APP_NAME
         }
         //</editor-fold>
         //<editor-fold desc="Architectures">
@@ -354,7 +366,8 @@ android {
                    else
                        buildType.name
 
-                   it.outputFileName = "$APP_NAME-${suffix}.apk"
+                   val appName = if( productFlavors.any { f -> f.name == "kruxx" } ) KRUXX_APP_NAME else APP_NAME
+                   it.outputFileName = "$appName-${suffix}.apk"
                }
 
         if( buildType.name != "debug" ) {
@@ -366,6 +379,16 @@ android {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
+// The launcher label comes from the manifest placeholder "appName", which build types
+// (debug) and the env flavors (prod/nightly) also set. Placeholders of the platform flavor
+// don't reliably win that merge, so pin the label for every "kruxx" variant here.
+androidComponents {
+    onVariants( selector().withFlavor( "platform" to "kruxx" ) ) { variant ->
+        val label = if( variant.buildType == "debug" ) "$KRUXX_APP_NAME-debug" else KRUXX_APP_NAME
+        variant.manifestPlaceholders.put( "appName", label )
     }
 }
 
