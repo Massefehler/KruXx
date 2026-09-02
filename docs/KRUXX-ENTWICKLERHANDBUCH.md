@@ -48,6 +48,7 @@ Wichtige Pfade:
 | `icons/KruXx_App_Icon.png` | Quellbild des KruXx-Icons (1254², Kachel auf Schwarz) |
 | `scripts/build-local-release.sh` | Release bauen **und** signieren |
 | `scripts/make-kruxx-icon.py` | Alle Icon-Ressourcen aus dem Quellbild erzeugen |
+| `docs/changelogs/kruxx/<versionName>.txt` | Release-Notes je KruXx-Version; landen als `release_notes` im Flavor `kruxx` (Changelog-Dialog nach dem Update) |
 | `docs/KRUXX-ENTWICKLERHANDBUCH.md` | diese Datei |
 
 Submodule nach einem frischen Clone: `git submodule update --init` (nicht `--recursive`, wie Kreates CI).
@@ -83,6 +84,7 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | Datei | Änderung |
 |---|---|
 | `composeApp/build.gradle.kts` | Flavor `kruxx` (Dimension `platform`): `applicationId = "de.kruxx.music"`, `APP_NAME = "KruXx"`; Label über `androidComponents.onVariants` gepinnt (Build-Type-/Env-Placeholder würden sonst gewinnen); APK-Name `KruXx-*.apk`; neues `BuildConfig.REPO_NAME` |
+| `composeApp/build.gradle.kts` (Version) | **KruXx-Versionsschema**: `KRUXX_REVISION` (oben im Skript) → versionName `<Kreate>-kruxx.<n>` per `versionNameSuffix`, versionCode `<Kreate-Code> × 100 + n` (14101, 14102 …; bleibt unter dem nächsten Upstream-Bump 14201). Toml-Werte bleiben Upstream-Stand → Rebase konfliktfrei. Task `copyKruxxReleaseNote` kopiert `docs/changelogs/kruxx/<versionName>.txt` nach `src/androidKruxx/res/raw/release_notes.txt` (gitignored) und bricht ab, wenn die Datei fehlt |
 | `me/knighthat/utils/Repository.kt` | GitHub-Links nutzen `REPO_NAME` („Kreate“), nicht den App-Namen |
 | `composeApp/src/androidKruxx/kotlin/…` | No-Op-`UpdateHandler`/`updateSection` (Kopie von F-Droid) – kein In-App-Updater |
 | `composeApp/src/androidKruxx/res/…` | generierte Icon-Ressourcen (siehe §5) |
@@ -105,6 +107,8 @@ scripts/build-local-release.sh kruxx --skip-build
 # Stock-Kreate-Variante (App-ID me.knighthat.kreate – kollidiert mit der offiziellen App!)
 scripts/build-local-release.sh github
 ```
+
+Fertige APKs im Archiv `~/Schreibtisch/Android/Kreate-APKs/` heißen `KruXx-<versionName>-release.apk` bzw. `-debug.apk`.
 
 Erster Build dauert 5–10 min (Downloads), danach 1–4 min. Das Log ist voller
 `WARNING: D8: Unexpected error during rewriting of Kotlin metadata` (AGP 8.13 vs. Kotlin 2.4)
@@ -324,13 +328,18 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 
 ## 8. Release-Checkliste
 
-- [ ] `git status` sauber, Branch `kruxx`
-- [ ] Versionsstand notieren (`gradle/libs.versions.toml` → `versionName`; bei Bumps auch
-      `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` anlegen, sonst fehlt `R.raw.release_notes`)
-- [ ] `scripts/build-local-release.sh kruxx` → `>> done:` und „Signer #1 certificate DN: CN=Kreate local build …“
-- [ ] Debug-Schnelltest (§7.3), dann Release installieren
-- [ ] APK nach `~/Schreibtisch/Android/Kreate-APKs/` kopieren (LocalSend)
-- [ ] Commit auf `kruxx`; **kein Push zu upstream**
+- [ ] `git status` sauber, Branch `kruxx`; Code-Änderungen als eigenen Commit vor dem Release-Commit
+- [ ] `KRUXX_REVISION` in `composeApp/build.gradle.kts` um 1 erhöhen (nach einem Upstream-Rebase mit neuer
+      Kreate-Version wieder bei 1 beginnen – der versionCode steigt durch den Upstream-Code automatisch)
+- [ ] `docs/changelogs/kruxx/<Kreate-Version>-kruxx.<n>.txt` schreiben (Kreates eigene Notizen unter
+      `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` bleiben unangetastet)
+- [ ] Debug bauen, Schnelltest (§7.3); dann `scripts/build-local-release.sh kruxx` → `>> done:` und
+      „Signer #1 certificate DN: CN=Kreate local build …“
+- [ ] `aapt2 dump badging …/KruXx-release-signed.apk | grep versionCode` → erwartet `versionCode='<Kreate-Code>×100+n'`
+      (z. B. 14101) und `versionName='<Kreate>-kruxx.<n>'`
+- [ ] Release installieren; APKs als `KruXx-<versionName>-release.apk` / `-debug.apk` nach
+      `~/Schreibtisch/Android/Kreate-APKs/` kopieren (LocalSend)
+- [ ] Release-Commit auf `kruxx` („kruxx: release <versionName>“) und Tag `kruxx/<versionName>`; **kein Push zu upstream**
 
 ---
 

@@ -1,0 +1,13 @@
+KruXx 2.2.3-kruxx.1 (Basis: Kreate 2.2.3)
+
+• Wiedergabe läuft über die Bibliothek InnerTubeX statt über den eingefrorenen
+  WebView-Cipher-Port – YouTube-Änderungen werden per Bibliotheks-Update behoben.
+• Eigener Flavor „KruXx“ (de.kruxx.music), eigenes Icon, kein In-App-Updater;
+  installiert sich neben der offiziellen Kreate.
+• Abgelehnte Stream-URLs (HTTP 403/410/416) werden neu aufgelöst und an gleicher
+  Position weitergespielt.
+• Der Player-Cache merkt sich das Format der gecachten Bytes; bei Formatwechsel
+  (Qualität, Client) wird der Eintrag verworfen statt ein kaputter Stream
+  abgespielt. Parser-/Cache-Fehler heilen sich selbst.
+• Nur ein User-Agent pro CDN-Anfrage; Clients, die nur begrenzte Range-Requests
+  bedienen, sind ausgeschlossen (passt nicht in Kreates Cache-Kette).

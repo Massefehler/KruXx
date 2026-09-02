@@ -10,6 +10,10 @@ import java.util.Date
 
 val APP_NAME = "Kreate"
 val KRUXX_APP_NAME = "KruXx"
+// KruXx release counter on top of the upstream version: versionName "<upstream>-kruxx.<n>",
+// versionCode "<upstream code> * 100 + n" (14101, 14102, ... - stays below the next upstream
+// bump, e.g. 14201). Raise for every KruXx release and add docs/changelogs/kruxx/<versionName>.txt.
+val KRUXX_REVISION = 1
 
 private fun String.sha256(): String {
     val digest = MessageDigest.getInstance( "SHA-256" )
@@ -266,6 +270,10 @@ android {
             applicationId = "de.kruxx.music"
             buildConfigField( "String", "APP_NAME", "\"$KRUXX_APP_NAME\"" )
             manifestPlaceholders["appName"] = KRUXX_APP_NAME
+            // "platform" is the first flavor dimension, so this wins over prod's versionCode;
+            // the suffix is appended to prod's versionName (see KRUXX_REVISION).
+            versionCode = (vCode * 100) + KRUXX_REVISION
+            versionNameSuffix = "-kruxx.$KRUXX_REVISION"
         }
         //</editor-fold>
         //<editor-fold desc="Architectures">
@@ -372,6 +380,9 @@ android {
 
         if( buildType.name != "debug" ) {
             preBuildProvider.get().dependsOn( copyReleaseNote )
+            // KruXx builds show their own notes (flavor res/raw overrides androidMain's copy)
+            if( productFlavors.any { f -> f.name == "kruxx" } )
+                preBuildProvider.get().dependsOn( copyKruxxReleaseNote )
         }
     }
 
@@ -473,6 +484,27 @@ val copyReleaseNote = tasks.register<Copy>("copyReleaseNote" ) {
     setIncludes( listOf( fileName ) )
 
     into( "$rootDir/composeApp/src/androidMain/res/raw" )
+
+    rename {
+        if( it == fileName ) "release_notes.txt" else it
+    }
+}
+
+val copyKruxxReleaseNote = tasks.register<Copy>( "copyKruxxReleaseNote" ) {
+    description = "Copy the KruXx release note of the current KruXx version to the kruxx flavor's raw folder"
+    group = JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME
+
+    val sourceDir = "$rootDir/docs/changelogs/kruxx"
+    val fileName = "${libs.versions.versionName.get()}-kruxx.$KRUXX_REVISION.txt"
+
+    // Declared as a task input so Gradle fails with a clear message when the note for the
+    // current KruXx version is missing (a doFirst check would break the configuration cache).
+    inputs.file( "$sourceDir/$fileName" ).withPropertyName( "kruxxReleaseNote" )
+
+    from( sourceDir )
+    setIncludes( listOf( fileName ) )
+
+    into( "$rootDir/composeApp/src/androidKruxx/res/raw" )
 
     rename {
         if( it == fileName ) "release_notes.txt" else it
