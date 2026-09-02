@@ -13,7 +13,7 @@ val KRUXX_APP_NAME = "KruXx"
 // KruXx release counter on top of the upstream version: versionName "<upstream>-kruxx.<n>",
 // versionCode "<upstream code> * 100 + n" (14101, 14102, ... - stays below the next upstream
 // bump, e.g. 14201). Raise for every KruXx release and add docs/changelogs/kruxx/<versionName>.txt.
-val KRUXX_REVISION = 1
+val KRUXX_REVISION = 2
 
 private fun String.sha256(): String {
     val digest = MessageDigest.getInstance( "SHA-256" )

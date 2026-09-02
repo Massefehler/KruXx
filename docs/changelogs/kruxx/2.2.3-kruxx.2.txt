@@ -1,0 +1,7 @@
+KruXx 2.2.3-kruxx.2 (Basis: Kreate 2.2.3)
+
+• Charts auf der Startseite funktionieren wieder. YouTube hat die Felder der
+  Länderauswahl umbenannt; das Innertube-Modul hat daraufhin die ganze
+  Charts-Antwort verworfen („Failed to get charts“).
+• Hinweis: Welche Seite beim Start erscheint, stellt man unter Einstellungen →
+  Benutzeroberfläche → „Standard-Seite“ ein (z. B. „Startseite“).
