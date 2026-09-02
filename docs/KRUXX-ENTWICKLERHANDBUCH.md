@@ -48,6 +48,7 @@ Wichtige Pfade:
 | `icons/KruXx_App_Icon.png` | Quellbild des KruXx-Icons (1254², Kachel auf Schwarz) |
 | `scripts/build-local-release.sh` | Release bauen **und** signieren |
 | `scripts/make-kruxx-icon.py` | Alle Icon-Ressourcen aus dem Quellbild erzeugen |
+| `patches/innertube/` | Lokale Patches für das Submodul `modules/innertube` (§2.3) – nach einem frischen Clone anwenden |
 | `docs/changelogs/kruxx/<versionName>.txt` | Release-Notes je KruXx-Version; landen als `release_notes` im Flavor `kruxx` (Changelog-Dialog nach dem Update) |
 | `docs/KRUXX-ENTWICKLERHANDBUCH.md` | diese Datei |
 
@@ -88,6 +89,31 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | `me/knighthat/utils/Repository.kt` | GitHub-Links nutzen `REPO_NAME` („Kreate“), nicht den App-Namen |
 | `composeApp/src/androidKruxx/kotlin/…` | No-Op-`UpdateHandler`/`updateSection` (Kopie von F-Droid) – kein In-App-Updater |
 | `composeApp/src/androidKruxx/res/…` | generierte Icon-Ressourcen (siehe §5) |
+
+### 2.3 Lokale Patches am Submodul `modules/innertube`
+
+Das Modul (GitLab tannguyen047/innertube-kotlin, Branch `dev`) ist seit Juli 2026 eingefroren; eigene Fixes
+können dort nicht landen. Vorgehen: Fix im Submodul auf dem lokalen Branch `kruxx` committen, den Pin im
+Hauptrepo aktualisieren **und** den Commit als Patch unter `patches/innertube/` ablegen. Ein frischer Clone
+kennt den lokalen Commit sonst nicht, `git submodule update --init` bricht für dieses Modul ab.
+
+| Patch | Grund |
+|---|---|
+| `0001-charts-make-menu-item-accessibility-optional.patch` | YouTube liefert in den Ländereinträgen des Charts-Menüs (`musicMultiSelectMenuItemRenderer`) nur noch `accessibility`; die Pflichtfelder `selectedAccessibility`/`deselectedAccessibility` warfen `MissingFieldException` → „Failed to get charts“ auf der Startseite. Felder jetzt optional; Test `InnertubeChartsLiveResponseTest` mit der Live-Antwort vom 02.09.2026 |
+
+Nach einem frischen Clone (Upstream-Basis des Moduls: `9e5f3ac`, steht auch als `base-commit` im Patch):
+
+```bash
+git submodule update --init                        # meldet für modules/innertube einen unbekannten Commit
+git -C modules/innertube checkout 9e5f3ac
+git -C modules/innertube switch -c kruxx
+git -C modules/innertube am ../../patches/innertube/*.patch
+git add modules/innertube && git commit -m "innertube: re-pin local kruxx branch"   # neuer Hash, gleicher Inhalt
+```
+
+Patches neu erzeugen, wenn sich der Branch `kruxx` im Submodul ändert:
+`git -C modules/innertube format-patch --base=9e5f3ac 9e5f3ac..kruxx -o ../../patches/innertube`.
+**Nie in das GitLab-Remote pushen** – es gehört dem Modul-Autor.
 
 ---
 
@@ -257,6 +283,10 @@ git -C modules/metrolist checkout <commit>   # dann im Hauptrepo: git add module
 Bei `modules/metrolist` gibt es auch Branches `upstream`/`metrolist-v3` (näher an Metrolist); das
 Build-Skript des Moduls muss zu Kreates Versionskatalog passen.
 
+`modules/innertube` trägt lokale Patches (§2.3). Vor einem Upstream-Update des Moduls den Branch `kruxx`
+dort auf den neuen Stand rebasen (oder prüfen, ob Upstream den Fix überflüssig macht) und danach die
+Patch-Dateien neu erzeugen.
+
 ### 6.4 Toolchain
 
 - **compileSdk 37**: sobald `sdkmanager --list | grep platforms` ein `platforms;android-37` zeigt →
@@ -290,6 +320,7 @@ unter Einstellungen → Sonstiges → Debug lassen sich Logs exportieren/kopiere
 | Nur bestimmte Songs: `AGE_RESTRICTED` / `LoginRequiredException` | Altersbeschränkung; braucht Login + PO-Token | YouTube-Login in der App; PoToken-Logs prüfen |
 | `PoToken … timed out` / `BadWebViewException` | System-WebView fehlt/kaputt; InnerTubeX fällt auf tokenfreie Clients zurück | Android System WebView aktualisieren |
 | Suche/Browse leer, Wiedergabe geht | Problem in `me.knighthat.innertube` (Submodul), nicht InnerTubeX | `modules/innertube`, Innertube-Logs |
+| „Failed to get charts“ beim Öffnen der Startseite (Log-Tag `HomeQuickPicks`) | YouTube hat die Charts-Antwort geändert; das Modul deserialisiert strikt (`MissingFieldException`) | Live-Antwort holen (`POST youtubei/v1/browse`, `browseId=FEmusic_charts`, `formData.selectedValues=["DE"]`), als Fixture nach `modules/innertube/src/test/resources/ytm/browse/`, `InnertubeChartsLiveResponseTest` nennt das fehlende Feld, Modell anpassen (§2.3) |
 | YouTube-Login/Bibliothek defekt | `modules/metrolist` (Metrolist-Innertube) | Submodul-Update (§6.3) |
 | Build: `Dependency … requires compileSdk 37` | Flag in `gradle.properties` fehlt | §2.1 / §6.4 |
 | Build: Lint-`e:`-Zeilen „expected version 2.2.0“ | Lint-Vital mit altem Kotlin | ignorieren (nur Release), Build läuft weiter |
