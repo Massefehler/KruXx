@@ -24,9 +24,11 @@ class CrashHandler(
         val fileNameRegex = Regex("^${BuildConfig.APP_NAME}_crashlog_(\\d{4}-\\d{2}-\\d{2}_[0-2]\\d-[0-5]\\d-[0-5]\\d).log$")
 
         fun getDir( context: Context ): File {
-            val dir = requireNotNull(
-                context.getExternalFilesDir( "crashlogs" )
-            ) { "Failed to get crashlogs directory!" }
+            // App-specific external storage can briefly be unavailable (for example while shared
+            // storage is being mounted). Crash handling and the next app start must not fail just
+            // because of that, so retain the log in private internal storage as a fallback.
+            val dir = context.getExternalFilesDir( "crashlogs" )
+                ?: context.filesDir.resolve( "crashlogs" )
 
             if( !dir.canWrite() )
                 dir.setWritable( true )

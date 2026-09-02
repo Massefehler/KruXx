@@ -104,6 +104,9 @@ fun OnlineSearch(
     val appearance = LocalAppearance.current
     // Settings
     val isHistoryPaused by Preferences.PAUSE_SEARCH_HISTORY
+    val youtubeLoginEnabled by Preferences.YOUTUBE_LOGIN
+    val youtubeCookies by Preferences.YOUTUBE_COOKIES
+    val useSearchLogin = youtubeLoginEnabled && youtubeCookies.isNotBlank()
 
     var reloadHistory by remember {
         mutableStateOf(false)
@@ -129,7 +132,10 @@ fun OnlineSearch(
             //suggestionsResult =
             //    Innertube.searchSuggestions(SearchSuggestionsBody(input = textFieldValue.text))
             suggestionsResult =
-                Innertube.searchSuggestionsWithItems(SearchSuggestionsBody(input = textFieldValue.text))
+                Innertube.searchSuggestionsWithItems(
+                    body = SearchSuggestionsBody(input = textFieldValue.text),
+                    useLogin = useSearchLogin
+                )
         }
     }
 

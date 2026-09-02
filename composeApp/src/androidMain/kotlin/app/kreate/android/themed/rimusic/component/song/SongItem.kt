@@ -46,6 +46,7 @@ import androidx.media3.datasource.cache.Cache
 import androidx.media3.exoplayer.offline.Download
 import app.kreate.android.Preferences
 import app.kreate.android.R
+import app.kreate.android.service.isDownloadPending
 import app.kreate.android.themed.rimusic.component.ItemSelector
 import app.kreate.android.themed.rimusic.component.Visual
 import app.kreate.android.utils.innertube.toSong
@@ -187,10 +188,10 @@ object SongItem: Visual() {
         val cacheState = downloadedStateMedia( songId )
         val downloadState = getDownloadState( songId )
 
-        val iconId = when( downloadState ) {
-            Download.STATE_DOWNLOADING  -> R.drawable.download_progress
-            Download.STATE_REMOVING     -> R.drawable.download
-            else                        -> cacheState.androidIconId
+        val iconId = when {
+            downloadState.isDownloadPending()       -> R.drawable.download_progress
+            downloadState == Download.STATE_REMOVING -> R.drawable.download
+            else                                     -> cacheState.androidIconId
         }
         val color = when( cacheState ) {
             DownloadedStateMedia.NOT_CACHED_OR_DOWNLOADED   -> values.uncachedColor

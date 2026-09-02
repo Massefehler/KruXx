@@ -31,7 +31,7 @@ fun downloadedStateMedia(
     mediaId: String,
     cache: Cache = koinInject(CacheType.CACHE)
 ): DownloadedStateMedia {
-    val isDownloaded by remember {
+    val isDownloaded by remember( mediaId ) {
         MyDownloadHelper.getDownload( mediaId )
                         .map { it?.state == Download.STATE_COMPLETED }
     }.collectAsState( false, Dispatchers.IO )
@@ -97,10 +97,8 @@ fun manageDownload(
 @Composable
 fun getDownloadState(mediaId: String): Int {
     val downloader = LocalDownloadHelper.current
-    if (!isNetworkAvailableComposable()) return 3
-
     return downloader.getDownload(mediaId).collectAsState(initial = null).value?.state
-        ?: 3
+        ?: Download.STATE_STOPPED
 }
 
 @OptIn(UnstableApi::class)

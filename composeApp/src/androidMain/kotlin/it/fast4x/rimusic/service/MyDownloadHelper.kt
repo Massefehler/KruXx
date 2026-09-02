@@ -19,6 +19,8 @@ object MyDownloadHelper : KoinComponent {
 
     fun addDownload(mediaItem: MediaItem) = instance.addDownload( mediaItem )
 
+    fun addDownloads(mediaItems: List<MediaItem>) = instance.addDownloads( mediaItems )
+
     fun removeDownload(mediaItem: MediaItem) = instance.removeDownload( mediaItem )
 
     fun autoDownload(mediaItem: MediaItem) = instance.autoDownload( mediaItem )

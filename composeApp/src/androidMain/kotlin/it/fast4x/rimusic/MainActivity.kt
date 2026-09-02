@@ -89,6 +89,7 @@ import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.service.updater.UpdatePlugins
 import app.kreate.android.themed.common.component.BottomMenu
 import app.kreate.android.themed.common.component.dialog.CrashReportDialog
+import app.kreate.android.utils.innertube.CURRENT_LOCALE
 import app.kreate.database.models.PersistentQueue
 import co.touchlab.kermit.Logger
 import coil3.imageLoader
@@ -156,7 +157,6 @@ import kotlinx.coroutines.withContext
 import me.knighthat.utils.Toaster
 import org.koin.compose.koinInject
 import org.koin.java.KoinJavaComponent.inject
-import java.util.Locale
 import java.util.Objects
 import kotlin.math.sqrt
 import kotlin.system.exitProcess
@@ -341,11 +341,15 @@ MainActivity :
             val lightTheme = colorPaletteMode == ColorPaletteMode.Light || (colorPaletteMode == ColorPaletteMode.System && (!isSystemInDarkTheme()))
 
 
-            LocalePreferences.preference =
-                LocalePreferenceItem(
-                    hl = Locale.getDefault().language,
-                    gl = Locale.getDefault().country
-                )
+            val currentYouTubeLocale = CURRENT_LOCALE
+            LocalePreferences.preference = LocalePreferenceItem(
+                hl = currentYouTubeLocale.languageCode(),
+                gl = currentYouTubeLocale.regionCode()
+            )
+            Innertube.locale = it.fast4x.innertube.clients.YouTubeLocale(
+                hl = currentYouTubeLocale.languageCode(),
+                gl = currentYouTubeLocale.regionCode()
+            )
 
             var appearance by rememberSaveable(
                 !lightTheme,

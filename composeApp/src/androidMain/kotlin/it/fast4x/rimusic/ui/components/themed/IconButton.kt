@@ -46,11 +46,12 @@ fun IconButton(
     color: Color,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    indication: Indication? = null
+    indication: Indication? = null,
+    contentDescription: String? = null
 ) {
     Image(
         painter = painterResource(icon),
-        contentDescription = null,
+        contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(color),
         modifier = Modifier
             .clickable(
@@ -62,4 +63,3 @@ fun IconButton(
             .then(modifier)
     )
 }
-

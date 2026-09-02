@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import app.kreate.android.BuildConfig
 import app.kreate.android.R
 import it.fast4x.compose.persist.PersistMapCleanup
 import it.fast4x.rimusic.colorPalette
@@ -85,11 +86,12 @@ fun SearchScreen(
                            // if (applyFontPadding)
                                Spacer(modifier = Modifier.padding(top = 5.dp))
 
-                            IconButton(
-                                onClick = {},
-                                icon = R.drawable.search,
-                                color = colorPalette().favoritesIcon,
-                                modifier = Modifier
+                        IconButton(
+                            onClick = {},
+                            icon = R.drawable.search,
+                            color = colorPalette().favoritesIcon,
+                            contentDescription = stringResource(android.R.string.search_go),
+                            modifier = Modifier
                                     //.align(Alignment.CenterStart)
                                     .size(20.dp)
                             )
@@ -129,13 +131,32 @@ fun SearchScreen(
 
                         Spacer(modifier = Modifier.padding(top = 5.dp))
 
-                        IconButton(
-                            onClick = { onTextFieldValueChanged(TextFieldValue("")) },
-                            icon = R.drawable.close,
-                            color = colorPalette().favoritesIcon,
-                            modifier = Modifier
-                                .size(24.dp)
-                        )
+                        if (
+                            BuildConfig.ON_DEVICE_VOICE_SEARCH_ENABLED &&
+                            textFieldValue.text.isEmpty() &&
+                            tabIndex != 2
+                        ) {
+                            OnDeviceVoiceSearchButton(
+                                onResult = { recognizedText ->
+                                    onTextFieldValueChanged(
+                                        TextFieldValue(
+                                            text = recognizedText,
+                                            selection = TextRange(recognizedText.length)
+                                        )
+                                    )
+                                },
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            IconButton(
+                                onClick = { onTextFieldValueChanged(TextFieldValue("")) },
+                                icon = R.drawable.close,
+                                color = colorPalette().favoritesIcon,
+                                contentDescription = stringResource(R.string.clear),
+                                modifier = Modifier
+                                    .size(24.dp)
+                            )
+                        }
                     }
                 }
             }

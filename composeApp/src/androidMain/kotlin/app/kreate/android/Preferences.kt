@@ -104,6 +104,16 @@ import org.koin.core.component.inject
 import org.koin.java.KoinJavaComponent.inject
 import java.net.Proxy
 
+internal fun kruxxStartupScreenAfterDefaultMigration(
+    storedName: kotlin.String?
+): HomeScreenTabs {
+    val storedScreen = HomeScreenTabs.entries.firstOrNull { it.name == storedName }
+    return if( storedScreen == null || storedScreen == HomeScreenTabs.Songs )
+        HomeScreenTabs.QuickPics
+    else
+        storedScreen
+}
+
 /**
  * Represents an individual setting.
  *
@@ -138,10 +148,34 @@ sealed class Preferences<T>(
     companion object : KoinComponent {
 
         private const val LOGGING_TAG = "Preferences"
+        private const val LEGACY_STARTUP_SCREEN_KEY = "indexNavigationTab"
+        private const val QUICK_PICKS_DEFAULT_MIGRATION = "KruXxQuickPicksDefaultAppliedV1"
 
         val profilePreferences: SharedPreferences by inject<SharedPreferences>(PrefType.PROFILES)
         val preferences: SharedPreferences by inject<SharedPreferences>(PrefType.DEFAULT)
         val encryptedPreferences: SharedPreferences by inject<SharedPreferences>(PrefType.CREDENTIALS)
+
+        /**
+         * Applies flavor-specific defaults before any lazy preference is initialized.
+         * Existing KruXx installations wrote the former Songs default to disk, so changing
+         * only [STARTUP_SCREEN]'s default would not move them to Quick Picks.
+         */
+        fun applyProductDefaults() {
+            if( !BuildConfig.START_ON_QUICK_PICKS_BY_DEFAULT ) return
+            if( preferences.all[QUICK_PICKS_DEFAULT_MIGRATION] == true ) return
+
+            val storedName = (
+                preferences.all[LEGACY_STARTUP_SCREEN_KEY]
+                    ?: preferences.all[Key.STARTUP_SCREEN]
+            ) as? kotlin.String
+            val startupScreen = kruxxStartupScreenAfterDefaultMigration( storedName )
+
+            preferences.edit( commit = true ) {
+                putString( Key.STARTUP_SCREEN, startupScreen.name )
+                remove( LEGACY_STARTUP_SCREEN_KEY )
+                putBoolean( QUICK_PICKS_DEFAULT_MIGRATION, true )
+            }
+        }
 
         //<editor-fold defaultstate="collapsed" desc="Item size">
         val HOME_ARTIST_ITEM_SIZE by lazy {
@@ -843,7 +877,12 @@ sealed class Preferences<T>(
             Enum( preferences, Key.THEME_MODE, "colorPaletteMode", ColorPaletteMode.Dark )
         }
         val STARTUP_SCREEN by lazy {
-            Enum( preferences, Key.STARTUP_SCREEN, "indexNavigationTab", HomeScreenTabs.Songs )
+            val default = if( BuildConfig.START_ON_QUICK_PICKS_BY_DEFAULT )
+                HomeScreenTabs.QuickPics
+            else
+                HomeScreenTabs.Songs
+
+            Enum( preferences, Key.STARTUP_SCREEN, LEGACY_STARTUP_SCREEN_KEY, default )
         }
         val FONT by lazy {
             Enum( preferences, Key.FONT, "fontType", FontType.Rubik )
@@ -900,7 +939,12 @@ sealed class Preferences<T>(
             Enum( preferences, Key.PIP_MODULE, "pipModule", PipModule.Cover )
         }
         val CHECK_UPDATE by lazy {
-            Enum( preferences, Key.CHECK_UPDATE, "checkUpdateState", CheckUpdateState.DISABLED )
+            Enum(
+                preferences,
+                Key.CHECK_UPDATE,
+                "checkUpdateState",
+                if( BuildConfig.SELF_UPDATE_ENABLED ) CheckUpdateState.ASK else CheckUpdateState.DISABLED
+            )
         }
         val SHOW_CHECK_UPDATE_STATUS by lazy {
             Boolean( preferences, Key.SHOW_CHECK_UPDATE_STATUS, "", true )

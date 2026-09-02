@@ -26,6 +26,14 @@ interface DownloadHelper {
 
     fun addDownload( mediaItem: MediaItem )
 
+    /**
+     * Adds a complete list through one ordered service-command queue.
+     *
+     * This avoids starting one unrelated coroutine per item in bulk-download actions and lets
+     * Media3 apply [DownloadManager.maxParallelDownloads] to the accepted queue.
+     */
+    fun addDownloads( mediaItems: List<MediaItem> )
+
     fun removeDownload( mediaItem: MediaItem )
 
     fun autoDownload( mediaItem: MediaItem )

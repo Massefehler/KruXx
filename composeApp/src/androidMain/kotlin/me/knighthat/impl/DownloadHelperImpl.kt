@@ -17,6 +17,8 @@ import androidx.media3.exoplayer.scheduler.Requirements
 import app.kreate.android.Preferences
 import app.kreate.android.coil3.ImageFactory
 import app.kreate.android.service.DownloadHelper
+import app.kreate.android.service.isDownloadPending
+import app.kreate.android.service.isDownloadRemovable
 import app.kreate.database.models.Song
 import app.kreate.di.CacheType
 import co.touchlab.kermit.Logger
@@ -44,9 +46,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import me.knighthat.utils.Toaster
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
 
@@ -57,9 +64,13 @@ class DownloadHelperImpl(
 
     companion object {
 
-        private const val NUM_PARALLEL_DOWNLOADS = 3
-        private const val NUM_RETRIES = 2
+        // Five streams improve bulk throughput when the CDN limits each connection. Going much
+        // higher tends to trade speed for throttling, retries, radio use and battery drain.
+        private const val NUM_PARALLEL_DOWNLOADS = 5
+        private const val NUM_RETRIES = 5
         private const val EXECUTOR_NAME = "DownloadHelper-Executor-Scope"
+        // Lyrics are useful offline, but must not compete with a whole batch of audio transfers.
+        private const val MAX_PARALLEL_AUXILIARY_REQUESTS = 1
     }
 
     private val executor = Executors.newCachedThreadPool()
@@ -68,6 +79,9 @@ class DownloadHelperImpl(
                 SupervisorJob() +
                 CoroutineName(EXECUTOR_NAME)
     )
+    private val commandMutex = Mutex()
+    private val auxiliaryRequestSlots = Semaphore(MAX_PARALLEL_AUXILIARY_REQUESTS)
+    private val pendingCommandIds = ConcurrentHashMap.newKeySet<String>()
 
     override val downloads: MutableStateFlow<Map<String, Download>>
     override val downloadManager by lazy {
@@ -76,12 +90,18 @@ class DownloadHelperImpl(
                 downloadManager: DownloadManager,
                 download: Download,
                 finalException: Exception?
-            ) = syncDownloads(download)
+            ) {
+                pendingCommandIds.remove(download.request.id)
+                syncDownloads(download)
+            }
 
             override fun onDownloadRemoved(
                 downloadManager: DownloadManager,
                 download: Download
-            ) = syncDownloads(download)
+            ) {
+                pendingCommandIds.remove(download.request.id)
+                downloads.update { it - download.request.id }
+            }
         }
 
         val manager = DownloadManager(
@@ -129,15 +149,8 @@ class DownloadHelperImpl(
         return downloadNotificationHelper
     }
 
-    override fun addDownload( mediaItem: MediaItem ) {
-        if (mediaItem.isLocal) return
-
-        if( !isNetworkConnected( context ) ) {
-            Toaster.noInternet()
-            return
-        }
-
-        val downloadRequest = DownloadRequest
+    private fun makeDownloadRequest(mediaItem: MediaItem) =
+        DownloadRequest
             .Builder(
                 /* id      = */ mediaItem.mediaId,
                 /* uri     = */ mediaItem.mediaId.toUri()
@@ -146,29 +159,77 @@ class DownloadHelperImpl(
             .setData("${mediaItem.mediaMetadata.artist.toString()} - ${mediaItem.mediaMetadata.title.toString()}".encodeToByteArray()) // Title in notification
             .build()
 
-        Database.asyncTransaction {
-            insertIgnore( mediaItem )
-        }
+    private fun canAdd(mediaItem: MediaItem): Boolean {
+        if( mediaItem.isLocal ) return false
 
-        val imageUrl = mediaItem.mediaMetadata.artworkUri.thumbnail(1200)
+        val currentState = downloads.value[mediaItem.mediaId]?.state
+        if( currentState == Download.STATE_COMPLETED ||
+            currentState == Download.STATE_REMOVING ||
+            currentState?.isDownloadPending() == true
+        ) return false
 
-//            sendAddDownload(
-//                context,MyDownloadService::class.java,downloadRequest,false
-//            )
+        // Covers the short interval between sending the service command and receiving the first
+        // DownloadManager callback. DownloadService itself remains the source of truth.
+        return pendingCommandIds.add(mediaItem.mediaId)
+    }
 
-        coroutineScope.launch {
-            context.download<MyDownloadService>(downloadRequest).exceptionOrNull()?.let {
-                if (it is CancellationException) throw it
-
-                Logger.e( it, "DownloadHelperImpl" ) { "addDownload failed!"}
-            }
+    private fun fetchAuxiliaryAssets(mediaItem: MediaItem) = coroutineScope.launch {
+        auxiliaryRequestSlots.withPermit {
             downloadSyncedLyrics( mediaItem.asSong )
 
+            val imageUrl = mediaItem.mediaMetadata.artworkUri.thumbnail(1200)
             ImageFactory.requestBuilder( imageUrl.toString() ) {
                 bitmapConfig( Bitmap.Config.ARGB_8888 )
                 allowHardware( false )
             }
         }
+    }
+
+    private fun enqueue(mediaItems: List<MediaItem>) {
+        val accepted = mediaItems
+            .distinctBy(MediaItem::mediaId)
+            .filter(::canAdd)
+        if( accepted.isEmpty() ) return
+
+        accepted.forEach { mediaItem ->
+            Database.asyncTransaction {
+                insertIgnore( mediaItem )
+            }
+        }
+
+        coroutineScope.launch {
+            commandMutex.withLock {
+                accepted.forEach { mediaItem ->
+                    val result = context.download<MyDownloadService>(makeDownloadRequest(mediaItem))
+
+                    result.exceptionOrNull()?.let {
+                        pendingCommandIds.remove(mediaItem.mediaId)
+                        if (it is CancellationException) throw it
+                        Logger.e( it, "DownloadHelperImpl" ) {
+                            "addDownload failed for ${mediaItem.mediaId}"
+                        }
+                    } ?: fetchAuxiliaryAssets(mediaItem)
+                }
+            }
+        }
+    }
+
+    override fun addDownload( mediaItem: MediaItem ) {
+        if( !isNetworkConnected( context ) ) {
+            Toaster.noInternet()
+            return
+        }
+
+        enqueue(listOf(mediaItem))
+    }
+
+    override fun addDownloads(mediaItems: List<MediaItem>) {
+        if( !isNetworkConnected( context ) ) {
+            Toaster.noInternet()
+            return
+        }
+
+        enqueue(mediaItems)
     }
 
     override fun removeDownload( mediaItem: MediaItem ) {
@@ -222,12 +283,11 @@ class DownloadHelperImpl(
     override fun handleDownload( song: Song, removeIfDownloaded: Boolean ) {
         if( song.isLocal ) return
 
-        val isDownloaded =
-            downloads.value.values.any{ it.state == Download.STATE_COMPLETED && it.request.id == song.id }
+        val state = downloads.value[song.id]?.state
 
-        if( isDownloaded && removeIfDownloaded )
+        if( removeIfDownloaded && state?.isDownloadRemovable() == true )
             removeDownload( song.asMediaItem )
-        else if( !isDownloaded )
+        else if( state != Download.STATE_COMPLETED && state?.isDownloadPending() != true )
             addDownload( song.asMediaItem )
     }
 }

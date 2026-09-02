@@ -22,6 +22,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import app.kreate.android.BuildConfig
 import app.kreate.android.R
 import app.kreate.android.drawable.AppIcon
 import it.fast4x.rimusic.colorPalette
@@ -87,8 +88,8 @@ private fun AppLogoText( navController: NavController ) {
         iconId = R.drawable.app_logo_text,
         color = AppBar.contentColor(),
         padding = 0.dp,
-        size = 36.dp,
-        forceWidth = 100.dp,
+        size = BuildConfig.HEADER_LOGO_HEIGHT_DP.dp,
+        forceWidth = BuildConfig.HEADER_LOGO_WIDTH_DP.dp,
         modifier = Modifier.clickable {
             if ( NavRoutes.home.isHere( navController ) ) return@clickable
 

@@ -36,8 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheSpan
+import androidx.media3.exoplayer.DecoderReuseEvaluation
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import app.kreate.android.Preferences
 import app.kreate.android.R
+import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.database.models.Format
 import app.kreate.di.CacheType
 import it.fast4x.rimusic.Database
@@ -65,7 +68,8 @@ fun StatsForNerds(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     cache: Cache = koinInject(CacheType.CACHE),
-    downloadCache: Cache = koinInject(CacheType.DOWNLOAD)
+    downloadCache: Cache = koinInject(CacheType.DOWNLOAD),
+    player: StatefulPlayer = koinInject()
 ) {
     val context = LocalContext.current
 
@@ -81,8 +85,11 @@ fun StatsForNerds(
         var downloadCachedBytes by remember(mediaId) {
             mutableStateOf(downloadCache.getCachedBytes(mediaId, 0, -1))
         }
+        var audioChannelCount by remember(mediaId) {
+            mutableStateOf(player.audioFormat?.channelCount?.takeIf { it > 0 })
+        }
 
-        val format by remember {
+        val format by remember( mediaId ) {
             Database.formatTable.findBySongId( mediaId )
         }.collectAsState( null, Dispatchers.IO )
         val isLocal by remember( format ) {
@@ -123,6 +130,25 @@ fun StatsForNerds(
             }
         }
 
+        DisposableEffect(player, mediaId) {
+            val listener = object : AnalyticsListener {
+                override fun onAudioInputFormatChanged(
+                    eventTime: AnalyticsListener.EventTime,
+                    format: androidx.media3.common.Format,
+                    decoderReuseEvaluation: DecoderReuseEvaluation?
+                ) {
+                    audioChannelCount = format.channelCount.takeIf { it > 0 }
+                }
+            }
+
+            player.addAnalyticsListener(listener)
+            audioChannelCount = player.audioFormat?.channelCount?.takeIf { it > 0 }
+
+            onDispose {
+                player.removeAnalyticsListener(listener)
+            }
+        }
+
     if (showThumbnail && (!statsForNerds || playerType == PlayerType.Essential)) {
         Box(
             modifier = modifier
@@ -159,6 +185,10 @@ fun StatsForNerds(
                     }
                     BasicText(
                         text = stringResource(R.string.bitrate),
+                        style = typography().xs.medium.color(colorPalette().onOverlay)
+                    )
+                    BasicText(
+                        text = stringResource(R.string.audio_channels),
                         style = typography().xs.medium.color(colorPalette().onOverlay)
                     )
                     BasicText(
@@ -208,6 +238,11 @@ fun StatsForNerds(
                     }
                     BasicText(
                         text = format?.bitrate?.let { "${it / 1000} kbps" } ?: stringResource(R.string.audio_quality_format_unknown),
+                        maxLines = 1,
+                        style = typography().xs.medium.color(colorPalette().onOverlay)
+                    )
+                    BasicText(
+                        text = audioChannelDescription(audioChannelCount),
                         maxLines = 1,
                         style = typography().xs.medium.color(colorPalette().onOverlay)
                     )
@@ -298,7 +333,6 @@ fun StatsForNerds(
                         contentAlignment = Alignment.Center,
                         modifier = modifier.weight(1f)
                     ) {
-                        println("StatsForNerds modern player bitrate: ${format?.bitrate}")
                         BasicText(
                             text = format?.bitrate?.let { stringResource(R.string.bitrate) + " : " + "${it / 1000} kbps" }
                                 ?: (stringResource(R.string.bitrate) + " : " + stringResource(R.string.audio_quality_format_unknown)),
@@ -365,6 +399,18 @@ fun StatsForNerds(
                                       style = typography().xs.medium.color(colorPalette().text)
                                   )
                               }
+                          }
+                          Box(
+                              contentAlignment = Alignment.Center,
+                              modifier = modifier.weight(1f)
+                          ) {
+                              BasicText(
+                                  text = stringResource(R.string.audio_channels) + " : " +
+                                          audioChannelDescription(audioChannelCount),
+                                  maxLines = 1,
+                                  overflow = TextOverflow.Ellipsis,
+                                  style = typography().xs.medium.color(colorPalette().text)
+                              )
                           }
                       }
                       Row(
@@ -439,6 +485,16 @@ fun StatsForNerds(
         }
     }
 }
+
+
+@Composable
+private fun audioChannelDescription(channelCount: Int?): String =
+    when( channelCount ) {
+        1 -> stringResource(R.string.audio_channels_mono, channelCount)
+        2 -> stringResource(R.string.audio_channels_stereo, channelCount)
+        null -> stringResource(R.string.audio_quality_format_unknown)
+        else -> channelCount.toString()
+    }
 
 
 @Composable

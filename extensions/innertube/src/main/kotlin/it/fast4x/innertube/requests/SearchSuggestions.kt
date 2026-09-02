@@ -14,55 +14,79 @@ import it.fast4x.innertube.models.oddElements
 import it.fast4x.innertube.models.splitBySeparator
 import it.fast4x.innertube.utils.runCatchingNonCancellable
 
-suspend fun Innertube.searchSuggestions(body: SearchSuggestionsBody) = runCatchingNonCancellable {
-    val response = client.post(searchSuggestions) {
-        setBody(body)
-        mask("contents.searchSuggestionsSectionRenderer.contents.searchSuggestionRenderer.navigationEndpoint.searchEndpoint.query")
-    }.body<SearchSuggestionsResponse>()
+suspend fun Innertube.searchSuggestions(
+    body: SearchSuggestionsBody,
+    useLogin: Boolean = false
+): Result<List<String>?>? {
+    suspend fun request(loggedIn: Boolean): List<String>? {
+        val response = client.post(searchSuggestions) {
+            setLogin(body.context.client, loggedIn)
+            setBody(body)
+            mask("contents.searchSuggestionsSectionRenderer.contents.searchSuggestionRenderer.navigationEndpoint.searchEndpoint.query")
+        }.body<SearchSuggestionsResponse>()
 
-    response
-        .contents
-        ?.firstOrNull()
-        ?.searchSuggestionsSectionRenderer
-        ?.contents
-        ?.mapNotNull { content ->
-            content
-                .searchSuggestionRenderer
-                ?.navigationEndpoint
-                ?.searchEndpoint
-                ?.query
-        }
+        return response
+            .contents
+            ?.firstOrNull()
+            ?.searchSuggestionsSectionRenderer
+            ?.contents
+            ?.mapNotNull { content ->
+                content
+                    .searchSuggestionRenderer
+                    ?.navigationEndpoint
+                    ?.searchEndpoint
+                    ?.query
+            }
+    }
+
+    val shouldLogin = useLogin && !cookie.isNullOrBlank()
+    val result = runCatchingNonCancellable { request(shouldLogin) }
+    return if (
+        shouldLogin && result != null &&
+        (result.isFailure || result.getOrNull() == null)
+    ) {
+        runCatchingNonCancellable { request(false) }
+    } else {
+        result
+    }
 }
 
-suspend fun Innertube.searchSuggestionsWithItems(body: SearchSuggestionsBody) = runCatchingNonCancellable {
-    val response = client.post(searchSuggestions) {
-        setBody(body)
-        //mask("contents.searchSuggestionsSectionRenderer.contents.searchSuggestionRenderer.navigationEndpoint.searchEndpoint.query")
-    }.body<GetSearchSuggestionsResponse>()
+suspend fun Innertube.searchSuggestionsWithItems(
+    body: SearchSuggestionsBody,
+    useLogin: Boolean = false
+): Result<Innertube.SearchSuggestions>? {
+    suspend fun request(loggedIn: Boolean): Innertube.SearchSuggestions {
+        val response = client.post(searchSuggestions) {
+            setLogin(body.context.client, loggedIn)
+            setBody(body)
+        }.body<GetSearchSuggestionsResponse>()
 
-    val queries = response.contents?.getOrNull(0)?.searchSuggestionsSectionRenderer?.contents?.mapNotNull { content ->
-        content.searchSuggestionRenderer?.suggestion?.runs?.joinToString(separator = "") { it.text.toString() }
-    }.orEmpty()
-
-    val recommendedItems =
-        response.contents?.getOrNull(1)?.searchSuggestionsSectionRenderer?.contents?.mapNotNull {
-            it.musicResponsiveListItemRenderer?.let { renderer ->
-                SearchSuggestionPage.fromMusicResponsiveListItemRenderer(renderer)
-            }
+        val queries = response.contents?.getOrNull(0)?.searchSuggestionsSectionRenderer?.contents?.mapNotNull { content ->
+            content.searchSuggestionRenderer?.suggestion?.runs?.joinToString(separator = "") { it.text.orEmpty() }
         }.orEmpty()
 
-    println("mediaItem Innertube.searchSuggestionsWithItems queries $queries")
-    println("mediaItem Innertube.searchSuggestionsWithItems recommendedItems $recommendedItems")
+        val recommendedItems =
+            response.contents?.getOrNull(1)?.searchSuggestionsSectionRenderer?.contents?.mapNotNull {
+                it.musicResponsiveListItemRenderer?.let(SearchSuggestionPage::fromMusicResponsiveListItemRenderer)
+            }.orEmpty()
 
-    Innertube.SearchSuggestions(
-        queries = queries,
-        recommendedSong = recommendedItems.filterIsInstance<Innertube.SongItem>().firstOrNull(),
-        recommendedPlaylist = recommendedItems.filterIsInstance<Innertube.PlaylistItem>().firstOrNull(),
-        recommendedAlbum = recommendedItems.filterIsInstance<Innertube.AlbumItem>().firstOrNull(),
-        recommendedArtist = recommendedItems.filterIsInstance<Innertube.ArtistItem>().firstOrNull(),
-        recommendedVideo = recommendedItems.filterIsInstance<Innertube.VideoItem>().firstOrNull(),
-    )
+        return Innertube.SearchSuggestions(
+            queries = queries,
+            recommendedSong = recommendedItems.filterIsInstance<Innertube.SongItem>().firstOrNull(),
+            recommendedPlaylist = recommendedItems.filterIsInstance<Innertube.PlaylistItem>().firstOrNull(),
+            recommendedAlbum = recommendedItems.filterIsInstance<Innertube.AlbumItem>().firstOrNull(),
+            recommendedArtist = recommendedItems.filterIsInstance<Innertube.ArtistItem>().firstOrNull(),
+            recommendedVideo = recommendedItems.filterIsInstance<Innertube.VideoItem>().firstOrNull(),
+        )
+    }
 
+    val shouldLogin = useLogin && !cookie.isNullOrBlank()
+    val result = runCatchingNonCancellable { request(shouldLogin) }
+    return if (shouldLogin && result?.isFailure == true) {
+        runCatchingNonCancellable { request(false) }
+    } else {
+        result
+    }
 }
 
 object SearchSuggestionPage {
@@ -97,26 +121,33 @@ object SearchSuggestionPage {
             }
              */
             renderer.isSong -> {
+                val title = renderer.flexColumns.firstOrNull()
+                    ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text
+                    ?: return null
+                val watchEndpoint = renderer.navigationEndpoint?.watchEndpoint
+                    ?: renderer.playlistItemData?.videoId?.let {
+                        NavigationEndpoint.Endpoint.Watch(videoId = it)
+                    }
                 val explicitBadge = if (renderer.badges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null) "e:" else ""
                 Innertube.SongItem(
                     info = Innertube.Info(
-                        name = "${explicitBadge}${renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text}",
-                        endpoint = renderer.navigationEndpoint?.endpoint as NavigationEndpoint.Endpoint.Watch
+                        name = "$explicitBadge$title",
+                        endpoint = watchEndpoint
                     ),
                     authors = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.splitBySeparator()
                         ?.getOrNull(1)?.oddElements()?.map {
                             Innertube.Info(
                                 name = it.text,
-                                endpoint = it.navigationEndpoint?.endpoint as NavigationEndpoint.Endpoint.Browse
+                                endpoint = it.navigationEndpoint?.browseEndpoint
                             )
                         } ?: return null,
                     album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                         ?.let {
                             Innertube.Info(
                                 name = it.text,
-                                endpoint = it.navigationEndpoint?.endpoint as NavigationEndpoint.Endpoint.Browse
+                                endpoint = it.navigationEndpoint?.browseEndpoint
                             )
                         },
                     durationText = null,
@@ -128,10 +159,11 @@ object SearchSuggestionPage {
                 )
             }
             renderer.isArtist -> {
+                val browseEndpoint = renderer.navigationEndpoint?.browseEndpoint ?: return null
                 Innertube.ArtistItem(
                     info = Innertube.Info(
                         name = renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text ?: return null,
-                        endpoint = renderer.navigationEndpoint?.endpoint as NavigationEndpoint.Endpoint.Browse
+                        endpoint = browseEndpoint
                     ),
                     thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.getBestQuality()
                         ?: return null,
@@ -141,16 +173,17 @@ object SearchSuggestionPage {
             renderer.isAlbum -> {
                 val secondaryLine = renderer.flexColumns.getOrNull(1)
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.splitBySeparator() ?: return null
+                val browseEndpoint = renderer.navigationEndpoint?.browseEndpoint ?: return null
                 Innertube.AlbumItem(
                     info = Innertube.Info(
                         name = renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text ?: return null,
-                        endpoint = renderer.navigationEndpoint?.endpoint as NavigationEndpoint.Endpoint.Browse
+                        endpoint = browseEndpoint
                     ),
                     authors = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.splitBySeparator()
                         ?.getOrNull(1)?.oddElements()?.map {
                             Innertube.Info(
                                 name = it.text,
-                                endpoint = it.navigationEndpoint?.endpoint as NavigationEndpoint.Endpoint.Browse
+                                endpoint = it.navigationEndpoint?.browseEndpoint
                             )
                         } ?: return null,
                     year = secondaryLine.lastOrNull()?.firstOrNull()?.text,

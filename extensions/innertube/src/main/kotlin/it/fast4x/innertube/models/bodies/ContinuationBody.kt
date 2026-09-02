@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ContinuationBody(
-    val context: Context = Context.DefaultWeb,
+    val context: Context = Context.DefaultWebWithLocale,
     val continuation: String,
 )

@@ -1,0 +1,7 @@
+Downloads:
+- Bis zu fünf Titel werden nun gleichzeitig geladen, damit der Gesamtdurchsatz bei pro Verbindung gedrosselten YTM-Streams besser ausgenutzt wird.
+- Liedtext- und andere Nebenabrufe sind auf einen gleichzeitig begrenzt, damit die Audiodateien beim Massendownload Vorrang haben.
+
+Design:
+- Die Header-Wortmarke ist insgesamt größer; „KruXx“ wird größer und kräftiger als „– The core of your music“ dargestellt.
+- Das zuletzt bereitgestellte KruXx-Icon wurde erneut in alle Launcher-, Rund-, adaptive, Themed-, Benachrichtigungs-, TV- und Platzhaltergrafiken übernommen.

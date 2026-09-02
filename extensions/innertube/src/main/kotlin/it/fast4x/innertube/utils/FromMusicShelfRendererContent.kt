@@ -6,6 +6,14 @@ import it.fast4x.innertube.models.NavigationEndpoint
 
 fun Innertube.SongItem.Companion.from(content: MusicShelfRenderer.Content): Innertube.SongItem? {
     val (mainRuns, otherRuns) = content.runs
+    val renderer = content.musicResponsiveListItemRenderer
+    val titleRun = mainRuns.firstOrNull()
+    val watchEndpoint = mainRuns
+        .firstNotNullOfOrNull { it.navigationEndpoint?.watchEndpoint }
+        ?: renderer?.navigationEndpoint?.watchEndpoint
+        ?: renderer?.playlistItemData?.videoId?.let {
+            NavigationEndpoint.Endpoint.Watch(videoId = it)
+        }
 
     // Possible configurations:
     // "song" • author(s) • album • duration
@@ -31,9 +39,7 @@ fun Innertube.SongItem.Companion.from(content: MusicShelfRenderer.Content): Inne
                                       } ?: false
 
     return Innertube.SongItem(
-        info = mainRuns
-            .firstOrNull()
-            ?.let(Innertube::Info),
+        info = watchEndpoint?.let { Innertube.Info(titleRun?.text, it) },
         authors = otherRuns
             .getOrNull(otherRuns.lastIndex - if (album == null) 1 else 2)
             ?.map(Innertube::Info),
@@ -49,12 +55,18 @@ fun Innertube.SongItem.Companion.from(content: MusicShelfRenderer.Content): Inne
 
 fun Innertube.VideoItem.Companion.from(content: MusicShelfRenderer.Content): Innertube.VideoItem? {
     val (mainRuns, otherRuns) = content.runs
+    val renderer = content.musicResponsiveListItemRenderer
+    val titleRun = mainRuns.firstOrNull()
+    val watchEndpoint = mainRuns
+        .firstNotNullOfOrNull { it.navigationEndpoint?.watchEndpoint }
+        ?: renderer?.navigationEndpoint?.watchEndpoint
+        ?: renderer?.playlistItemData?.videoId?.let {
+            NavigationEndpoint.Endpoint.Watch(videoId = it)
+        }
 
     return runCatching {
         Innertube.VideoItem(
-            info = mainRuns
-                .firstOrNull()
-                ?.let(Innertube::Info),
+            info = watchEndpoint?.let { Innertube.Info(titleRun?.text, it) },
             authors = otherRuns
                 .getOrNull(otherRuns.lastIndex - 2)
                 ?.map(Innertube::Info),
@@ -67,7 +79,10 @@ fun Innertube.VideoItem.Companion.from(content: MusicShelfRenderer.Content): Inn
                 ?.firstOrNull()
                 ?.text,
             thumbnail = content
-                .thumbnail
+                .thumbnail,
+            explicit = renderer?.badges?.any {
+                it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+            } == true
         ).takeIf { it.info?.endpoint?.videoId != null }
     }.getOrNull()
 

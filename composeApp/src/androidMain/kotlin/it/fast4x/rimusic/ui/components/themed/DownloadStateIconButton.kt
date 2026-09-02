@@ -15,6 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import app.kreate.android.R
+import app.kreate.android.service.isDownloadPending
 
 @UnstableApi
 @Composable
@@ -29,10 +30,7 @@ fun DownloadStateIconButton(
     downloadState: Int
 ) {
 
-    if (downloadState == Download.STATE_DOWNLOADING
-                || downloadState == Download.STATE_QUEUED
-                || downloadState == Download.STATE_RESTARTING
-                ){
+    if (downloadState.isDownloadPending()) {
         Image(
             painter = painterResource(R.drawable.download_progress),
             contentDescription = null,

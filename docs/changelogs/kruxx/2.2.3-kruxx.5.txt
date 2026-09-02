@@ -1,0 +1,8 @@
+Suche:
+- Die Online-Suche berücksichtigt jetzt App-Sprache, eingestellte Region und – falls aktiviert – die YouTube-Anmeldung.
+- Der Reiter „Titel“ ergänzt passende Musikvideo- und UGC-Treffer, die YTM nicht als Song einordnet, und entfernt Dubletten.
+- YTM-Filter, Trefferparser und Vorschläge wurden aktualisiert; bei einer ungültigen Kontositzung folgt automatisch ein anonymer Suchversuch.
+- Alte leere oder für eine andere Region gespeicherte Suchergebnisse werden nicht wiederverwendet.
+
+Design:
+- Das nochmals angepasste KruXx-Icon ersetzt Launcher-, Rund-, adaptive, Themed-, Benachrichtigungs-, TV- und Platzhaltergrafiken.

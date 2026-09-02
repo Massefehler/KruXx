@@ -546,7 +546,7 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
     }
 
     private fun updateReverb() {
-        if( !::reverb.isInitialized || !reverb.enabled )
+        if( !::reverb.isInitialized )
             return
         else
             logger.v { "Updating reverb..." }
@@ -556,9 +556,21 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
 
             reverbJob = coroutineScope.launch {
                 val preset by Preferences.AUDIO_REVERB_PRESET
-                reverb.preset = preset.toShort()
+                val enabled = preset != 0
 
-                logger.d { "Reverb set to $preset" }
+                reverb.enabled = false
+                if( enabled )
+                    reverb.preset = preset.toShort()
+
+                withContext(Dispatchers.Main) {
+                    if( enabled )
+                        setAuxEffectInfo( AuxEffectInfo(reverb.id, 1f) )
+                    else
+                        clearAuxEffectInfo()
+                }
+                reverb.enabled = enabled
+
+                logger.d { "Reverb set to $preset (enabled=$enabled)" }
             }
         } catch( err: Exception ) {
             logger.e( err ) { "updateReverb failed!" }
@@ -618,10 +630,7 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
                 reverb.release()
 
             reverb = PresetReverb(1, audioSessionId)
-            reverb.enabled = true       // Value is set by presets
-
-            val auxEffect = AuxEffectInfo(reverb.id, 1f)
-            setAuxEffectInfo( auxEffect )
+            reverb.enabled = false
 
             updateReverb()
         } catch( err: Exception ) {

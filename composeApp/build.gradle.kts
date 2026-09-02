@@ -10,10 +10,14 @@ import java.util.Date
 
 val APP_NAME = "Kreate"
 val KRUXX_APP_NAME = "KruXx"
-// KruXx release counter on top of the upstream version: versionName "<upstream>-kruxx.<n>",
-// versionCode "<upstream code> * 100 + n" (14101, 14102, ... - stays below the next upstream
-// bump, e.g. 14201). Raise for every KruXx release and add docs/changelogs/kruxx/<versionName>.txt.
-val KRUXX_REVISION = 2
+// KruXx has its own release line. Keep versionCode strictly increasing forever: Android uses
+// it (not versionName) to decide whether an APK is an update. 1_000_000 is deliberately above
+// every distributed 2.2.3-kruxx.x build (latest: 14_107).
+val KRUXX_VERSION_NAME = "1.0.0"
+val KRUXX_VERSION_CODE = 1_000_000
+val KRUXX_REPOSITORY_OWNER = "Massefehler"
+val KRUXX_REPOSITORY_NAME = "KruXx"
+val KRUXX_SIGNING_CERT_SHA256 = "5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673"
 
 private fun String.sha256(): String {
     val digest = MessageDigest.getInstance( "SHA-256" )
@@ -195,8 +199,16 @@ android {
                 UNIVERSAL VARIABLES
          */
         buildConfigField( "String", "APP_NAME", "\"$APP_NAME\"" )
-        // Upstream repository name; stays "Kreate" even for renamed flavors (see Repository.kt)
+        buildConfigField( "String", "REPO_OWNER", "\"knighthat\"" )
         buildConfigField( "String", "REPO_NAME", "\"$APP_NAME\"" )
+        buildConfigField( "boolean", "INDEPENDENT_FORK", "false" )
+        buildConfigField( "boolean", "SELF_UPDATE_ENABLED", "false" )
+        buildConfigField( "String", "EXPECTED_SIGNING_CERT_SHA256", "\"\"" )
+        buildConfigField( "boolean", "UPSTREAM_CRASH_REPORTING_ENABLED", "true" )
+        buildConfigField( "boolean", "START_ON_QUICK_PICKS_BY_DEFAULT", "false" )
+        buildConfigField( "boolean", "ON_DEVICE_VOICE_SEARCH_ENABLED", "false" )
+        buildConfigField( "int", "HEADER_LOGO_WIDTH_DP", "100" )
+        buildConfigField( "int", "HEADER_LOGO_HEIGHT_DP", "36" )
     }
 
     namespace = "app.kreate.android"
@@ -262,18 +274,30 @@ android {
             // App's properties
             versionNameSuffix = "-izzy"
         }
-        // Personal fork "KruXx": own application id so it installs next to the
-        // official Kreate, own name/icon (see src/androidKruxx), no in-app updater.
+        // Independent fork "KruXx": own application id, release line, repository and updater.
         create( "kruxx" ) {
             dimension = "platform"
 
             applicationId = "de.kruxx.music"
             buildConfigField( "String", "APP_NAME", "\"$KRUXX_APP_NAME\"" )
+            buildConfigField( "String", "REPO_OWNER", "\"$KRUXX_REPOSITORY_OWNER\"" )
+            buildConfigField( "String", "REPO_NAME", "\"$KRUXX_REPOSITORY_NAME\"" )
+            buildConfigField( "boolean", "INDEPENDENT_FORK", "true" )
+            buildConfigField( "boolean", "SELF_UPDATE_ENABLED", "true" )
+            buildConfigField( "String", "EXPECTED_SIGNING_CERT_SHA256", "\"$KRUXX_SIGNING_CERT_SHA256\"" )
+            // KruXx is a fork: never offer to send its crash reports to Kreate's issue tracker.
+            buildConfigField( "boolean", "UPSTREAM_CRASH_REPORTING_ENABLED", "false" )
+            buildConfigField( "boolean", "START_ON_QUICK_PICKS_BY_DEFAULT", "true" )
+            // Privacy-first voice input: use Android's on-device recognizer only.
+            buildConfigField( "boolean", "ON_DEVICE_VOICE_SEARCH_ENABLED", "true" )
+            // Larger single-line wordmark: "KruXx" is more prominent than the tagline.
+            buildConfigField( "int", "HEADER_LOGO_WIDTH_DP", "205" )
+            buildConfigField( "int", "HEADER_LOGO_HEIGHT_DP", "42" )
             manifestPlaceholders["appName"] = KRUXX_APP_NAME
-            // "platform" is the first flavor dimension, so this wins over prod's versionCode;
-            // the suffix is appended to prod's versionName (see KRUXX_REVISION).
-            versionCode = (vCode * 100) + KRUXX_REVISION
-            versionNameSuffix = "-kruxx.$KRUXX_REVISION"
+            // "platform" is the first (highest-priority) flavor dimension, so these values win
+            // over the upstream values supplied by the env flavor below.
+            versionCode = KRUXX_VERSION_CODE
+            versionName = KRUXX_VERSION_NAME
         }
         //</editor-fold>
         //<editor-fold desc="Architectures">
@@ -458,7 +482,7 @@ licenseReport {
     // For Android projects use 'releaseRuntimeClasspath' or 'yourFlavorNameReleaseRuntimeClasspath'
     // Use 'ALL' to dynamically resolve all configurations:
     // configurations = ALL
-    configurations = arrayOf( "githubUniversalProdUncompressedRuntimeClasspath" )
+    configurations = arrayOf( "kruxxUniversalProdReleaseRuntimeClasspath" )
 
     // Don't include artifacts of project's own group into the report
     excludeOwnGroup = true
@@ -495,7 +519,7 @@ val copyKruxxReleaseNote = tasks.register<Copy>( "copyKruxxReleaseNote" ) {
     group = JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME
 
     val sourceDir = "$rootDir/docs/changelogs/kruxx"
-    val fileName = "${libs.versions.versionName.get()}-kruxx.$KRUXX_REVISION.txt"
+    val fileName = "$KRUXX_VERSION_NAME.txt"
 
     // Declared as a task input so Gradle fails with a clear message when the note for the
     // current KruXx version is missing (a doFirst check would break the configuration cache).

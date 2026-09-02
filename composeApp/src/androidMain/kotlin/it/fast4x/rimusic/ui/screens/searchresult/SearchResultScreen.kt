@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ import app.kreate.database.models.SongAlbumMap
 import app.kreate.di.CacheType
 import it.fast4x.compose.persist.persist
 import it.fast4x.innertube.Innertube
+import it.fast4x.innertube.models.Context as InnertubeContext
 import it.fast4x.innertube.models.bodies.BrowseBody
 import it.fast4x.innertube.models.bodies.ContinuationBody
 import it.fast4x.innertube.models.bodies.SearchBody
@@ -101,6 +103,22 @@ fun SearchResultScreen(
 
     val isVideoEnabled by Preferences.PLAYER_ACTION_TOGGLE_VIDEO
     val parentalControlEnabled by Preferences.PARENTAL_CONTROL
+    val youtubeLoginEnabled by Preferences.YOUTUBE_LOGIN
+    val youtubeCookies by Preferences.YOUTUBE_COOKIES
+    val youtubeVisitorData by Preferences.YOUTUBE_VISITOR_DATA
+    val youtubeSyncId by Preferences.YOUTUBE_SYNC_ID
+    val useSearchLogin = youtubeLoginEnabled && youtubeCookies.isNotBlank()
+
+    SideEffect {
+        // oldtube powers this screen, while the rest of the app primarily configures the newer
+        // Innertube modules. Keep its account session synchronized for YTM-like search results.
+        Innertube.cookie = youtubeCookies.takeIf { useSearchLogin }
+        Innertube.visitorData = youtubeVisitorData
+        Innertube.dataSyncId = youtubeSyncId.takeIf(String::isNotBlank)
+    }
+
+    val searchContext = InnertubeContext.DefaultWebWithLocale
+    val searchCachePrefix = "searchResults/v3/${searchContext.client.hl}-${searchContext.client.gl}/${if (useSearchLogin) "account" else "anonymous"}/$query"
 
     val headerContent: @Composable (textButton: (@Composable () -> Unit)?) -> Unit = {
         Title(
@@ -144,20 +162,22 @@ fun SearchResultScreen(
             when ( currentTabIndex ) {
                 0 -> {
                     ItemsPage(
-                        tag = "searchResults/$query/songs",
+                        tag = "$searchCachePrefix/songs-and-videos",
                         itemsPageProvider = { continuation ->
                             if (continuation == null) {
-                                Innertube.searchPage(
-                                    body = SearchBody(
-                                        query = query,
-                                        params = Innertube.SearchFilter.Song.value
-                                    ),
-                                    fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
+                                searchSongsWithVideoFallback(
+                                    query = query,
+                                    context = searchContext,
+                                    useLogin = useSearchLogin
                                 )
                             } else {
                                 Innertube.searchPage(
-                                    body = ContinuationBody(continuation = continuation),
-                                    fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
+                                    body = ContinuationBody(
+                                        context = searchContext,
+                                        continuation = continuation
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.SongItem.Companion::from,
+                                    useLogin = useSearchLogin
                                 )
                             }
                         },
@@ -213,20 +233,26 @@ fun SearchResultScreen(
 
                 1 -> {
                     ItemsPage(
-                        tag = "searchResults/$query/albums",
+                        tag = "$searchCachePrefix/albums",
                         itemsPageProvider = { continuation ->
                             if (continuation == null) {
                                 Innertube.searchPage(
                                     body = SearchBody(
+                                        context = searchContext,
                                         query = query,
                                         params = Innertube.SearchFilter.Album.value
                                     ),
-                                    fromMusicShelfRendererContent = Innertube.AlbumItem::from
+                                    fromMusicShelfRendererContent = Innertube.AlbumItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             } else {
                                 Innertube.searchPage(
-                                    body = ContinuationBody(continuation = continuation),
-                                    fromMusicShelfRendererContent = Innertube.AlbumItem::from
+                                    body = ContinuationBody(
+                                        context = searchContext,
+                                        continuation = continuation
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.AlbumItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             }
                         },
@@ -406,20 +432,26 @@ fun SearchResultScreen(
                     }
 
                     ItemsPage(
-                        tag = "searchResults/$query/artists",
+                        tag = "$searchCachePrefix/artists",
                         itemsPageProvider = { continuation ->
                             if (continuation == null) {
                                 Innertube.searchPage(
                                     body = SearchBody(
+                                        context = searchContext,
                                         query = query,
                                         params = Innertube.SearchFilter.Artist.value
                                     ),
-                                    fromMusicShelfRendererContent = Innertube.ArtistItem::from
+                                    fromMusicShelfRendererContent = Innertube.ArtistItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             } else {
                                 Innertube.searchPage(
-                                    body = ContinuationBody(continuation = continuation),
-                                    fromMusicShelfRendererContent = Innertube.ArtistItem::from
+                                    body = ContinuationBody(
+                                        context = searchContext,
+                                        continuation = continuation
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.ArtistItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             }
                         },
@@ -440,20 +472,26 @@ fun SearchResultScreen(
                     val thumbnailWidthDp = 128.dp
 
                     ItemsPage(
-                        tag = "searchResults/$query/videos",
+                        tag = "$searchCachePrefix/videos",
                         itemsPageProvider = { continuation ->
                             if (continuation == null) {
                                 Innertube.searchPage(
                                     body = SearchBody(
+                                        context = searchContext,
                                         query = query,
                                         params = Innertube.SearchFilter.Video.value
                                     ),
-                                    fromMusicShelfRendererContent = Innertube.VideoItem::from
+                                    fromMusicShelfRendererContent = Innertube.VideoItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             } else {
                                 Innertube.searchPage(
-                                    body = ContinuationBody(continuation = continuation),
-                                    fromMusicShelfRendererContent = Innertube.VideoItem::from
+                                    body = ContinuationBody(
+                                        context = searchContext,
+                                        continuation = continuation
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.VideoItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             }
                         },
@@ -514,7 +552,7 @@ fun SearchResultScreen(
                     }
 
                     ItemsPage(
-                        tag = "searchResults/$query/${
+                        tag = "$searchCachePrefix/${
                             when (currentTabIndex) {
                                 4 -> "playlists"
                                 else -> "featured"
@@ -528,13 +566,22 @@ fun SearchResultScreen(
                                 }
 
                                 Innertube.searchPage(
-                                    body = SearchBody(query = query, params = filter.value),
-                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from
+                                    body = SearchBody(
+                                        context = searchContext,
+                                        query = query,
+                                        params = filter.value
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             } else {
                                 Innertube.searchPage(
-                                    body = ContinuationBody(continuation = continuation),
-                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from
+                                    body = ContinuationBody(
+                                        context = searchContext,
+                                        continuation = continuation
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             }
                         },
@@ -562,19 +609,28 @@ fun SearchResultScreen(
                     }
 
                     ItemsPage(
-                        tag = "searchResults/$query/podcasts",
+                        tag = "$searchCachePrefix/podcasts",
                         itemsPageProvider = { continuation ->
                             if (continuation == null) {
                                 val filter = Innertube.SearchFilter.Podcast
 
                                 Innertube.searchPage(
-                                    body = SearchBody(query = query, params = filter.value),
-                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from
+                                    body = SearchBody(
+                                        context = searchContext,
+                                        query = query,
+                                        params = filter.value
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             } else {
                                 Innertube.searchPage(
-                                    body = ContinuationBody(continuation = continuation),
-                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from
+                                    body = ContinuationBody(
+                                        context = searchContext,
+                                        continuation = continuation
+                                    ),
+                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from,
+                                    useLogin = useSearchLogin
                                 )
                             }
                         },

@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastMaxOfOrNull
 import androidx.core.net.toUri
+import app.kreate.android.BuildConfig
 import app.kreate.android.R
 import app.kreate.android.utils.CrashHandler
 import it.fast4x.rimusic.ui.styling.LocalAppearance
@@ -77,7 +78,7 @@ class CrashReportDialog(private val context: Context): Dialog() {
         context.contentResolver.openInputStream( crashlogFile.toUri() )
 
     override fun showDialog() {
-        if( isAvailable() )
+        if( BuildConfig.UPSTREAM_CRASH_REPORTING_ENABLED && isAvailable() )
             super.showDialog()
     }
 
@@ -137,6 +138,9 @@ class CrashReportDialog(private val context: Context): Dialog() {
 
     @Composable
     override fun DialogFooter() {
+        // Fork builds keep crashlogs local and must not link them to Kreate's tracker.
+        if( !BuildConfig.UPSTREAM_CRASH_REPORTING_ENABLED ) return
+
         val (colorPalette, typography) = LocalAppearance.current
 
         Row(

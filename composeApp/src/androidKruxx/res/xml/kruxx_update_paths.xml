@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@xml/kruxx_update_paths">
+    <!-- Only the app-private update directory is shared with Android's package installer. -->
+    <external-files-path name="kruxx_updates" path="Download/" />
+</paths>

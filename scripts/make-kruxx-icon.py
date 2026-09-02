@@ -3,7 +3,8 @@
 Generate all launcher-icon resources for the "kruxx" flavor from ONE source image.
 
     scripts/make-kruxx-icon.py ICON [--bg '#RRGGBB'] [--mode auto|glyph|cover]
-                                    [--wordmark KruXx] [--font FILE.ttf] [--no-wordmark]
+                                    [--wordmark KruXx] [--tagline TEXT]
+                                    [--font FILE.ttf] [--regular-font FILE.ttf] [--no-wordmark]
 
 ICON      square PNG (ideally 1024x1024) or SVG.
 --mode    glyph : ICON is a symbol on a transparent background -> centred in the adaptive
@@ -22,6 +23,7 @@ Writes into composeApp/src/androidKruxx/res/ (flavor resources override the main
   mipmap-*dpi/ic_banner.png (320x180dp)                         Android TV banner
   drawable-*dpi/app_icon_monochrome.png (24dp)                  notification / settings glyph
   drawable/app_logo_text.png                                    header wordmark (tinted by the app)
+  drawable/ic_banner_foreground.png                             player cover-art fallback (tinted)
 Requires Pillow; SVG input additionally needs ImageMagick (`convert`).
 """
 import argparse, os, shutil, subprocess, sys, tempfile
@@ -36,6 +38,13 @@ FONT_CANDIDATES = [
     "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
     "/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf",
     "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
+]
+REGULAR_FONT_CANDIDATES = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+    "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
 ]
 
 
@@ -197,22 +206,41 @@ def text_glyph(text: str, font_path: str | None, canvas_px: int, ratio: float) -
     return out
 
 
-def wordmark(text: str, font_path: str | None, size=(1429, 512)) -> Image.Image:
+def wordmark(text: str, font_path: str | None, regular_font_path: str | None = None,
+             tagline: str | None = None, size=(2489, 512)) -> Image.Image:
+    """Render a baseline-aligned wordmark with a larger, bold product name."""
     font_path = font_path or next((f for f in FONT_CANDIDATES if os.path.exists(f)), None)
-    if not font_path:
-        raise SystemExit("no bold TTF font found; pass --font FILE.ttf")
+    regular_font_path = regular_font_path or next(
+        (f for f in REGULAR_FONT_CANDIDATES if os.path.exists(f)), None
+    )
+    if not font_path or not regular_font_path:
+        raise SystemExit("no matching bold/regular TTF fonts found; pass --font and --regular-font")
     img = Image.new("RGBA", size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    fs = size[1]
-    while fs > 10:
-        font = ImageFont.truetype(font_path, fs)
-        l, t, r, b = draw.textbbox((0, 0), text, font=font)
-        if r - l <= size[0] * 0.96 and b - t <= size[1] * 0.92:
+    suffix = f" – {tagline}" if tagline else ""
+    name_size = size[1]
+    # A compact brand lock-up: the tagline remains legible but is visually subordinate to KruXx.
+    tagline_scale = 0.76
+    while name_size > 10:
+        tagline_size = max(10, round(name_size * tagline_scale))
+        bold_font = ImageFont.truetype(font_path, name_size)
+        regular_font = ImageFont.truetype(regular_font_path, tagline_size)
+        bold_width = draw.textlength(text, font=bold_font)
+        suffix_width = draw.textlength(suffix, font=regular_font)
+        ascent = max(bold_font.getmetrics()[0], regular_font.getmetrics()[0])
+        descent = max(bold_font.getmetrics()[1], regular_font.getmetrics()[1])
+        if bold_width + suffix_width <= size[0] * 0.96 and ascent + descent <= size[1] * 0.92:
             break
-        fs -= 8
-    x = (size[0] - (r - l)) // 2 - l
-    y = (size[1] - (b - t)) // 2 - t
-    draw.text((x, y), text, font=font, fill=(255, 255, 255, 255))
+        name_size -= 8
+    total_width = bold_width + suffix_width
+    x = (size[0] - total_width) / 2
+    baseline = (size[1] + ascent - descent) / 2
+    draw.text((x, baseline), text, font=bold_font, anchor="ls", fill=(255, 255, 255, 255))
+    if suffix:
+        draw.text(
+            (x + bold_width, baseline), suffix, font=regular_font, anchor="ls",
+            fill=(255, 255, 255, 255)
+        )
     return img
 
 
@@ -224,8 +252,11 @@ def main() -> None:
     ap.add_argument("--glyph-ratio", type=float, default=0.62,
                     help="glyph size relative to the 108dp canvas (safe zone is 66dp = 0.61)")
     ap.add_argument("--wordmark", default="KruXx")
+    ap.add_argument("--tagline", default="The core of your music",
+                    help="regular text following the bold wordmark; pass an empty value to omit")
     ap.add_argument("--no-wordmark", action="store_true")
     ap.add_argument("--font")
+    ap.add_argument("--regular-font")
     ap.add_argument("--no-key-border", action="store_true",
                     help="don't turn a uniform opaque border colour (e.g. black corners around a tile) transparent")
     ap.add_argument("--mono-threshold", type=int,
@@ -321,7 +352,15 @@ def main() -> None:
             f.write(adaptive)
 
     if not args.no_wordmark:
-        wordmark(args.wordmark, args.font).save(os.path.join(RES, "drawable", "app_logo_text.png"))
+        wordmark(args.wordmark, args.font, args.regular_font, args.tagline).save(
+            os.path.join(RES, "drawable", "app_logo_text.png")
+        )
+        # This resource is shown when a track has no usable cover.  Override Kreate's vector in
+        # the KruXx source set too, otherwise old upstream artwork remains visible despite the
+        # launcher/header resources having been replaced.  The UI applies its accent tint.
+        wordmark(args.wordmark, args.font, args.regular_font, size=(640, 360)).save(
+            os.path.join(RES, "drawable", "ic_banner_foreground.png")
+        )
 
     n = sum(len(files) for _, _, files in os.walk(RES))
     print(f"wrote {n} resource files into {os.path.relpath(RES, ROOT)}")

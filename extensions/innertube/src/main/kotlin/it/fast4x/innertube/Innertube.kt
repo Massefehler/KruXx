@@ -90,7 +90,7 @@ object Innertube {
     internal const val like = "/youtubei/v1/like/like"
     internal const val removelike = "/youtubei/v1/like/removelike"
 
-    internal const val musicResponsiveListItemRendererMask = "musicResponsiveListItemRenderer(flexColumns,fixedColumns,thumbnail,navigationEndpoint,badges)"
+    internal const val musicResponsiveListItemRendererMask = "musicResponsiveListItemRenderer(flexColumns,fixedColumns,thumbnail,navigationEndpoint,playlistItemData,badges)"
     internal const val musicTwoRowItemRendererMask = "musicTwoRowItemRenderer(thumbnailRenderer,title,subtitle,navigationEndpoint)"
     const val playlistPanelVideoRendererMask = "playlistPanelVideoRenderer(title,navigationEndpoint,longBylineText,shortBylineText,thumbnail,lengthText,badges)"
 
@@ -113,13 +113,15 @@ object Innertube {
     @JvmInline
     value class SearchFilter(val value: String) {
         companion object {
-            val Song = SearchFilter("EgWKAQIIAWoKEAkQBRAKEAMQBA%3D%3D")
-            val Video = SearchFilter("EgWKAQIQAWoKEAkQChAFEAMQBA%3D%3D")
-            val Album = SearchFilter("EgWKAQIYAWoKEAkQChAFEAMQBA%3D%3D")
-            val Artist = SearchFilter("EgWKAQIgAWoKEAkQChAFEAMQBA%3D%3D")
-            val CommunityPlaylist = SearchFilter("EgeKAQQoAEABagoQAxAEEAoQCRAF")
-            val FeaturedPlaylist = SearchFilter("EgeKAQQoADgBagwQDhAKEAMQBRAJEAQ%3D")
-            val Podcast = SearchFilter("EgWKAQJQAWoIEBAQERADEBU%3D")
+            // Keep these in sync with the actively maintained :innertube module. YouTube
+            // periodically changes the opaque search params while old values still return 200.
+            val Song = SearchFilter("EgWKAQIIAWoSEAMQBBAFEAkQDhAKEBAQERAV")
+            val Video = SearchFilter("EgWKAQIQAWoSEAMQBBAFEAkQDhAKEBAQERAV")
+            val Album = SearchFilter("EgWKAQIYAWoSEAMQBBAFEAkQDhAKEBAQERAV")
+            val Artist = SearchFilter("EgWKAQIgAWoSEAMQBBAFEAkQDhAKEBAQERAV")
+            val CommunityPlaylist = SearchFilter("EgeKAQQoAEABahIQAxAEEAUQCRAOEAoQEBAREBU%3D")
+            val FeaturedPlaylist = SearchFilter("EgeKAQQoADgBahIQAxAEEAUQCRAOEAoQEBAREBU%3D")
+            val Podcast = SearchFilter("EgWKAQJQAWoSEAMQBBAFEAkQDhAKEBAQERAV")
         }
     }
 
@@ -200,7 +202,8 @@ object Innertube {
         val authors: List<Info<NavigationEndpoint.Endpoint.Browse>>?,
         val viewsText: String?,
         val durationText: String?,
-        override val thumbnail: Thumbnail?
+        override val thumbnail: Thumbnail?,
+        val explicit: Boolean = false
     ) : Item() {
         override val key get() = info!!.endpoint!!.videoId!!
         override val title get() = info?.name
@@ -422,9 +425,10 @@ object Innertube {
                     append("X-Goog-Authuser", "0")
                     append("X-Goog-Visitor-Id", visitorData)
                     append("Cookie", cookie)
-                    if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
+                    val sapisidCookie = cookieMap["SAPISID"]
+                        ?: cookieMap["__Secure-3PAPISID"]
+                        ?: return@let
                     val currentTime = System.currentTimeMillis() / 1000
-                    val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
                     val sapisidHash = sha1("$currentTime $sapisidCookie https://$YOUTUBE_MUSIC_HOST")
                     append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
                 }

@@ -1,0 +1,9 @@
+Behoben:
+- Der Changelog-Dialog stürzt bei leeren oder anders formatierten Release-Notes nicht mehr ab.
+- Alte KruXx-Release-Notes mit Aufzählungszeichen und umgebrochenen Zeilen werden korrekt gelesen.
+
+Datenschutz:
+- KruXx zeigt keinen Dialog zum Melden von Abstürzen an den Kreate-Issue-Tracker mehr. Crashlogs bleiben lokal und können weiterhin manuell exportiert werden.
+
+Geändert:
+- Neue und bestehende KruXx-Installationen starten standardmäßig auf der Startseite statt in der Rubrik „Titel“.

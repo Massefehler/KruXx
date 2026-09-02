@@ -47,7 +47,6 @@ import app.kreate.android.BuildConfig
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.themed.common.component.dialog.CrashReportDialog
-import app.kreate.android.themed.common.component.dialog.Dialog
 import app.kreate.android.themed.common.screens.album.YouTubeAlbum
 import app.kreate.android.themed.common.screens.artist.YouTubeArtist
 import app.kreate.android.themed.common.screens.details.SongDetailsScreen
@@ -433,15 +432,18 @@ fun AppNavigation(
     }
 
     val crashReportDialog = remember( context ) {
-        CrashReportDialog(context).apply( Dialog::showDialog )
+        if( BuildConfig.UPSTREAM_CRASH_REPORTING_ENABLED )
+            CrashReportDialog(context).apply { showDialog() }
+        else
+            null
     }
-    crashReportDialog.Render()
+    crashReportDialog?.Render()
 
     if( Preferences.SEEN_CHANGELOGS_VERSION.value != BuildConfig.VERSION_NAME ) {
         val changelogs = remember {
             object: ChangelogsDialog(context) {
                 // Automatically enable dialog when this class is init
-                override var isActive: Boolean by mutableStateOf( !crashReportDialog.isActive )
+                override var isActive: Boolean by mutableStateOf( crashReportDialog?.isActive != true )
 
                 override fun hideDialog() {
                     super.hideDialog()

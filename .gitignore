@@ -42,3 +42,5 @@ __pycache__/
 ###      KruXx
 # Test-Screenshots, nicht Teil des Repos
 /pics/
+# Manually exported local diagnostics; never publish these.
+/docs/crash-report.txt

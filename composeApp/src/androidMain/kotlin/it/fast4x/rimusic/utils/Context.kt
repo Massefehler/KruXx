@@ -75,14 +75,17 @@ inline fun <reified T : DownloadService> Context.download(request: DownloadReque
         /* context         = */ this,
         /* clazz           = */ T::class.java,
         /* downloadRequest = */ request,
-        /* foreground      = */ true
+        // This command is normally issued while the app UI is in the foreground. DownloadService
+        // promotes itself when active work actually requires a foreground service.
+        /* foreground      = */ false
     )
 }.recoverCatching {
     sendAddDownload(
         /* context         = */ this,
         /* clazz           = */ T::class.java,
         /* downloadRequest = */ request,
-        /* foreground      = */ false
+        // Background callers can require startForegroundService on newer Android versions.
+        /* foreground      = */ true
     )
 }
 
@@ -93,6 +96,13 @@ inline fun <reified T : DownloadService> Context.removeDownload(mediaId: String)
         /* clazz           = */ T::class.java,
         /* id              = */ mediaId,
         /* foreground      = */ false
+    )
+}.recoverCatching {
+    sendRemoveDownload(
+        /* context         = */ this,
+        /* clazz           = */ T::class.java,
+        /* id              = */ mediaId,
+        /* foreground      = */ true
     )
 }
 

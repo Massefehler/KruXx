@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import app.kreate.android.BuildConfig
 import app.kreate.android.R
 import app.kreate.android.themed.common.component.settings.SettingComponents
 import app.kreate.android.themed.common.component.settings.SettingEntrySearch
@@ -178,16 +179,18 @@ fun About(
                 ) {
                     // [Icon] overrides vector's color at render time.
                     // Using [Image] to retain original color(s)
-                    Image(
-                        painter = painterResource( R.drawable.discord_logo ),
-                        contentDescription = "Discord server",
-                        modifier = Modifier.size( TabToolBar.TOOLBAR_ICON_SIZE )
-                                           .clickable( null, ripple(false) ) {
-                                               uriHandler.openUri( "https://discord.gg/WYr9ZgJzpx" )
-                                           }
-                    )
+                    if(!BuildConfig.INDEPENDENT_FORK) {
+                        Image(
+                            painter = painterResource( R.drawable.discord_logo ),
+                            contentDescription = "Discord server",
+                            modifier = Modifier.size( TabToolBar.TOOLBAR_ICON_SIZE )
+                                               .clickable( null, ripple(false) ) {
+                                                   uriHandler.openUri( "https://discord.gg/WYr9ZgJzpx" )
+                                               }
+                        )
 
-                    Spacer( Modifier.width( 15.dp ) )
+                        Spacer( Modifier.width( 15.dp ) )
+                    }
 
                     Image(
                         painter = painterResource( R.drawable.github_logo ),
@@ -196,6 +199,24 @@ fun About(
                                            .clickable( null, ripple(false) ) {
                                                uriHandler.openUri( "${Repository.REPO_URL}/discussions" )
                                            }
+                    )
+                }
+            }
+
+            if(BuildConfig.INDEPENDENT_FORK) {
+                header(R.string.kruxx_project)
+                entry(search, R.string.kruxx_independent_fork) {
+                    SettingComponents.Text(
+                        title = stringResource(R.string.kruxx_independent_fork),
+                        subtitle = stringResource(R.string.kruxx_independent_fork_description),
+                        onClick = { uriHandler.openUri("${Repository.REPO_URL}/blob/main/NOTICE.md") }
+                    )
+                }
+                entry(search, R.string.kruxx_upstream_project) {
+                    SettingComponents.Text(
+                        title = stringResource(R.string.kruxx_upstream_project),
+                        subtitle = stringResource(R.string.kruxx_upstream_project_description),
+                        onClick = { uriHandler.openUri("https://github.com/knighthat/Kreate") }
                     )
                 }
             }
@@ -215,7 +236,12 @@ fun About(
                     title = stringResource( R.string.word_documentation ),
                     subtitle = stringResource( R.string.opens_link_in_web_browser ),
                     onClick = {
-                        uriHandler.openUri( "https://kreate.knighthat.me" )
+                        uriHandler.openUri(
+                            if(BuildConfig.INDEPENDENT_FORK)
+                                "${Repository.REPO_URL}/blob/main/docs/KRUXX-ENTWICKLERHANDBUCH.md"
+                            else
+                                "https://kreate.knighthat.me"
+                        )
                     }
                 )
             }
@@ -271,7 +297,14 @@ fun About(
                 result.add( 0, owner )
             }
             val developers = result.toList()
-            header( { "${developers.size} ${context.getString( R.string.about_developers_designers )}" } )
+            header( {
+                "${developers.size} ${context.getString(
+                    if(BuildConfig.INDEPENDENT_FORK)
+                        R.string.kruxx_upstream_contributors
+                    else
+                        R.string.about_developers_designers
+                )}"
+            } )
             entry( search, R.string.contributors ) {
                 RenderContributors( developers )
             }

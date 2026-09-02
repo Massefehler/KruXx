@@ -1,0 +1,12 @@
+Downloads:
+- „Alle Tracks downloaden“ übergibt alle Titel geordnet an den Download-Dienst; vorgemerkte Titel werden jetzt ebenso wie die drei aktiven Downloads sichtbar markiert.
+- Parallele Liedtext-Anfragen sind begrenzt, damit sie die Audiodownloads nicht mehr ausbremsen; vorübergehende Netzfehler erhalten mehr Wiederholungsversuche.
+- Ein Tipp auf einen vorgemerkten oder laufenden Download bricht ihn nun zuverlässig ab.
+
+Audio:
+- Der Standard-Audiopfad wurde auf unbeabsichtigtes Mono-Downmixing geprüft; KruXx verwendet weiterhin ExoPlayers unveränderte Kanalbelegung.
+- Das Hallmodul bleibt beim Preset „Keiner“ vollständig getrennt. „Stats for Nerds“ zeigt die vom Decoder erkannte Kanalzahl als Mono oder Stereo an.
+
+Design:
+- Der Header lautet jetzt „KruXx – The core of your music“.
+- Das zuletzt bereitgestellte KruXx-Icon wurde erneut in alle Launcher-, Rund-, adaptive, Themed-, Benachrichtigungs-, TV- und Platzhaltergrafiken übernommen.

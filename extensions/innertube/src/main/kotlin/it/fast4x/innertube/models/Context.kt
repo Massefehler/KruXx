@@ -118,11 +118,34 @@ data class Context(
             )
         )
 
-        val hl = LocalePreferences.preference?.hl
+        /**
+         * WEB_REMIX context using the locale and visitor data that are current at request time.
+         *
+         * This must be a getter: [LocalePreferences] is populated after the process starts and
+         * YouTube login can refresh visitor data while the app is running.  The previous cached
+         * value also copied only `hl`, leaving every localized request pinned to the US catalog.
+         */
+        val DefaultWebWithLocale: Context
+            get() {
+                val locale = LocalePreferences.preference
+                val language = locale?.hl?.takeIf(String::isNotBlank)
+                    ?: Innertube.locale.hl.takeIf(String::isNotBlank)
+                    ?: DefaultWeb.client.hl
+                val region = locale?.gl?.takeIf(String::isNotBlank)
+                    ?: Innertube.locale.gl.takeIf(String::isNotBlank)
+                    ?: DefaultWeb.client.gl
+                val currentVisitorData = Innertube.visitorData
+                    .takeIf { it.isNotBlank() && it != "null" }
+                    ?: DefaultWeb.client.visitorData
 
-        val DefaultWebWithLocale = DefaultWeb.copy(
-            client = DefaultWeb.client.copy(hl = hl)
-        )
+                return DefaultWeb.copy(
+                    client = DefaultWeb.client.copy(
+                        hl = language,
+                        gl = region,
+                        visitorData = currentVisitorData
+                    )
+                )
+            }
 
         val DefaultIOS = Context(
             client = Client(

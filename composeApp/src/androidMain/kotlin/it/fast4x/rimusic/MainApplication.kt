@@ -34,6 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.knighthat.innertube.Innertube
+import it.fast4x.innertube.Innertube as LegacyInnertube
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 
@@ -53,11 +54,18 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         }
 
         setupLogging( koinLogger )
+        Preferences.applyProductDefaults()
 
         Innertube.setProvider( InnertubeProvider() )
         YouTube.cookie = Preferences.YOUTUBE_COOKIES.value
         YouTube.visitorData = Preferences.YOUTUBE_VISITOR_DATA.value
         YouTube.dataSyncId = Preferences.YOUTUBE_SYNC_ID.value
+        // SearchResultScreen still uses extensions/innertube (oldtube). Keep that client's
+        // session in sync too, otherwise the visible search stays anonymous after YTM login.
+        LegacyInnertube.cookie = Preferences.YOUTUBE_COOKIES.value
+            .takeIf { Preferences.YOUTUBE_LOGIN.value && it.isNotBlank() }
+        LegacyInnertube.visitorData = Preferences.YOUTUBE_VISITOR_DATA.value
+        LegacyInnertube.dataSyncId = Preferences.YOUTUBE_SYNC_ID.value.takeIf(String::isNotBlank)
 
         // Stream extraction (InnerTubeX). Warm up player config, cipher solver and
         // PO-token WebView in the background so the first play doesn't pay for it.

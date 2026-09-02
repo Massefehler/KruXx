@@ -1,0 +1,13 @@
+Neu:
+- Die Online- und Bibliothekssuche bietet eine Spracheingabe über das Mikrofonsymbol.
+
+Design:
+- Das neue KruXx-Icon wurde für Launcher, runde und adaptive Icons, Themed Icons, Benachrichtigungen und Android TV übernommen.
+
+Datenschutz:
+- Die Spracheingabe verwendet ausschließlich Androids lokale Spracherkennung; es gibt keinen Cloud-Fallback.
+- Der Mikrofonzugriff wird erst nach Antippen des Mikrofons angefragt.
+- Erkannter Text wird nur in das Suchfeld eingesetzt und nicht automatisch abgeschickt.
+
+Hinweis:
+- Die lokale Spracheingabe benötigt Android 12 oder neuer sowie ein auf dem Gerät verfügbares Sprachmodell.

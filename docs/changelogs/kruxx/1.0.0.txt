@@ -1,0 +1,11 @@
+KruXx 1.0.0:
+- Eigenständige KruXx-Versionierung, eigener Quellcode- und Release-Kanal
+- Sicherer App-Updater mit Prüfung von SHA-256, Paket-ID, Version und Signatur
+- Einmaliges manuelles Upgrade von 2.2.3-kruxx.x; spätere Updates direkt in KruXx
+- Kein automatischer Versand und kein Kreate-Dialog für Absturzberichte
+- Start auf der Startseite statt im Titel-Reiter
+- Lokale Spracheingabe für die Suche auf unterstützten Android-Geräten
+- Erweiterte YTM-Suche mit zusätzlichen abspielbaren Video-Treffern
+- Sichtbare Warteschlange und verbesserte Parallelität für Massendownloads
+- Stereo-Kanaldiagnose und korrigierte Audioeffekt-Voreinstellung
+- Neues KruXx-Icon und Header „KruXx – The core of your music“

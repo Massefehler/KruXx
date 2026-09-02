@@ -33,7 +33,8 @@ object PlaybackController {
         return when( state ) {
             Download.STATE_COMPLETED    -> R.drawable.downloaded
             Download.STATE_DOWNLOADING,
-            Download.STATE_QUEUED       -> R.drawable.download_progress
+            Download.STATE_QUEUED,
+            Download.STATE_RESTARTING   -> R.drawable.download_progress
             else                        -> R.drawable.download
         }
     }

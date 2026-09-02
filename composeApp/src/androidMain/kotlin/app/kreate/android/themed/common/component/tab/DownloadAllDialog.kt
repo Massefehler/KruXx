@@ -14,22 +14,17 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastMap
 import androidx.media3.common.util.UnstableApi
 import app.kreate.android.R
 import app.kreate.android.themed.common.component.AbstractMediaDownloadDialog
 import app.kreate.database.models.Song
 import it.fast4x.rimusic.service.MyDownloadHelper
-import it.fast4x.rimusic.service.modern.PlayerServiceModern
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.tab.toolbar.Descriptive
 import it.fast4x.rimusic.ui.components.tab.toolbar.MenuIcon
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.bold
 import it.fast4x.rimusic.utils.isNetworkAvailable
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import me.knighthat.utils.Toaster
 
 @UnstableApi
@@ -62,10 +57,7 @@ class DownloadAllDialog(
 
         super.onConfirm()
 
-        CoroutineScope( Dispatchers.Default ).launch {
-            getSongs().fastMap( Song::asMediaItem )
-                      .onEach { MyDownloadHelper.addDownload( it ) }
-        }
+        MyDownloadHelper.addDownloads( getSongs().map(Song::asMediaItem) )
     }
 
     @Composable

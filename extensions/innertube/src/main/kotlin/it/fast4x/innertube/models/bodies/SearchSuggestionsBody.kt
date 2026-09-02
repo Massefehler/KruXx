@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SearchSuggestionsBody(
-    val context: Context = Context.DefaultWeb,
+    val context: Context = Context.DefaultWebWithLocale,
     val input: String
 )

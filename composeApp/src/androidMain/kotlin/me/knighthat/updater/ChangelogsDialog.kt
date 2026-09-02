@@ -15,11 +15,9 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,46 +38,23 @@ open class ChangelogsDialog(context: Context): Dialog() {
         get() = stringResource( R.string.update_changelogs, BuildConfig.VERSION_NAME )
 
     private lateinit var pagerState: PagerState
-    private var sections: SnapshotStateList<Section> = mutableStateListOf()
+    private val sections = mutableListOf<ChangelogSection>()
     override var isActive: Boolean by mutableStateOf( false )
 
     init {
-        var currentTitle: String? = null
-        val currentChanges = mutableListOf<String>()
-
-        fun packSection( title: String = currentTitle!! ) {
-            // Because [currentChanges] is a mutable list, passing it here
-            // will only pass the reference, any subsequent changes will be
-            // updated to this list.
-            sections.add( Section(title, currentChanges.toList()) )
-            currentChanges.clear()
-        }
-
         context.resources
                .openRawResource( R.raw.release_notes )
                .bufferedReader( Charsets.UTF_8 )
-               .lines()
-               .forEach { line ->
-                   when {
-                       line.endsWith( ":" ) -> {
-                           // If [currentTitle] is not null, it means another section is reached.
-                           // Therefore, pack last section to a [Section]
-                           currentTitle?.let( ::packSection )
-
-                           currentTitle = line.removeSuffix(":")
-                       }
-                       line.trim().startsWith("-") -> {
-                           if( line.isNotBlank() )
-                               currentChanges.add( line.trim() )
-                       }
-                   }
+               .useLines { lines ->
+                   sections.addAll( parseChangelog(lines) )
                }
-        currentTitle?.let( ::packSection )
     }
 
     @Composable
     override fun Render() {
-        if( BuildConfig.DEBUG ) return
+        // TabRow's indicator cannot address page 0 when no section was parsed.
+        // A missing or malformed release note must never take down the app.
+        if( BuildConfig.DEBUG || sections.isEmpty() ) return
 
         // Initialize this ASAP
         if( !::pagerState.isInitialized )
@@ -160,6 +135,4 @@ open class ChangelogsDialog(context: Context): Dialog() {
             }
         }
     }
-
-    private data class Section( val title: String, val changes: List<String> )
 }

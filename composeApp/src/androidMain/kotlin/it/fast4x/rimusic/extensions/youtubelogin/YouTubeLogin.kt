@@ -52,13 +52,16 @@ fun YouTubeLogin( onDone: () -> Unit ) {
 
                         Preferences.YOUTUBE_COOKIES.value = CookieManager.getInstance().getCookie( url )
                         YouTube.cookie = Preferences.YOUTUBE_COOKIES.value
+                        it.fast4x.innertube.Innertube.cookie = Preferences.YOUTUBE_COOKIES.value
                         evaluateJavascript( "window.yt.config_.VISITOR_DATA" ) { result ->
                             Preferences.YOUTUBE_VISITOR_DATA.value = if( result != "null" ) result.removeSurrounding("\"") else ""
                             YouTube.visitorData = Preferences.YOUTUBE_VISITOR_DATA.value
+                            it.fast4x.innertube.Innertube.visitorData = Preferences.YOUTUBE_VISITOR_DATA.value
                         }
                         evaluateJavascript( "window.yt.config_.DATASYNC_ID" ) { result ->
                             Preferences.YOUTUBE_SYNC_ID.value = if( result != "null" ) result.removeSurrounding("\"").substringBefore("||") else ""
                             YouTube.dataSyncId = Preferences.YOUTUBE_SYNC_ID.value
+                            it.fast4x.innertube.Innertube.dataSyncId = Preferences.YOUTUBE_SYNC_ID.value.takeIf(String::isNotBlank)
                         }
                         CoroutineScope(Dispatchers.IO).launch {
                             YouTube.accountInfo()
@@ -95,4 +98,3 @@ fun YouTubeLogin( onDone: () -> Unit ) {
         webView?.goBack()
     }
 }
-
