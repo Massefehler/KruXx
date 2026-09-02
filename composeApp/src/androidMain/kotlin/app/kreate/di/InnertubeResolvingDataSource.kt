@@ -10,6 +10,8 @@ import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.ContentMetadataMutations
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.utils.ConnectivityUtils
@@ -45,6 +47,19 @@ import kotlin.concurrent.atomics.AtomicReference
 
 /** Re-resolve a little before the CDN considers the signed URL expired. */
 private const val EXPIRY_MARGIN_MS = 30_000L
+
+/** Cache metadata key: itag of the bytes stored under a song's cache key. */
+private const val METADATA_KEY_ITAG = "kruxx_itag"
+
+/**
+ * Thrown by the resolver when the player cache holds bytes of a different itag than the
+ * stream that was just resolved. The cached spans have already been dropped; the current
+ * load must be abandoned because ExoPlayer may have consumed stale bytes and CacheDataSource
+ * sized this request from the stale content length. [app.kreate.android.service.player.ExoPlayerListener]
+ * re-prepares the player at the same position, which starts from a clean cache entry.
+ */
+class CachedFormatMismatchException( videoId: String, cachedItag: Long, itag: Int ) :
+    RuntimeException( "Cached bytes of $videoId are itag $cachedItag, resolved stream is itag $itag" )
 
 /**
  * Store id of song just added to the database.
@@ -217,22 +232,51 @@ private fun getPlayableStream( songId: String ): InnerTubeXPlayer.PlaybackData {
 }
 
 /**
- * Point [this] at the resolved CDN url, carry the client's request headers and,
- * where the client requires it, cap each request to the chunk size InnerTubeX
- * reported (unbounded requests get throttled or rejected by those CDNs).
+ * Point [this] at the resolved CDN url and carry the client's request headers
+ * (InnerTubeX supplies User-Agent/Referer/Origin for the web clients; they override
+ * the default header set in PlayerModule).
+ *
+ * Deliberately **no** sub-range chunking here, unlike Metrolist's version of this function:
+ * in Kreate this resolver is the *upstream* of [androidx.media3.datasource.cache.CacheDataSource]
+ * (see PlayerModule). When CacheDataSource opens its upstream with an unknown length and gets a
+ * bounded length back, it records `position + length` as the total content length in the cache
+ * index and reports end-of-stream after that chunk - the song would be cut off and stay truncated
+ * in the cache. Clients that only serve bounded ranges are therefore excluded up front in
+ * [InnerTubeXPlayer.playerResponseForPlayback] (`allowBoundedRange = false`), which also checks
+ * that InnerTubeX did not hand one back anyway.
  */
-private fun DataSpec.withResolvedStream( stream: InnerTubeXPlayer.PlaybackData ): DataSpec {
-    val resolved = withUri( stream.streamUrl.toUri() )
-                       .withRequestHeaders( httpRequestHeaders + stream.streamHeaders )
+private fun DataSpec.withResolvedStream( stream: InnerTubeXPlayer.PlaybackData ): DataSpec =
+    withUri( stream.streamUrl.toUri() )
+        .withRequestHeaders( httpRequestHeaders + stream.streamHeaders )
 
-    if( (!stream.requireBoundedRange && !stream.useRangeChunks) || stream.rangeChunkSizeBytes <= 0L )
-        return resolved
+/**
+ * The player cache is keyed by video id only, but the resolved file is not always the same:
+ * quality (High/Low/Auto on a metered connection) and the InnerTube client that serves a song
+ * decide the itag, e.g. 140 (m4a) on mobile data and 251 (webm) on Wi-Fi. CacheDataSource would
+ * happily stitch cached bytes of one file to network bytes of the other, and the extractor then
+ * chokes on garbage ("Skipping atom with length > 2147483647", "Unrecognized input format").
+ *
+ * So the itag of the cached bytes is recorded in the cache's content metadata. When a resolution
+ * comes back with a different itag while bytes are cached, the stale spans are dropped and
+ * [CachedFormatMismatchException] aborts this load so the player is re-prepared cleanly.
+ * Cache entries written before this metadata existed cannot be checked here; the listener's
+ * parse-error recovery covers those.
+ */
+private fun reconcileCachedFormat( cache: Cache, songId: String, itag: Int ) {
+    val cachedItag = cache.getContentMetadata( songId ).get( METADATA_KEY_ITAG, -1L )
+    if( cachedItag == itag.toLong() ) return
 
-    val boundedLength =
-        if( length == C.LENGTH_UNSET.toLong() ) stream.rangeChunkSizeBytes
-        else minOf( length, stream.rangeChunkSizeBytes )
+    val cachedBytes = cache.getCachedBytes( songId, 0L, C.LENGTH_UNSET.toLong() )
+    if( cachedItag != -1L && cachedBytes > 0L ) {
+        logger.w { "Cached bytes of $songId are itag $cachedItag but the stream is itag $itag - dropping $cachedBytes cached bytes" }
+        runCatching { cache.removeResource( songId ) }
+            .onFailure { logger.e( "failed to drop cached spans of $songId", it ) }
+        throw CachedFormatMismatchException( songId, cachedItag, itag )
+    }
 
-    return resolved.subrange( 0, boundedLength )
+    runCatching {
+        cache.applyContentMetadataMutations( songId, ContentMetadataMutations().set( METADATA_KEY_ITAG, itag.toLong() ) )
+    }.onFailure { logger.w( "failed to record itag $itag of $songId in cache metadata", it ) }
 }
 //</editor-fold>
 
@@ -244,7 +288,10 @@ fun Scope.resolveInnertubeMedia( dataSpec: DataSpec ): DataSpec {
     }
     upsertSongInfo( get(), songId )
 
-    return dataSpec.withResolvedStream( getPlayableStream( songId ) )
+    val stream = getPlayableStream( songId )
+    reconcileCachedFormat( get<Cache>( CacheType.CACHE ), songId, stream.itag )
+
+    return dataSpec.withResolvedStream( stream )
 }
 
 /**

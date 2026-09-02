@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 31.08.2026 · Basis: Kreate `main` @ `f02577e8` (v2.2.3) · Branch: `kruxx`
+Stand: 02.09.2026 · Basis: Kreate `main` @ `f02577e8` (v2.2.3) · Branch: `kruxx`
 
 KruXx ist ein privater Fork von [Kreate](https://github.com/knighthat/Kreate) (RiMusic/ViMusic-Linie).
 Zwei Dinge unterscheiden ihn vom Original:
@@ -71,8 +71,9 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | `gradle.properties` | `android.experimental.disableCompileSdkChecks=true` – das InnerTubeX-AAR deklariert `minCompileSdk=37`, Google hat aber noch kein `platforms;android-37` veröffentlicht. **Entfernen, sobald compileSdk ≥ 37 möglich ist.** |
 | `composeApp/proguard-rules.pro` | `-keep` für `com.metrolist.innertubex.**` und `com.dokar.quickjs.**` |
 | `com/metrolist/music/utils/InnerTubeXPlayer.kt` | **neu** – einziger Einstieg zur Stream-Auflösung (Spiegel von Metrolists gleichnamiger Datei, damit Diffs gegen Metrolist einfach bleiben) |
-| `app/kreate/di/InnertubeResolvingDataSource.kt` | neu geschrieben: Cache mit Ablauf, CDN-Header, Bounded-Range, Fehler-Mapping |
-| `app/kreate/android/service/player/ExoPlayerListener.kt` | `tryRecoverStreamError()` – bei HTTP 403/410/416 URL verwerfen, neu auflösen, an gleicher Position weiterspielen (max. 2×/Song) |
+| `app/kreate/di/InnertubeResolvingDataSource.kt` | neu geschrieben: Cache mit Ablauf, CDN-Header, Fehler-Mapping – **ohne** Bounded-Range-Chunking (§4); merkt sich das itag der gecachten Bytes in den Cache-Metadaten (`kruxx_itag`) und verwirft den Cache-Eintrag bei Formatwechsel (`CachedFormatMismatchException`, §4) |
+| `app/kreate/di/PlayerModule.kt` | CDN-User-Agent als Default-Header (`setDefaultRequestProperties`) statt `setUserAgent()`; die InnerTubeX-Header je Client (User-Agent/Referer/Origin) überschreiben ihn – `setUserAgent()` hängt media3 per `addHeader` zusätzlich an, es gingen zwei User-Agent-Zeilen raus |
+| `app/kreate/android/service/player/ExoPlayerListener.kt` | `tryRecoverPlaybackError()` – bei HTTP 403/410/416 URL verwerfen und neu auflösen; bei Parser-/Cache-Fehlern (`PARSING_CONTAINER_*`, `READ_POSITION_OUT_OF_RANGE`, `FILE_NOT_FOUND`, `CachedFormatMismatchException`) den Cache-Eintrag des Songs löschen; danach `prepare()`+`seekTo()` an gleicher Position (max. 3×/Song, Budget wird bei Songwechsel zurückgesetzt) |
 | `com/metrolist/music/utils/potoken/*` | auf Metrolists aktuellen Stand gebracht (Renderer-Tod, Timeouts), Timber → Kermit, OkHttp via Koin |
 | `it/fast4x/rimusic/MainApplication.kt` | `InnerTubeXPlayer.initialize()` + Prewarm im Hintergrund |
 | gelöscht | `YTPlayerUtils.kt`, `cipher/*`, `assets/solver/*`, `player_configs.json`, `player_dates.json`, totes `it/fast4x/rimusic/extensions/webpotoken/*` |
@@ -146,9 +147,10 @@ ExoPlayer ── CacheDataSource (Downloads) ── CacheDataSource (Cache) ─�
                                                    │     ├─ PO-Token via TokenProvider → PoTokenGenerator (WebView/BotGuard)
                                                    │     ├─ Cipher: RemotePlayerConfigStore (faraday) → EJS/QuickJS lokal
                                                    │     └─ liefert ExtractedStream (URL, Header, itag, expiresAt …)
-                                                   └─ PlaybackData → DataSpec (URL, Header, ggf. Bounded Range) + Format in Room
-Fehler 403/410/416 zur Laufzeit → ExoPlayerListener.tryRecoverStreamError():
-   Cache-Eintrag löschen, WEB_REMIX ggf. sperren, InnerTubeXPlayer.refreshAfterStreamRejection(), prepare()+seekTo()
+                                                   └─ PlaybackData → DataSpec (URL, Header) + Format in Room
+Fehler zur Laufzeit → ExoPlayerListener.tryRecoverPlaybackError():
+   403/410/416: URL verwerfen, WEB_REMIX ggf. sperren, InnerTubeXPlayer.refreshAfterStreamRejection(), prepare()+seekTo()
+   Parser-/Cache-Fehler: playerCache.removeResource(videoId), prepare()+seekTo()
 ```
 
 Wichtige Konstanten/Stellen:
@@ -159,6 +161,25 @@ Wichtige Konstanten/Stellen:
   andere URLs werden stillschweigend ignoriert.
 - HLS/SABR sind ausgeschaltet (`withStreamCapabilities(allowHls=false, allowSabr=false)`) – ExoPlayer
   bekommt nur direkte HTTPS-Streams.
+- Bounded-Range-Clients sind ebenfalls ausgeschlossen (`allowBoundedRange=false`; in InnerTubeX 0.3:
+  ANDROID_VR, IOS, TVHTML5_SIMPLY – TVHTML5_SIMPLY steht in der automatischen Fallback-Kette). Grund: In
+  Kreates Kette ist der Resolver der *Upstream* des `CacheDataSource`; liefert er einen begrenzten
+  Sub-Range, trägt media3 `position + Chunk` als Gesamtlänge in den Cache-Index ein und meldet danach
+  Stream-Ende – der Song bricht ab und bleibt im Cache dauerhaft abgeschnitten. Metrolist chunked, weil
+  dort der Resolver *außerhalb* des Caches liegt; sein `withResolvedStream` darf deshalb nicht 1:1
+  übernommen werden. `InnerTubeXPlayer` prüft zusätzlich, dass kein solcher Stream zurückkommt.
+  Log beim Überspringen: `bounded-range client skipped by request`.
+- **Cache-Key ist nur die videoId, das Format aber nicht fix**: Qualität (High/Low, Auto im getakteten Netz →
+  Low) und der liefernde Client bestimmen das itag – z. B. 140 (m4a) im Mobilnetz, 251 (webm) im WLAN; beim
+  allerersten Abspielen eines expliziten Titels fehlt das Explicit-Flag in der DB noch (`upsertSongInfo` läuft
+  parallel) und InnerTubeX nimmt VISIONOS statt WEB_REMIX. `CacheDataSource` würde gecachte Bytes des einen
+  Files mit Netzwerk-Bytes des anderen zusammenkleben → Extractor-Fehler wie „Skipping atom with length >
+  2147483647“. Deshalb schreibt der Resolver das itag in die Cache-Metadaten (`kruxx_itag`) und verwirft bei
+  Abweichung die gecachten Spans (Abbruch per `CachedFormatMismatchException`, der Listener bereitet neu vor);
+  Alt-Einträge ohne Metadaten fängt die Parser-Fehler-Recovery im Listener ab (Cache-Eintrag löschen, neu laden).
+- CDN-Abruf (`PlayerModule.kt`): Der Chrome-User-Agent ist nur Default-Header; die Header aus
+  `ExtractedStream.headers` (User-Agent/Referer/Origin je Client) gewinnen. **Nie `setUserAgent()`
+  verwenden** – media3 hängt den per `addHeader` zusätzlich an, es gingen zwei User-Agent-Zeilen raus.
 - Qualität: `Preferences.AUDIO_QUALITY` (High/Low/Auto) → InnerTubeX `HIGH/LOW/AUTO`; bei Auto und
   getaktetem Netz + `IS_CONNECTION_METERED` → `LOW`.
 - Log-Tags (adb logcat): `InnerTubeXPlayer`, `dataspec`, `ExoPlayerListener`, `InnerTube`,
@@ -202,7 +223,11 @@ Nach dem Generieren: `git add composeApp/src/androidKruxx/res` und neu bauen.
    `InnerTubeXPlayer.kt` und `InnertubeResolvingDataSource.kt`; Metrolists aktueller
    `app/src/main/kotlin/com/metrolist/music/utils/InnerTubeXPlayer.kt` ist die Referenz dafür, wie die neue API benutzt wird.
 4. Prüfen, ob InnerTubeX neue Ktor/Kotlin-Versionen verlangt (`gradle/libs.versions.toml` im InnerTubeX-Repo) und ggf. nachziehen.
-5. `scripts/build-local-release.sh kruxx`, APK installieren, testen (§7.3).
+5. Kreate-Besonderheiten gegen die neue Version prüfen: `requiresBoundedMediaRange`/`usesChunkedMediaRanges` in
+   `InnerTubeExtractor.kt` (welche Clients fallen durch `allowBoundedRange=false` weg?) und ob `buildHeaders`
+   weiterhin den User-Agent je Client liefert (§4). Metrolists Resolver-Code **nicht** 1:1 übernehmen – die
+   Datenquellen-Kette ist anders (§4).
+6. `scripts/build-local-release.sh kruxx`, APK installieren, testen (§7.3).
 
 ### 6.2 Upstream-Kreate holen (Bugfixes, Features)
 
@@ -256,6 +281,8 @@ unter Einstellungen → Sonstiges → Debug lassen sich Logs exportieren/kopiere
 |---|---|---|
 | „Kein abspielbares Format“ / `StreamResolveException NO_PLAYABLE_STREAM` bei allen Songs | YouTube hat Clients geändert; InnerTubeX-Version veraltet | §6.1 – Bibliothek aktualisieren |
 | HTTP 403 kurz nach Start, Song springt/stoppt | Signatur/`pot` abgelehnt; Recovery läuft (max. 2×) | Log `Stream of … rejected`; wenn dauerhaft: InnerTubeX-Update, ggf. `refreshAfterStreamRejection` |
+| Song endet nach ~30 s oder bricht mit „unbekanntem Fehler“ ab, danach bei jedem Abspielen | Cache-Index hat eine zu kleine Gesamtlänge (begrenzter Sub-Range im Cache, §4) | Seit 02.09.2026 ausgeschlossen; Altlasten: Player-Cache leeren (Einstellungen → Daten) |
+| „Skipping atom with length > 2147483647“ / „Unrecognized input format“ / „unbekannter Wiedergabefehler“ bei Position 0, nur bei bestimmten Songs | gecachte Bytes gehören zu einem anderen itag als der aufgelöste Stream (§4: Qualität/Client gewechselt) | Seit 02.09.2026 heilt sich das selbst (Log `Cached data of … unusable`, `Cached bytes of … are itag`); wenn nicht: Player-Cache leeren (Einstellungen → Daten) |
 | Nur bestimmte Songs: `AGE_RESTRICTED` / `LoginRequiredException` | Altersbeschränkung; braucht Login + PO-Token | YouTube-Login in der App; PoToken-Logs prüfen |
 | `PoToken … timed out` / `BadWebViewException` | System-WebView fehlt/kaputt; InnerTubeX fällt auf tokenfreie Clients zurück | Android System WebView aktualisieren |
 | Suche/Browse leer, Wiedergabe geht | Problem in `me.knighthat.innertube` (Submodul), nicht InnerTubeX | `modules/innertube`, Innertube-Logs |
@@ -315,3 +342,11 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 - AGP 9 / Kotlin 2.4.10 nachziehen (Dependabot-Branches upstream), danach `disableCompileSdkChecks` prüfen.
 - Upstream-Branch `preferences` beobachten: wenn der „backend overhaul“ in `main` landet,
   InnerTubeX-Anbindung in die neue Modulstruktur (`extensions/player`) übernehmen.
+- In `ErrorHandlingPolicy` HTTP 403/410/416 sofort fatal melden statt media3s drei Standard-Retries (0/1/2 s),
+  damit die Recovery schneller anspringt.
+- `isExplicit`-Hint beim allerersten Abspielen: Song-Info wird parallel geladen, der Hint ist dann `null` und
+  InnerTubeX nimmt VISIONOS (§4). Option: vor der Auflösung kurz auf `upsertSongInfo` warten oder das Flag aus
+  dem MediaItem mitgeben, dann wählt InnerTubeX von Anfang an den passenden Client.
+- `streamCache` bei Wechsel der Audio-Qualität invalidieren (Metrolist: Bypass-Flag), sonst läuft die alte URL bis zum Ablauf.
+- Chunking-DataSource zwischen Resolver und OkHttp, falls Bounded-Range-Clients (ANDROID_VR/IOS/TVHTML5_SIMPLY)
+  als zusätzliche Reserve gebraucht werden (§4).

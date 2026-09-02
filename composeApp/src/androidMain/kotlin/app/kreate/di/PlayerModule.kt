@@ -93,7 +93,11 @@ val playerModule = module {
             DefaultDataSource.Factory(
                 get(),
                 OkHttpDataSource.Factory(get<OkHttpClient>())
-                    .setUserAgent( UserAgents.CHROME_WINDOWS )
+                    // Default header only: InnerTubeX hands the resolver client-specific headers
+                    // (User-Agent, Referer, Origin) per stream, and DataSpec headers override
+                    // defaults. setUserAgent() would instead be *added* on top of them (media3
+                    // uses addHeader for it), sending two User-Agent lines to the CDN.
+                    .setDefaultRequestProperties( mapOf( "User-Agent" to UserAgents.CHROME_WINDOWS ) )
             )
         ) { dataSpec ->
             if ( dataSpec.uri.isLocalFile() )

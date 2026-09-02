@@ -203,6 +203,11 @@ object InnerTubeXPlayer {
         val contentLength: Long?,
         val loudnessDb: Float?,
         val durationSeconds: Long?,
+        /**
+         * Range-request contract reported by InnerTubeX, kept for diagnostics only.
+         * Kreate never chunks requests (see [playerResponseForPlayback] and
+         * `InnertubeResolvingDataSource.withResolvedStream`), so both flags are always `false` here.
+         */
         val requireBoundedRange: Boolean,
         val rangeChunkSizeBytes: Long,
         val useRangeChunks: Boolean,
@@ -224,7 +229,8 @@ object InnerTubeXPlayer {
     }
 
     /**
-     * Resolves [videoId] to a direct (non-SABR, non-HLS) audio stream that ExoPlayer can read.
+     * Resolves [videoId] to a direct (non-SABR, non-HLS, unbounded-range) audio stream that
+     * ExoPlayer can read through Kreate's cache chain.
      *
      * @param isExplicit lets InnerTubeX prefetch a PO token for explicit content, which is
      *                   refused by several clients otherwise.
@@ -239,11 +245,16 @@ object InnerTubeXPlayer {
             syncSession()
             ensureVisitorData()
 
+            // Kreate's player chain puts this resolver *inside* CacheDataSource (see PlayerModule).
+            // A bounded sub-range returned from there would be recorded by CacheDataSource as the
+            // song's total length and cut playback after the first chunk, so clients that only
+            // serve bounded ranges (ANDROID_VR, IOS, TVHTML5_SIMPLY in InnerTubeX 0.3) are excluded.
+            // Metrolist can allow them because its resolver wraps the cache instead.
             val hints = ContentHints( isExplicit = isExplicit )
                 .withStreamCapabilities(
                     allowHls = false,
                     allowSabr = false,
-                    allowBoundedRange = true,
+                    allowBoundedRange = false,
                 )
             val excludedClients = buildSet {
                 if( hasRecentWebRemixFailure( videoId ) ) add( "WEB_REMIX" )
@@ -260,6 +271,11 @@ object InnerTubeXPlayer {
             ) { "InnerTubeX returned no playable stream" }
             // allowSabr=false above should already prevent this; ExoPlayer can only read plain https urls
             check( !stream.audioUrl.startsWith( "sabr://" ) ) { "SABR is not supported by this playback engine" }
+            // Same contract for allowBoundedRange=false: the resolver must be able to hand ExoPlayer
+            // the unbounded url (see InnertubeResolvingDataSource.withResolvedStream).
+            check( !stream.requireBoundedRange && !stream.useRangeChunks ) {
+                "Client ${stream.clientName} only serves bounded ranges, which this playback chain does not support"
+            }
 
             Result.success( stream.toPlaybackData() )
         } catch( e: CancellationException ) {

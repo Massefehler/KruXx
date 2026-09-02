@@ -14,12 +14,16 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.HttpDataSource
+import androidx.media3.datasource.cache.Cache
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import app.kreate.android.Preferences
 import app.kreate.android.R
+import app.kreate.android.utils.isLocalFile
 import app.kreate.database.models.PersistentQueue
+import app.kreate.di.CacheType
+import app.kreate.di.CachedFormatMismatchException
 import app.kreate.di.invalidateRejectedStreamOf
 import co.touchlab.kermit.Logger
 import com.metrolist.music.utils.InnerTubeXPlayer
@@ -58,13 +62,15 @@ class ExoPlayerListener(
 ): Player.Listener, KoinComponent {
 
     private val context: Context by inject()
+    /** Player (not download) cache, see PlayerModule. */
+    private val playerCache: Cache by inject( CacheType.CACHE )
 
     private var volumeNormalizationJob: Job = Job()
     private var errorTimestamp = 0L
     private var lastErrorMessage = ""
 
-    /** Per-song count of stream re-resolutions after a CDN rejection (see [tryRecoverStreamError]). */
-    private val streamRetryCounts = HashMap<String, Int>()
+    /** Per-song count of automatic recoveries (see [tryRecoverPlaybackError]); cleared on song change. */
+    private val recoveryAttempts = HashMap<String, Int>()
     private val recoveryScope = CoroutineScope( Dispatchers.IO )
 
     var loudnessEnhancer: LoudnessEnhancer? = null
@@ -149,39 +155,73 @@ class ExoPlayerListener(
             player.startRadio()
     }
 
+    private enum class Recovery {
+        /** Signed url expired or rejected by the CDN (HTTP 403/410/416): re-resolve the stream. */
+        STREAM_REJECTED,
+        /** Cached bytes don't belong to the resolved file, or the cache file is gone: drop the cache entry. */
+        CORRUPT_CACHE
+    }
+
+    private fun classifyRecoverable( error: PlaybackException ): Recovery? {
+        val responseCode = findCause<HttpDataSource.InvalidResponseCodeException>( error )?.responseCode
+        if( (responseCode != null && responseCode in STREAM_REJECTION_CODES)
+            || error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+        ) return Recovery.STREAM_REJECTED
+
+        if( findCause<CachedFormatMismatchException>( error ) != null
+            || error.errorCode in CORRUPT_CACHE_ERROR_CODES
+        ) return Recovery.CORRUPT_CACHE
+
+        return null
+    }
+
     /**
-     * Signed stream urls expire or get rejected (HTTP 403/410) when YouTube rotates keys or a
-     * client stops being served. In that case drop the cached url, let InnerTubeX re-resolve
-     * the song (possibly with another client) and resume from the current position.
-     * At most [MAX_STREAM_RETRIES] attempts per song, then the error is surfaced as usual.
+     * Automatic recovery for two failure classes of online songs, resuming at the current position:
+     *
+     * - [Recovery.STREAM_REJECTED]: signed stream urls expire or get rejected (HTTP 403/410) when
+     *   YouTube rotates keys or a client stops being served. Drop the cached url and let InnerTubeX
+     *   re-resolve the song, possibly with another client.
+     * - [Recovery.CORRUPT_CACHE]: the player cache is keyed by video id, so it can hold bytes of a
+     *   different itag than the stream being played (quality/client changed since they were cached);
+     *   the extractor then fails on garbage. Drop everything cached for the song and load it again.
+     *
+     * At most [MAX_RECOVERY_ATTEMPTS] per song, then the error is surfaced as usual.
      *
      * @return `true` if a retry was scheduled and the error must not be reported.
      */
     @MainThread
-    private fun tryRecoverStreamError( error: PlaybackException ): Boolean {
-        val mediaId = player.currentMediaItem?.mediaId ?: return false
+    private fun tryRecoverPlaybackError( error: PlaybackException ): Boolean {
+        val mediaItem = player.currentMediaItem ?: return false
+        val mediaId = mediaItem.mediaId
+        // Local files: nothing to re-resolve or to drop from the player cache
+        if( mediaItem.localConfiguration?.uri?.isLocalFile() == true ) return false
 
-        val responseCode = findCause<HttpDataSource.InvalidResponseCodeException>( error )?.responseCode
-        val isStreamRejection = (responseCode != null && responseCode in STREAM_REJECTION_CODES)
-                || error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
-        if( !isStreamRejection ) return false
+        val recovery = classifyRecoverable( error ) ?: return false
 
-        val attempts = streamRetryCounts[mediaId] ?: 0
-        if( attempts >= MAX_STREAM_RETRIES ) {
-            streamRetryCounts.remove( mediaId )
-            return false
+        val attempts = recoveryAttempts[mediaId] ?: 0
+        if( attempts >= MAX_RECOVERY_ATTEMPTS ) return false
+        recoveryAttempts[mediaId] = attempts + 1
+        val logger = Logger.withTag( "ExoPlayerListener" )
+
+        when( recovery ) {
+            Recovery.STREAM_REJECTED -> {
+                val responseCode = findCause<HttpDataSource.InvalidResponseCodeException>( error )?.responseCode
+                val failedClient = invalidateRejectedStreamOf( mediaId )
+                if( failedClient == "WEB_REMIX" )
+                    InnerTubeXPlayer.markWebRemixFailed( mediaId )
+                recoveryScope.launch {
+                    runCatching { InnerTubeXPlayer.refreshAfterStreamRejection() }
+                }
+                logger.w( "Stream of $mediaId rejected (HTTP $responseCode, client=$failedClient) - re-resolving, attempt ${attempts + 1}/$MAX_RECOVERY_ATTEMPTS" )
+            }
+
+            Recovery.CORRUPT_CACHE -> {
+                // The resolved url stays valid; only the cached bytes are unusable.
+                runCatching { playerCache.removeResource( mediaId ) }
+                    .onFailure { logger.e( "failed to drop cached spans of $mediaId", it ) }
+                logger.w( "Cached data of $mediaId unusable (${error.errorCodeName}: ${error.cause?.message ?: error.message}) - dropped cache entry, reloading, attempt ${attempts + 1}/$MAX_RECOVERY_ATTEMPTS" )
+            }
         }
-        streamRetryCounts[mediaId] = attempts + 1
-
-        val failedClient = invalidateRejectedStreamOf( mediaId )
-        if( failedClient == "WEB_REMIX" )
-            InnerTubeXPlayer.markWebRemixFailed( mediaId )
-        recoveryScope.launch {
-            runCatching { InnerTubeXPlayer.refreshAfterStreamRejection() }
-        }
-        Logger.withTag( "ExoPlayerListener" ).w(
-            "Stream of $mediaId rejected (HTTP $responseCode, client=$failedClient) - re-resolving, attempt ${attempts + 1}/$MAX_STREAM_RETRIES"
-        )
 
         val index = player.currentMediaItemIndex
         val position = player.currentPosition
@@ -239,6 +279,8 @@ class ExoPlayerListener(
     }
 
     override fun onMediaItemTransition( mediaItem: MediaItem?, reason: Int ) {
+        // Every song gets a fresh recovery budget (see tryRecoverPlaybackError)
+        recoveryAttempts.clear()
         if ( player.playerError != null ) player.prepare()
 
         loadFromRadio(reason)
@@ -262,7 +304,7 @@ class ExoPlayerListener(
     }
 
     override fun onPlayerError( error: PlaybackException ) {
-        if( tryRecoverStreamError( error ) ) return
+        if( tryRecoverPlaybackError( error ) ) return
 
         val rootCause = traverseErrorStack( error )
 
@@ -289,8 +331,6 @@ class ExoPlayerListener(
         ) {
             val isBufferingOrReady =
                 player.playbackState == Player.STATE_BUFFERING || player.playbackState == Player.STATE_READY
-            if( player.playbackState == Player.STATE_READY )
-                streamRetryCounts.clear()
             if (isBufferingOrReady && player.playWhenReady) {
                 sendOpenEqualizerIntent()
             } else {
@@ -303,8 +343,15 @@ class ExoPlayerListener(
     }
 
     private companion object {
-        const val MAX_STREAM_RETRIES = 2
-        /** 403: signature/PO token rejected or expired, 410: url gone, 416: bounded range refused */
+        const val MAX_RECOVERY_ATTEMPTS = 3
+        /** 403: signature/PO token rejected or expired, 410: url gone, 416: range refused */
         val STREAM_REJECTION_CODES = setOf( 403, 410, 416 )
+        /** Extractor choked on the bytes, or CacheDataSource tripped over its own index/files. */
+        val CORRUPT_CACHE_ERROR_CODES = setOf(
+            PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
+            PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
+            PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE,
+            PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND,
+        )
     }
 }
