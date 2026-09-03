@@ -9,10 +9,10 @@ KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
 The current local development line is KruXx `1.0.1` (`versionCode 1000001`, Android 6.0+).
-Its unit tests, full release lint, signed release build and broad on-device acceptance test have
-passed. It is not public yet: the exact final archived APK still needs one installation/cold-start
-check before the source, submodule pins and matching `v1.0.1` tag are published. The exact
-implementation, verification and remaining release-gate status is recorded in the
+Its unit tests, full release lint, signed release build, broad on-device acceptance test and the
+installation/cold-start check of the exact archived APK have passed. It is not public yet: the
+source, submodule pins and matching `v1.0.1` tag still need to be published. The exact
+implementation, verification and release status is recorded in the
 [KruXx 1.0.1 status report](docs/KRUXX-IST-STAND.md).
 
 ## Install and update

@@ -5,9 +5,9 @@ Stand: 03.09.2026 · KruXx `1.0.1` · historische Basis: Kreate `main` @ `f02577
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
 [`README.md`](README.md). KruXx 1.0.1 ist derzeit ein lokal vollständig getesteter, gelinteter,
-signierter und breit auf Gerät geprüfter Release-Kandidat, aber noch kein öffentlicher Release. Vor
-der Veröffentlichung steht nur noch der Installations-/Kaltstartcheck des exakt archivierten APKs
-aus; danach werden freigegebener Quellstand, Submodul-Pins und Tag gemeinsam veröffentlicht.
+signierter und einschließlich des exakt archivierten APKs auf Gerät geprüfter Release-Kandidat,
+aber noch kein öffentlicher Release. Als nächster Schritt werden freigegebener Quellstand,
+Submodul-Pins und Tag gemeinsam veröffentlicht.
 
 KruXx ist ein eigenständiger, öffentlicher Fork von
 [Kreate](https://github.com/knighthat/Kreate) (RiMusic/ViMusic-Linie). Quellcode und Releases liegen
@@ -849,11 +849,12 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 
 ## 9. Offene Punkte / Ideen
 
-- **Letzter 1.0.1-Freigabegate:** Das Zielgerät war beim abschließenden Archivtest nicht mehr per ADB
-  verbunden. Aus dem finalen sauberen Commit bauen, das dabei gehashte Release-APK noch einmal über
-  die bestehende Installation installieren, kalt starten und auf `AndroidRuntime`-Fehler prüfen. Der
-  breite manuelle Nutzertest einschließlich schneller Downloads sowie Konto-Playlist-, App-Start-
-  und Interpretenprüfungen war zuvor ohne Auffälligkeit.
+- **1.0.1-Freigabegate bestanden:** Das aus dem sauberen Release-Commit archivierte APK wurde über
+  die bestehende Installation installiert; Paket, Version und erhaltener Datenstand stimmten. Ein
+  per ADB bestätigter Kaltstart zeigte die zehn wechselnden Animationsframes, den Übergang zur
+  Startseite und keinen `AndroidRuntime`-/Crash-Eintrag. Der breite manuelle Nutzertest
+  einschließlich schneller Downloads sowie Konto-Playlist-, App-Start- und Interpretenprüfungen
+  war ebenfalls ohne Auffälligkeit.
 - Release und Debug werden im selben normalen Lauf des gehärteten Build-Skripts aus demselben
   Quellbaum erzeugt. Signatur, Paket, Version und eingebettete Git-Revision werden automatisch
   geprüft; den erst danach feststehenden finalen APK-Hash in GitHub-Release und API verifizieren.

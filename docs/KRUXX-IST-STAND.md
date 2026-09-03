@@ -156,8 +156,8 @@ lässt sich die veröffentlichte APK eindeutig ihrem Quellcode zuordnen.
 | `modules/metrolist` | Root-Integration kompiliert; das Modul besitzt in diesem Stand keine eigenen Tests (`NO-SOURCE`) | bestanden |
 | Release-Lint | vollständiges `lintKruxxUniversalProdRelease`; keine neuen Befunde gegenüber der versionierten Baseline | bestanden |
 | Release-APK | Paket `de.kruxx.music`, Version `1.0.1`/`1000001`, erwartete Signatur | geprüft |
-| Update-Installation | Über bestehende KruXx-Installation per USB, App-Daten erhalten | bestanden |
-| App-Start | Kaltstart nach Installation, kein Absturz/CrashReport | auf Gerät bestanden |
+| Update-Installation | Exakt archiviertes Release-APK über bestehende KruXx-Installation per ADB, App-Daten erhalten | bestanden |
+| App-Start | Von ADB bestätigter Kaltstart nach Installation; zehn wechselnde Splash-Frames, Übergang zur Startseite, laufender Prozess und kein `AndroidRuntime`-/Crash-Eintrag | auf Gerät bestanden |
 | Breiter Nutzertest | Navigation und zentrale Funktionen auf dem Zielgerät ohne beobachtete Fehler; Downloads ausdrücklich mit sehr hohem Durchsatz bestätigt | auf Gerät bestanden |
 | Reguläre Konto-Playlists | Fünf Listen geöffnet, darunter 4 sowie 52 nutzbare Songs (54 YTM-Einträge einschließlich zwei nicht abspielbarer); Titel und vorhandene Songzeilen sichtbar, kein 401/`UNAUTHENTICATED` | auf Gerät bestanden |
 | „Neue Folgen“ (`RDPN`) | Authentifizierter Browse antwortet, verwendet aber ein Podcast-Multirow-Format außerhalb des Musik-Playlist-Parsers | separater Parserpunkt offen |
@@ -178,10 +178,10 @@ mit v1/v2/v3 und prüft Paket, Version, Zertifikat sowie die von AGP in
 Der finale SHA-256-Wert wird bewusst **erst nach dem Build aus dem endgültigen sauberen
 Release-Commit** in der GitHub-Release-Beschreibung und als GitHub-Asset-Digest festgehalten: Die
 eingebettete Git-Revision ändert das APK bei jedem neuen Commit, deshalb könnte ein Hash im selben
-Commit nie sich selbst korrekt beschreiben. Der letzte Kandidat erfüllte sämtliche Metadaten- und
-Signaturprüfungen. Weil das Zielgerät beim abschließenden Archivtest nicht mehr per ADB verbunden war,
-steht nur noch die Installation und der Kaltstart des nach dem finalen Commit erzeugten Release-APKs
-aus.
+Commit nie sich selbst korrekt beschreiben. Der Release-Kandidat erfüllte sämtliche Metadaten- und
+Signaturprüfungen. Das exakt archivierte Release-APK wurde anschließend per ADB als Update
+installiert und kalt gestartet; App-Daten blieben erhalten, die Splash-Animation wechselte sichtbar
+durch ihre Frames, die Startseite erschien und der Crash-Logfilter blieb leer.
 
 ## 4. Bekannte Grenzen und Freigabekriterien
 
@@ -197,11 +197,10 @@ aus.
   Titel öffnet KruXx bewusst kein leeres schwebendes Fenster.
 - Der Benachrichtigungsschutz kann nur Töne über Androids Notification Policy steuern. Er blockiert
   weder sichtbare Pop-ups noch Medien, Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Vor dem öffentlichen `v1.0.1`: aus dem endgültigen sauberen Commit bauen, das dabei exakt gehashte
-  archivierte Release-APK installieren und kalt starten; anschließend den geprüften Quellstand,
-  beide Submodul-Commits und das passende Tag veröffentlichen. Die nicht separat protokollierten
-  Detailfälle in der Tabelle bleiben Bestandteil der Regressionstest-Matrix, sind aber derzeit keine
-  bekannten Defekte.
+- Vor dem öffentlichen `v1.0.1` den geprüften Quellstand, beide Submodul-Commits und das passende Tag
+  veröffentlichen und exakt das lokal geprüfte Archiv-APK an den GitHub-Release hängen. Die nicht
+  separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil der Regressionstest-Matrix,
+  sind aber derzeit keine bekannten Defekte.
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
