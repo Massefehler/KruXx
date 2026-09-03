@@ -183,6 +183,11 @@ Signaturprüfungen. Das exakt archivierte Release-APK wurde anschließend per AD
 installiert und kalt gestartet; App-Daten blieben erhalten, die Splash-Animation wechselte sichtbar
 durch ihre Frames, die Startseite erschien und der Crash-Logfilter blieb leer.
 
+Der öffentliche [GitHub-Release v1.0.1](https://github.com/Massefehler/KruXx/releases/tag/v1.0.1)
+zeigt auf den geprüften Commit `c3f478dae45bb0cd69c66d0c53cd7ff3fd32e9dd`. Sein einziges
+APK-Asset ist bytegleich mit dem lokal getesteten Archiv; GitHub-Asset-Digest, erneuter Download
+und Dateigröße wurden nach der Veröffentlichung verifiziert.
+
 ## 4. Bekannte Grenzen und Freigabekriterien
 
 - YTM, GitHub, Metadaten- und Liedtextdienste sind externe Dienste. Antwortformate, regionale
@@ -197,19 +202,21 @@ durch ihre Frames, die Startseite erschien und der Crash-Logfilter blieb leer.
   Titel öffnet KruXx bewusst kein leeres schwebendes Fenster.
 - Der Benachrichtigungsschutz kann nur Töne über Androids Notification Policy steuern. Er blockiert
   weder sichtbare Pop-ups noch Medien, Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Vor dem öffentlichen `v1.0.1` den geprüften Quellstand, beide Submodul-Commits und das passende Tag
-  veröffentlichen und exakt das lokal geprüfte Archiv-APK an den GitHub-Release hängen. Die nicht
-  separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil der Regressionstest-Matrix,
-  sind aber derzeit keine bekannten Defekte.
+- Für den öffentlichen `v1.0.1` wurden geprüfter Quellstand, beide Submodul-Commits und das passende
+  Tag veröffentlicht und exakt das lokal geprüfte Archiv-APK an den GitHub-Release gehängt. Die
+  nicht separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil der
+  Regressionstest-Matrix, sind aber derzeit keine bekannten Defekte.
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
-- Die GitHub-API meldete am 03.09.2026 für `Massefehler/KruXx` und
-  `Massefehler/KruXx-innertube` jeweils **0 offene Secret-Scanning-Alarme**. Der geplante
-  Metrolist-Spiegel existiert noch nicht; sein einzelner Commit und der vorgesehene Root-Commit
-  wurden lokal auf typische Schlüssel-/Tokenmuster und verbotene Pfade geprüft. Der einzige Treffer
-  ist ein ausdrücklich synthetischer Authentifizierungswert im Unit-Test. Nach Anlage des Spiegels
-  wird der Remote-Scan vor der App-Veröffentlichung erneut kontrolliert.
+- Die GitHub-API meldete am 03.09.2026 nach der Veröffentlichung für `Massefehler/KruXx`,
+  `Massefehler/KruXx-innertube` und `Massefehler/KruXx-metrolist` jeweils **0 offene
+  Secret-Scanning-Alarme**. Sechs Metrolist-Funde sind bewusst öffentliche, für den
+  Innertube-/PoToken-Abruf erforderliche YouTube-Clientschlüssel. Ein siebter Fund lag in einem alten,
+  im aktuellen Baum gelöschten Upstream-Core-Dump; der dort erkannte kurzlebige
+  GitHub-App-Installationstoken war automatisch abgelaufen. Alle Funde wurden mit dieser Begründung
+  klassifiziert. Der lokale Scan fand daneben nur einen ausdrücklich synthetischen
+  Authentifizierungswert im Unit-Test.
 - Keystore, Signierpasswörter, GitHub-Tokens, Cookies, OAuth-Client-Secrets, private API-Schlüssel,
   lokale Konfiguration und Crashlogs dürfen nie in Commit, Changelog, Issue oder Buildartefakt landen.
 - Ein GitHub-Alarm auf einen alten Commit verschwindet nicht dadurch, dass nur die aktuelle Datei

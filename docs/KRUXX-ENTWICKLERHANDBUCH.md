@@ -5,9 +5,9 @@ Stand: 03.09.2026 · KruXx `1.0.1` · historische Basis: Kreate `main` @ `f02577
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
 [`README.md`](README.md). KruXx 1.0.1 ist derzeit ein lokal vollständig getesteter, gelinteter,
-signierter und einschließlich des exakt archivierten APKs auf Gerät geprüfter Release-Kandidat,
-aber noch kein öffentlicher Release. Als nächster Schritt werden freigegebener Quellstand,
-Submodul-Pins und Tag gemeinsam veröffentlicht.
+signierter und einschließlich des exakt archivierten APKs auf Gerät geprüfter öffentlicher Release.
+Der freigegebene Quellstand, beide Submodul-Pins, Tag und APK sind unter
+<https://github.com/Massefehler/KruXx/releases/tag/v1.0.1> veröffentlicht.
 
 KruXx ist ein eigenständiger, öffentlicher Fork von
 [Kreate](https://github.com/knighthat/Kreate) (RiMusic/ViMusic-Linie). Quellcode und Releases liegen
@@ -857,11 +857,14 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
   war ebenfalls ohne Auffälligkeit.
 - Release und Debug werden im selben normalen Lauf des gehärteten Build-Skripts aus demselben
   Quellbaum erzeugt. Signatur, Paket, Version und eingebettete Git-Revision werden automatisch
-  geprüft; den erst danach feststehenden finalen APK-Hash in GitHub-Release und API verifizieren.
-- Die GitHub-API meldete am 03.09.2026 in den bestehenden App- und Innertube-Spiegeln jeweils null
-  offene Secret-Scanning-Alarme. Den noch anzulegenden Metrolist-Spiegel direkt nach seinem ersten
-  Push kontrollieren. Lokaler Commit-/Pfadscan fand nur den absichtlich synthetischen Auth-Wert eines
-  Unit-Tests; weder Schlüsselwerte noch der gespeicherte Crashreport wurden geöffnet.
+  geprüft; der erst danach feststehende finale APK-Hash wurde im GitHub-Release und über dessen API
+  verifiziert.
+- Die GitHub-API meldete am 03.09.2026 nach der Veröffentlichung in allen drei Spiegeln null offene
+  Secret-Scanning-Alarme. Im übernommenen Metrolist-Verlauf
+  wurden sechs bewusst öffentliche YouTube-Clientschlüssel als erforderlich klassifiziert; ein
+  GitHub-App-Installationstoken aus einem alten, im aktuellen Baum gelöschten Upstream-Core-Dump war
+  automatisch abgelaufen. Lokaler Commit-/Pfadscan fand daneben nur den absichtlich synthetischen
+  Auth-Wert eines Unit-Tests; weder Schlüsselwerte noch der gespeicherte Crashreport wurden geöffnet.
 - Monochrom-Glyph (Themed Icons, Benachrichtigung) ist derzeit ein Text-„K“; ein flaches
   Weiß-auf-transparent-Motiv würde besser zum Icon passen (`--mono alpha` mit eigener Datei ergänzen).
 - Unit-Tests für `mapExtractionFailure` und das Cache-Ablaufverhalten im Resolver.
