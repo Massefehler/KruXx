@@ -3,6 +3,7 @@ package it.fast4x.rimusic.utils
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Bundle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.util.fastDistinctBy
 import androidx.media3.common.C
@@ -113,8 +114,46 @@ fun Player.forcePlay(mediaItem: MediaItem) {
 }
 
 fun Player.playVideo(mediaItem: MediaItem) {
-    setMediaItem(mediaItem, true)
+    // Future callers may accidentally pass a queued/audio-only representation. In that case,
+    // stay on the normal resolver instead of leaving ExoPlayer paused without a visible video.
+    if (!mediaItem.isVideo) {
+        forcePlay(mediaItem)
+        return
+    }
+
+    val startPositionMs = if (currentMediaItem?.mediaId == mediaItem.mediaId) {
+        currentPosition.coerceAtLeast(0L)
+    } else {
+        0L
+    }
+
     pause()
+    setMediaItem(mediaItem, startPositionMs)
+}
+
+/**
+ * Hands the current YouTube video id back to KruXx's audio-only resolver without resetting the
+ * position mirrored from the embedded player.
+ */
+fun Player.resumeVideoAsAudio() {
+    val currentItem = currentMediaItem ?: return
+    val positionMs = currentPosition.coerceAtLeast(0L)
+    val audioExtras = Bundle(currentItem.mediaMetadata.extras ?: Bundle.EMPTY).apply {
+        putBoolean("isVideo", false)
+    }
+    val audioItem = currentItem.buildUpon()
+        .setMediaMetadata(
+            currentItem.mediaMetadata.buildUpon()
+                .setExtras(audioExtras)
+                .build()
+        )
+        .build()
+
+    pause()
+    setMediaItem(audioItem, positionMs)
+    prepare()
+    restoreGlobalVolume()
+    playWhenReady = true
 }
 
 fun Player.playAtIndex(mediaItemIndex: Int) {

@@ -1,9 +1,11 @@
-# Thanks to Metrolist team for the wonderful implementation
+# Metrolist-derived implementation
 
-[Metrolist](https://github.com/MetrolistGroup/Metrolist) is an awesome and lightweight music app.
-Their team worked tirelessly for this implementation, so I (@knighthat) won't take any credit in this.
+The implementation in this package originates from the
+[Metrolist](https://github.com/MetrolistGroup/Metrolist) project. It was adapted first for Kreate and
+is now maintained with additional KruXx compatibility and playback changes. Those adaptations do
+not remove or replace the authorship of the Metrolist contributors.
 
-Files inside this folder and its children are direct rip, a few modifications have been made to make
-it compatible with Kreate, but they are insignificant so no credits taken.
-
-> Please read [LICENSE](LICENSE) for details on usage
+Keep the original copyright and license notices when modifying or redistributing these files. The
+repository-wide terms, provenance and KruXx-specific attribution are documented in the root
+[`LICENSE`](../../../../../../LICENSE), [`NOTICE.md`](../../../../../../NOTICE.md) and
+[`docs/KRUXX-ENTWICKLERHANDBUCH.md`](../../../../../../docs/KRUXX-ENTWICKLERHANDBUCH.md).

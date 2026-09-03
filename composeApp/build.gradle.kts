@@ -13,8 +13,8 @@ val KRUXX_APP_NAME = "KruXx"
 // KruXx has its own release line. Keep versionCode strictly increasing forever: Android uses
 // it (not versionName) to decide whether an APK is an update. 1_000_000 is deliberately above
 // every distributed 2.2.3-kruxx.x build (latest: 14_107).
-val KRUXX_VERSION_NAME = "1.0.0"
-val KRUXX_VERSION_CODE = 1_000_000
+val KRUXX_VERSION_NAME = "1.0.1"
+val KRUXX_VERSION_CODE = 1_000_001
 val KRUXX_REPOSITORY_OWNER = "Massefehler"
 val KRUXX_REPOSITORY_NAME = "KruXx"
 val KRUXX_SIGNING_CERT_SHA256 = "5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673"
@@ -170,6 +170,12 @@ kotlin {
 }
 
 android {
+    lint {
+        // Freeze the inherited lint debt so release checks fail only for new findings.
+        // Regenerate deliberately with :composeApp:updateLintBaselineKruxxUniversalProdRelease.
+        baseline = file("lint-baseline.xml")
+    }
+
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
@@ -402,12 +408,17 @@ android {
                    it.outputFileName = "$appName-${suffix}.apk"
                }
 
-        if( buildType.name != "debug" ) {
+        val isKruxx = productFlavors.any { flavor -> flavor.name == "kruxx" }
+
+        if( buildType.name != "debug" && !isKruxx ) {
             preBuildProvider.get().dependsOn( copyReleaseNote )
-            // KruXx builds show their own notes (flavor res/raw overrides androidMain's copy)
-            if( productFlavors.any { f -> f.name == "kruxx" } )
-                preBuildProvider.get().dependsOn( copyKruxxReleaseNote )
         }
+
+        // Every KruXx variant uses the flavor-specific notes. Keeping the copy task in the debug
+        // graph as well declares the generated resource dependency explicitly and prevents stale
+        // or ordering-dependent notes when Gradle schedules tests/resources in parallel.
+        if( isKruxx )
+            preBuildProvider.get().dependsOn( copyKruxxReleaseNote )
     }
 
     compileOptions {
@@ -462,6 +473,18 @@ compose.resources {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+// Android ships org.json on the boot classpath (/apex/com.android.art/javalib/core-libart.jar).
+// MetrolistExtractor drags the standalone org.json:json artefact in through
+// modules/metrolist/innertube, so R8 treats those classes as program code and rewrites call
+// sites against its own optimized signatures (JSONObject.put ends up as put(Object, String)V).
+// At runtime the platform class always wins, so the rewritten method does not exist: the
+// embedded YouTube player died in IFramePlayerOptions.addInt with a NoSuchMethodError as soon
+// as a video was opened. Dropping the artefact keeps every org.json reference on the platform
+// class. Metrolist excludes it the same way in modules/metrolist/app/build.gradle.kts.
+configurations.configureEach {
+    exclude( group = "org.json", module = "json" )
 }
 
 dependencies {

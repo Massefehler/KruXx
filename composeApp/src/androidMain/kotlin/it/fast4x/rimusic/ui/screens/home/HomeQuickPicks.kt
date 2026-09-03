@@ -58,8 +58,6 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastFilterNotNull
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.Cache
-import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavController
 import app.kreate.android.LocalBottomMenu
 import app.kreate.android.Preferences
@@ -73,10 +71,10 @@ import app.kreate.android.themed.rimusic.component.song.SongItem
 import app.kreate.android.utils.ItemUtils
 import app.kreate.android.utils.innertube.CURRENT_LOCALE
 import app.kreate.android.utils.innertube.toMediaItem
+import app.kreate.android.utils.innertube.toSong
 import app.kreate.android.utils.scrollingText
 import app.kreate.android.utils.shallowCompare
 import app.kreate.database.models.Song
-import app.kreate.di.CacheType
 import co.touchlab.kermit.Logger
 import it.fast4x.compose.persist.persist
 import it.fast4x.compose.persist.persistList
@@ -94,7 +92,6 @@ import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.enums.PlayEventsType
 import it.fast4x.rimusic.enums.UiType
-import it.fast4x.rimusic.service.MyDownloadHelper
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.LocalMenuState
 import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
@@ -138,7 +135,6 @@ import me.knighthat.utils.Toaster
 import org.koin.compose.koinInject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
@@ -170,6 +166,8 @@ fun HomeQuickPicks(
     var relatedPageResult by persist<Result<Innertube.RelatedPage?>?>(tag = "home/relatedPageResult")
     var relatedInit by persist<Innertube.RelatedPage?>(tag = "home/relatedPage")
     var relatedPreference by rememberPreference(quickPicsRelatedPageKey, relatedInit)
+    var suggestedSongs by persistList<Song>(tag = "home/suggestedSongs")
+    var suggestionsLoading by remember { mutableStateOf(false) }
 
     var discoverPageResult by persist<Result<Innertube.DiscoverPage?>>("home/discoveryAlbums")
     var discoverPageInit by persist<Innertube.DiscoverPage>("home/discoveryAlbums")
@@ -281,6 +279,30 @@ fun HomeQuickPicks(
         loadData()
     }
 
+    LaunchedEffect( showTips, trending?.id ) {
+        if( !showTips ) return@LaunchedEffect
+
+        val seedId = trending?.id ?: "HZnNt9nnEhw"
+        suggestionsLoading = true
+
+        me.knighthat.innertube.Innertube
+            .radio( seedId, CURRENT_LOCALE )
+            .onSuccess { songs ->
+                suggestedSongs = songs
+                    .asSequence()
+                    .filterNot { it.id == trending?.id }
+                    .distinctBy( InnertubeSong::id )
+                    .map { it.toSong }
+                    .take( 18 )
+                    .toList()
+            }
+            .onFailure { error ->
+                Logger.e( "Failed to load suggestions", error, "HomeQuickPicks" )
+            }
+
+        suggestionsLoading = false
+    }
+
     var refreshing by remember { mutableStateOf(false) }
 
     fun refresh() {
@@ -289,6 +311,7 @@ fun HomeQuickPicks(
         relatedPageResult = null
         relatedInit = null
         trending = null
+        suggestedSongs = emptyList()
         refreshScope.launch(Dispatchers.IO) {
             refreshing = true
             loadData()
@@ -311,33 +334,6 @@ fun HomeQuickPicks(
         .padding(endPaddingValues)
 
     val showSearchTab by Preferences.SHOW_SEARCH_IN_NAVIGATION_BAR
-
-    val cache: Cache = koinInject(CacheType.CACHE)
-    var cachedSongs by remember { mutableStateOf( emptyList<String>() ) }
-    // FIXME: This practically run once on start
-    LaunchedEffect( cache ) {
-        val keys = try {
-            cache.keys
-        } catch ( _: IllegalStateException ) {
-            // Sometimes this block runs before SimpleCache
-            // finishes it's init, it'll throw IllegalStateException
-            // if the process is running. To avoid, small delay is added
-            delay( 1.seconds )
-
-            cache.keys
-        }.toMutableSet()
-
-        MyDownloadHelper.instance
-                        .downloads
-                        .value
-                        .filter {
-                            it.value.state == Download.STATE_COMPLETED
-                        }
-                        .keys
-                        .also { keys.addAll(it) }
-
-        cachedSongs = keys.toList()
-    }
 
     PullToRefreshBox(
         isRefreshing = refreshing,
@@ -450,6 +446,18 @@ fun HomeQuickPicks(
                 WelcomeMessage()
 
                 if (showTips) {
+                    val songsForSuggestions = buildList {
+                        trending?.let( ::add )
+                        addAll( suggestedSongs )
+                        relatedInit?.songs
+                            ?.map( Innertube.SongItem::asSong )
+                            ?.let( ::addAll )
+                    }.asSequence()
+                     .filter { !parentalControlEnabled || !it.isExplicit }
+                     .distinctBy( Song::id )
+                     .take( 18 )
+                     .toList()
+
                     Title2Actions(
                         title = stringResource(R.string.tips),
                         onClick1 = {
@@ -484,10 +492,13 @@ fun HomeQuickPicks(
                         },
                         icon2 = R.drawable.play,
                         onClick2 = {
-                            player.stopRadio()
-                            trending?.let { player.forcePlay(it.asMediaItem) }
-                            player.addMediaItems(relatedInit?.songs?.map { it.asMediaItem }
-                                ?: emptyList())
+                            songsForSuggestions.firstOrNull()?.let { firstSong ->
+                                player.stopRadio()
+                                player.forcePlay( firstSong.asMediaItem )
+                                player.addMediaItems(
+                                    songsForSuggestions.drop( 1 ).map { it.asMediaItem }
+                                )
+                            }
                         }
 
                         //modifier = Modifier.fillMaxWidth(0.7f)
@@ -506,67 +517,39 @@ fun HomeQuickPicks(
                         SongItem.Values.from( colorPalette, typography )
                     }
 
+                    val suggestionRowCount = songsForSuggestions.size.coerceIn( 1, 3 )
+                    val suggestionRowHeight =
+                        SongItem.thumbnailSize().height + Dimensions.itemsVerticalPadding * 2
+
                     LazyHorizontalGrid(
                         state = quickPicksLazyGridState,
-                        rows = GridCells.Fixed(if (relatedInit != null) 3 else 1),
+                        rows = GridCells.Fixed( suggestionRowCount ),
                         flingBehavior = ScrollableDefaults.flingBehavior(),
                         contentPadding = endPaddingValues,
                         modifier = Modifier.fillMaxWidth()
-                                           .height(
-                                               if ( relatedInit != null)
-                                                   Dimensions.itemsVerticalPadding * 3 * 9
-                                               else
-                                                   Dimensions.itemsVerticalPadding * 9
-                                           )
+                                           .height( suggestionRowHeight * suggestionRowCount )
                     ) {
-                        trending?.let { song ->
-                            item {
-                                SongItem.Render(
-                                    song = song,
-                                    hapticFeedback = hapticFeedback,
-                                    isPlaying = song.shallowCompare( currentMediaItem ),
-                                    values = songItemValues,
-                                    modifier = Modifier.width( itemInHorizontalGridWidth ),
-                                    onLongClick = {
-                                        val page = MenuPage.Song(song.asMediaItem)
-                                        bottomMenu.show( page, true )
-                                    }
-                                ) {
-                                    player.startRadio( song, true )
+                        items(
+                            items = songsForSuggestions,
+                            key = Song::id
+                        ) { song ->
+                            SongItem.Render(
+                                song = song,
+                                hapticFeedback = hapticFeedback,
+                                isPlaying = song.shallowCompare( currentMediaItem ),
+                                values = songItemValues,
+                                modifier = Modifier.width( itemInHorizontalGridWidth ),
+                                onLongClick = {
+                                    val page = MenuPage.Song(song.asMediaItem)
+                                    bottomMenu.show( page, true )
                                 }
-                            }
-                        }
-
-                        relatedInit?.let { relatedPage ->
-                            items(
-                                items = relatedPage.songs
-                                                   ?.distinctBy( Innertube.SongItem::key )
-                                                   ?.filter {
-                                                       cachedSongs == null || cachedSongs.indexOf( it.key ) < 0
-                                                   }
-                                                   ?.dropLast( if( trending == null) 0 else 1 )
-                                                   ?.map( Innertube.SongItem::asSong )
-                                                   .orEmpty(),
-                                key = Song::id
-                            ) { song ->
-                                SongItem.Render(
-                                    song = song,
-                                    hapticFeedback = hapticFeedback,
-                                    isPlaying = song.shallowCompare( currentMediaItem ),
-                                    values = songItemValues,
-                                    modifier = Modifier.width( itemInHorizontalGridWidth ),
-                                    onLongClick = {
-                                        val page = MenuPage.Song(song.asMediaItem)
-                                        bottomMenu.show( page, true )
-                                    }
-                                ) {
-                                    player.startRadio( song, true )
-                                }
+                            ) {
+                                player.startRadio( song, true )
                             }
                         }
                     }
 
-                    if (relatedInit == null) Loader()
+                    if( suggestionsLoading && songsForSuggestions.size <= 1 ) Loader()
                 }
 
                 val albumItemValues = remember(  colorPalette, typography  ) {
@@ -944,6 +927,12 @@ fun HomeQuickPicks(
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     modifier = Modifier.padding( start = 16.dp )
                                                                        .requiredHeight( ArtistItem.thumbnailSize().height )
+                                                                       .clickable {
+                                                                           NavRoutes.YT_ARTIST.navigateHere(
+                                                                               navController,
+                                                                               artist.id
+                                                                           )
+                                                                       }
                                                 ) {
                                                     BasicText(
                                                         text = artist.rank,
@@ -1009,7 +998,8 @@ fun HomeQuickPicks(
                         ItemUtils.LazyRowItem(
                             navController = navController,
                             innertubeItems = it.items.fastFilterNotNull(),
-                            currentlyPlaying = currentMediaItem?.mediaId
+                            currentlyPlaying = currentMediaItem?.mediaId,
+                            useLogin = true
                         )
                     }
                 } ?: if (!isYouTubeLoggedIn()) BasicText(
@@ -1118,5 +1108,3 @@ fun HomeQuickPicks(
 
     }
 }
-
-

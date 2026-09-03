@@ -219,6 +219,7 @@ fun HomeLibrary(
                             navController = navController,
                             sizeDp = sizeDp,
                             thumbnailUrl = preview.thumbnailUrl,
+                            useLogin = preview.playlist.isYoutubePlaylist,
                             onClick = search::hideIfEmpty,
                             onLongClick = {
                                 val page = MenuPage.LocalPlaylist(preview)

@@ -77,6 +77,9 @@ object PlaylistItem: Visual(), MultiplatformItem {
     override val platformIndicatorType: PlatformIndicatorType by Preferences.PLAYLISTS_PLATFORM_INDICATOR
     override val thumbnailRoundnessPercent: Preferences.Int = Preferences.PLAYLIST_THUMBNAIL_ROUNDNESS_PERCENT
 
+    private fun onlinePlaylistPath( browseId: String, useLogin: Boolean ) =
+        if( useLogin ) "$browseId?useLogin=true" else browseId
+
     override fun thumbnailSize() = DpSize(Preferences.PLAYLIST_THUMBNAIL_SIZE.value.dp, Preferences.PLAYLIST_THUMBNAIL_SIZE.value.dp)
 
     /**
@@ -365,6 +368,7 @@ object PlaylistItem: Visual(), MultiplatformItem {
         showSongCount: Boolean = true,
         showPlatformIcon: Boolean = true,
         thumbnailUrl: String? = null,
+        useLogin: Boolean = false,
         onClick: () -> Unit = {},
         onLongClick: () -> Unit = {}
     ) =
@@ -400,7 +404,10 @@ object PlaylistItem: Visual(), MultiplatformItem {
                 if( navController == null ) return@click
 
                 if( playlist.browseId != null && playlist.id == -1L )
-                    NavRoutes.YT_PLAYLIST.navigateHere( navController, playlist.browseId )
+                    NavRoutes.YT_PLAYLIST.navigateHere(
+                        navController,
+                        onlinePlaylistPath( playlist.browseId, useLogin )
+                    )
                 else
                     NavRoutes.localPlaylist.navigateHere( navController, playlist.id.toString() )
             },
@@ -415,6 +422,7 @@ object PlaylistItem: Visual(), MultiplatformItem {
         modifier: Modifier = Modifier,
         sizeDp: DpSize = thumbnailSize(),
         showPlatformIcon: Boolean = true,
+        useLogin: Boolean = false,
         onClick: () -> Unit = {},
         onLongClick: () -> Unit = {}
     ) =
@@ -440,7 +448,10 @@ object PlaylistItem: Visual(), MultiplatformItem {
                 onClick.invoke()
 
                 if( navController == null ) return@click
-                    NavRoutes.YT_PLAYLIST.navigateHere( navController, innertubePlaylist.key )
+                NavRoutes.YT_PLAYLIST.navigateHere(
+                    navController,
+                    onlinePlaylistPath( innertubePlaylist.key, useLogin )
+                )
             },
             onLongClick = onLongClick
         )

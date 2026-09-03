@@ -9,6 +9,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.offline.DefaultDownloadIndex
+import androidx.media3.exoplayer.offline.DefaultDownloaderFactory
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
@@ -21,6 +25,9 @@ import app.kreate.android.service.isDownloadPending
 import app.kreate.android.service.isDownloadRemovable
 import app.kreate.database.models.Song
 import app.kreate.di.CacheType
+import app.kreate.di.DownloadFormatMismatchException
+import app.kreate.di.InnertubeDataSourceType
+import app.kreate.di.resetLegacyPartialDownload
 import co.touchlab.kermit.Logger
 import coil3.request.allowHardware
 import coil3.request.bitmapConfig
@@ -82,6 +89,18 @@ class DownloadHelperImpl(
     private val commandMutex = Mutex()
     private val auxiliaryRequestSlots = Semaphore(MAX_PARALLEL_AUXILIARY_REQUESTS)
     private val pendingCommandIds = ConcurrentHashMap.newKeySet<String>()
+    private val logger = Logger.withTag("DownloadHelperImpl")
+    private val downloadCache: Cache by lazy { get(CacheType.DOWNLOAD) }
+
+    private fun Throwable.hasDownloadFormatMismatch(): Boolean {
+        val visited = mutableSetOf<Throwable>()
+        var current: Throwable? = this
+        while( current != null && visited.add(current) ) {
+            if( current is DownloadFormatMismatchException ) return true
+            current = current.cause
+        }
+        return false
+    }
 
     override val downloads: MutableStateFlow<Map<String, Download>>
     override val downloadManager by lazy {
@@ -92,6 +111,25 @@ class DownloadHelperImpl(
                 finalException: Exception?
             ) {
                 pendingCommandIds.remove(download.request.id)
+
+                // The task has fully stopped when this callback arrives, so incompatible spans
+                // can now be removed safely. A manual retry then gets a new CacheWriter starting
+                // at byte zero instead of repeatedly appending to the old format.
+                if( download.state == Download.STATE_FAILED &&
+                    finalException?.hasDownloadFormatMismatch() == true
+                ) {
+                    runCatching { downloadCache.removeResource( download.request.id ) }
+                        .onSuccess {
+                            logger.w {
+                                "Cleared incompatible partial download ${download.request.id}; " +
+                                        "the next retry starts cleanly"
+                            }
+                        }
+                        .onFailure {
+                            logger.e( "Failed to clear incompatible partial ${download.request.id}", it )
+                        }
+                }
+
                 syncDownloads(download)
             }
 
@@ -104,13 +142,34 @@ class DownloadHelperImpl(
             }
         }
 
-        val manager = DownloadManager(
-            context,
-            StandaloneDatabaseProvider(context),
-            get(CacheType.DOWNLOAD),
-            get<ResolvingDataSource.Factory>(),
-            executor
+        val databaseProvider = StandaloneDatabaseProvider(context)
+        val downloadIndex = DefaultDownloadIndex(databaseProvider)
+
+        // DownloadManager starts paused, but initializes its index on another thread immediately.
+        // Migrate legacy partials before constructing it so CacheWriter never observes old bytes.
+        val migrationCursor = downloadIndex.getDownloads()
+        try {
+            while( migrationCursor.moveToNext() ) {
+                val download = migrationCursor.download
+                if( download.state != Download.STATE_COMPLETED &&
+                    download.state != Download.STATE_REMOVING
+                ) {
+                    resetLegacyPartialDownload( downloadCache, download.request.id )
+                }
+            }
+        } finally {
+            migrationCursor.close()
+        }
+
+        val downloaderFactory = DefaultDownloaderFactory(
+            CacheDataSource.Factory()
+                .setCache( downloadCache )
+                .setUpstreamDataSourceFactory(
+                    get<ResolvingDataSource.Factory>( InnertubeDataSourceType.DOWNLOAD )
+                ),
+            executor,
         )
+        val manager = DownloadManager( context, downloadIndex, downloaderFactory )
 
         manager.maxParallelDownloads = NUM_PARALLEL_DOWNLOADS
         manager.minRetryCount = NUM_RETRIES
@@ -125,8 +184,12 @@ class DownloadHelperImpl(
     init {
         val results = mutableMapOf<String, Download>()
         val cursor = downloadManager.downloadIndex.getDownloads()
-        while ( cursor.moveToNext() ) {
-            results[cursor.download.request.id] = cursor.download
+        try {
+            while ( cursor.moveToNext() ) {
+                results[cursor.download.request.id] = cursor.download
+            }
+        } finally {
+            cursor.close()
         }
         downloads = MutableStateFlow(results)
     }
@@ -192,6 +255,9 @@ class DownloadHelperImpl(
         if( accepted.isEmpty() ) return
 
         accepted.forEach { mediaItem ->
+            // Also covers orphaned partial cache data whose old index row no longer exists.
+            resetLegacyPartialDownload( downloadCache, mediaItem.mediaId )
+
             Database.asyncTransaction {
                 insertIgnore( mediaItem )
             }

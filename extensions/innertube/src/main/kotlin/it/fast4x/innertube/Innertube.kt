@@ -208,19 +208,47 @@ object Innertube {
         override val key get() = info!!.endpoint!!.videoId!!
         override val title get() = info?.name
 
+        /**
+         * Semantic content type reported by YouTube Music.
+         *
+         * An art track is technically exposed through a YouTube video id as well, but its visual
+         * part is only a static cover. Unknown values deliberately stay unknown: successfully
+         * loading an embed cannot prove that the encoded picture actually moves.
+         */
+        val videoType: VideoType
+            get() = when (
+                info
+                    ?.endpoint
+                    ?.watchEndpointMusicSupportedConfigs
+                    ?.watchEndpointMusicConfig
+                    ?.musicVideoType
+            ) {
+                "MUSIC_VIDEO_TYPE_OMV" -> VideoType.OFFICIAL_MUSIC_VIDEO
+                "MUSIC_VIDEO_TYPE_UGC" -> VideoType.USER_GENERATED_VIDEO
+                "MUSIC_VIDEO_TYPE_ATV" -> VideoType.ART_TRACK
+                else -> VideoType.UNKNOWN
+            }
+
         val isOfficialMusicVideo: Boolean
-            get() = info
-                ?.endpoint
-                ?.watchEndpointMusicSupportedConfigs
-                ?.watchEndpointMusicConfig
-                ?.musicVideoType == "MUSIC_VIDEO_TYPE_OMV"
+            get() = videoType == VideoType.OFFICIAL_MUSIC_VIDEO
 
         val isUserGeneratedContent: Boolean
-            get() = info
-                ?.endpoint
-                ?.watchEndpointMusicSupportedConfigs
-                ?.watchEndpointMusicConfig
-                ?.musicVideoType == "MUSIC_VIDEO_TYPE_UGC"
+            get() = videoType == VideoType.USER_GENERATED_VIDEO
+
+        val isArtTrack: Boolean
+            get() = videoType == VideoType.ART_TRACK
+
+        /** Only types that YTM identifies as visual videos may open the embedded video player. */
+        val supportsVideoPlayback: Boolean
+            get() = videoType == VideoType.OFFICIAL_MUSIC_VIDEO ||
+                    videoType == VideoType.USER_GENERATED_VIDEO
+
+        enum class VideoType {
+            OFFICIAL_MUSIC_VIDEO,
+            USER_GENERATED_VIDEO,
+            ART_TRACK,
+            UNKNOWN
+        }
 
         companion object
     }

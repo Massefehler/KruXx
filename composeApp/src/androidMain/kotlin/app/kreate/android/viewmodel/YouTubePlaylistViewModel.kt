@@ -18,6 +18,9 @@ import app.kreate.android.utils.innertube.CURRENT_LOCALE
 import app.kreate.android.utils.innertube.toSong
 import app.kreate.database.models.Song
 import co.touchlab.kermit.Logger
+import com.metrolist.innertube.YouTube
+import com.metrolist.innertube.models.SongItem as MetrolistSong
+import com.metrolist.innertube.pages.PlaylistPage as MetrolistPlaylistPage
 import it.fast4x.rimusic.utils.isNetworkConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,23 +36,95 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import me.knighthat.innertube.Innertube
 import me.knighthat.innertube.model.InnertubePlaylist
 import me.knighthat.innertube.model.InnertubeSong
 import me.knighthat.utils.Toaster
 
 
+data class YouTubePlaylistHeader(
+    val id: String,
+    val name: String,
+    val thumbnailUrl: String?,
+    val subtitleText: String?,
+    val description: String?,
+) {
+    fun shareUrl(host: String): String =
+        "$host/playlist?list=${id.removePrefix("VL")}"
+}
+
+internal fun normalizeYouTubePlaylistBrowseId(browseId: String): String =
+    if( browseId.startsWith("VL") ) browseId else "VL$browseId"
+
+private fun InnertubePlaylist.toHeader(): YouTubePlaylistHeader = YouTubePlaylistHeader(
+    id = id,
+    name = name,
+    thumbnailUrl = thumbnails.firstOrNull()?.url,
+    subtitleText = subtitleText,
+    description = description,
+)
+
+private fun MetrolistPlaylistPage.toHeader(): YouTubePlaylistHeader = YouTubePlaylistHeader(
+    id = normalizeYouTubePlaylistBrowseId(playlist.id),
+    name = playlist.title,
+    thumbnailUrl = playlist.thumbnail?.takeIf(String::isNotBlank),
+    subtitleText = listOfNotNull(playlist.author?.name, playlist.songCountText)
+        .filter(String::isNotBlank)
+        .joinToString(" • ")
+        .takeIf(String::isNotBlank),
+    description = playlist.description?.takeIf(String::isNotBlank),
+)
+
+internal fun Int.toPlaylistDurationText(): String {
+    val safeSeconds = coerceAtLeast(0)
+    val seconds = (safeSeconds % 60).toString().padStart(2, '0')
+    val totalMinutes = safeSeconds / 60
+    return if( totalMinutes >= 60 ) {
+        val minutes = (totalMinutes % 60).toString().padStart(2, '0')
+        "${totalMinutes / 60}:$minutes:$seconds"
+    } else {
+        "$totalMinutes:$seconds"
+    }
+}
+
+internal fun MetrolistSong.toDatabaseSong(): Song = Song(
+    id = id,
+    title = title,
+    artistsText = artists.joinToString(", ") { it.name }.takeIf(String::isNotBlank),
+    durationText = duration?.toPlaylistDurationText(),
+    thumbnailUrl = thumbnail.takeIf(String::isNotBlank),
+    isExplicit = explicit,
+)
+
+
 class YouTubePlaylistViewModel(
     savedStateHandle: SavedStateHandle,
-    private val context: Context
+    context: Context
 ) : ViewModel() {
 
-    private val _playlistPage = MutableStateFlow<InnertubePlaylist?>(null)
-    private val _continued = MutableStateFlow(emptyList<InnertubeSong>())
+    private val appContext = context.applicationContext
+    private val _playlistPage = MutableStateFlow<YouTubePlaylistHeader?>(null)
+    private val _initialSongs = MutableStateFlow(emptyList<Song>())
+    private val _continued = MutableStateFlow(emptyList<Song>())
     private val _continuation = MutableStateFlow<String?>(null)
+    private val loadMoreMutex = Mutex()
+    private var anonymousVisitorData: String? = null
 
     // browseId must not be empty or null in any case
     val browseId: String = savedStateHandle["browseId"]!!
+
+    /**
+     * YouTube Music addresses a playlist by its playlist id prefixed with `VL`; the bare id is
+     * rejected (HTTP 400, or 401 once the request also carries an account context).
+     *
+     * Metrolist's library parsers strip that prefix (`LibraryPage`/`RelatedPage` both call
+     * `removePrefix("VL")`), so entries coming from the synced account library arrive here
+     * without it, while entries coming from the YTM home sections keep it. Normalize both
+     * spellings instead of relying on the caller.
+     */
+    private val playlistBrowseId: String = normalizeYouTubePlaylistBrowseId(browseId)
     val params: String? = savedStateHandle["params"]
     val useLogin: Boolean = savedStateHandle["useLogin"]!!
     val listState = LazyListState()
@@ -70,8 +145,8 @@ class YouTubePlaylistViewModel(
         }
         //</editor-fold>
         //<editor-fold desc="Combine initial song list and its continuation + filter search">
-        this.songs = combine( _playlistPage, _continued ) { page, continued ->
-                page?.songs.orEmpty() + continued
+        this.songs = combine( _initialSongs, _continued ) { initial, continued ->
+                initial + continued
             }
             .combine( snapshotFlow { search.input } ) { songs, input ->
                 songs.fastFilter {
@@ -80,12 +155,11 @@ class YouTubePlaylistViewModel(
                      }
                      .fastFilter {
                          val query = input.text
-                         it.name.contains( query, true )
-                                 || it.artistsText.contains( query, true )
+                         it.title.contains( query, true )
+                                 || it.artistsText?.contains( query, true ) == true
                      }
             }
             .distinctUntilChanged()
-            .map { it.fastMap(InnertubeSong::toSong ) }
             .flowOn( Dispatchers.Default )
             .stateIn(
                 scope = viewModelScope,
@@ -103,49 +177,98 @@ class YouTubePlaylistViewModel(
 
     @AnyThread
     fun onFetch() = viewModelScope.launch( Dispatchers.IO ) {
-        if( !isNetworkConnected(context) ) {
+        if( !isNetworkConnected(appContext) ) {
             Toaster.noInternet()
             return@launch
         }
 
-        Innertube.browsePlaylist( browseId, CURRENT_LOCALE, useLogin )
-                 .onSuccess { page ->
-                     _playlistPage.update { page }
-                     _continuation.update { page.songContinuation }
-                 }
-                 .onFailure { err ->
-                     Logger.e( "", err, "YouTubePlaylist" )
-                     Toaster.e( R.string.error_failed_to_load_playlist )
-                 }
+        val result = if( useLogin ) {
+            YouTube.playlist(playlistBrowseId.removePrefix("VL")).map { page ->
+                LoadedPlaylist(
+                    header = page.toHeader(),
+                    songs = page.songs.fastMap(MetrolistSong::toDatabaseSong),
+                    continuation = page.songsContinuation ?: page.continuation,
+                    visitorData = null,
+                )
+            }
+        } else {
+            Innertube.browsePlaylist(playlistBrowseId, CURRENT_LOCALE, false).map { page ->
+                LoadedPlaylist(
+                    header = page.toHeader(),
+                    songs = page.songs.fastMap { it.toSong },
+                    continuation = page.songContinuation,
+                    visitorData = page.visitorData,
+                )
+            }
+        }
+
+        result.onSuccess { loaded ->
+            anonymousVisitorData = loaded.visitorData
+            _playlistPage.value = loaded.header
+            _initialSongs.value = loaded.songs
+            _continued.value = emptyList()
+            _continuation.value = loaded.continuation
+        }.onFailure { err ->
+            Logger.e( "Failed to load YouTube playlist (useLogin=$useLogin)", err, "YouTubePlaylist" )
+            Toaster.e( R.string.error_failed_to_load_playlist )
+        }
     }
 
     @AnyThread
     fun onGetMore() = viewModelScope.launch( Dispatchers.IO ) {
-        if( !isNetworkConnected(context) ) {
-            Toaster.noInternet()
-            return@launch
-        }
+        loadMoreMutex.withLock {
+            if( !isNetworkConnected(appContext) ) {
+                Toaster.noInternet()
+                return@withLock
+            }
 
-        // Capture values here to guarantee no race-condition can happen after this
-        val continuation = _continuation.value
-        val visitorData = _playlistPage.value?.visitorData
-        if( continuation == null || (visitorData == null && !useLogin) ) {
-            Toaster.w( R.string.warning_end_of_list )
-            return@launch
-        }
+            val continuation = _continuation.value
+            if( continuation == null || (!useLogin && anonymousVisitorData == null) ) {
+                Toaster.w( R.string.warning_end_of_list )
+                return@withLock
+            }
 
-        Innertube.playlistContinued(
-            _playlistPage.value?.visitorData,
-            continuation,
-            CURRENT_LOCALE,
-            params,
-            useLogin
-        ).onSuccess { continued ->
-            _continued.update { it + continued.songs }
-            _continuation.update { continued.continuation }
-        }.onFailure { err ->
-            Logger.e( "", err, "YouTubePlaylist" )
-            Toaster.e( R.string.error_failed_to_get_playlists_next_songs )
+            val result = if( useLogin ) {
+                YouTube.playlistContinuation(continuation).map { page ->
+                    LoadedContinuation(
+                        songs = page.songs.fastMap(MetrolistSong::toDatabaseSong),
+                        continuation = page.continuation,
+                    )
+                }
+            } else {
+                Innertube.playlistContinued(
+                    anonymousVisitorData,
+                    continuation,
+                    CURRENT_LOCALE,
+                    params,
+                    false,
+                ).map { page ->
+                    LoadedContinuation(
+                        songs = page.songs.fastMap { it.toSong },
+                        continuation = page.continuation,
+                    )
+                }
+            }
+
+            result.onSuccess { continued ->
+                _continued.update { it + continued.songs }
+                _continuation.value = continued.continuation
+            }.onFailure { err ->
+                Logger.e( "Failed to load more YouTube playlist songs (useLogin=$useLogin)", err, "YouTubePlaylist" )
+                Toaster.e( R.string.error_failed_to_get_playlists_next_songs )
+            }
         }
     }
+
+    private data class LoadedPlaylist(
+        val header: YouTubePlaylistHeader,
+        val songs: List<Song>,
+        val continuation: String?,
+        val visitorData: String?,
+    )
+
+    private data class LoadedContinuation(
+        val songs: List<Song>,
+        val continuation: String?,
+    )
 }

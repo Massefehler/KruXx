@@ -1,6 +1,10 @@
 package app.kreate.android.themed.common.screens.settings.general
 
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
@@ -10,6 +14,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -17,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import app.kreate.android.Preferences
 import app.kreate.android.R
+import app.kreate.android.service.player.PlaybackNotificationSilencer
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.themed.common.component.settings.SettingComponents
 import app.kreate.android.themed.common.component.settings.SettingEntrySearch
@@ -27,6 +33,7 @@ import it.fast4x.rimusic.enums.AudioQualityFormat
 import it.fast4x.rimusic.utils.isAtLeastAndroid6
 import it.fast4x.rimusic.utils.rememberEqualizerLauncher
 import me.knighthat.component.dialog.InputDialogConstraints
+import me.knighthat.utils.Toaster
 import org.koin.compose.koinInject
 
 @ExperimentalMaterial3Api
@@ -290,6 +297,39 @@ fun LazyListScope.playerSettingsSection( search: SettingEntrySearch ) {
             R.string.settings_audio_focus_info
         )
     }
+    entry( search, R.string.settings_silence_notifications_during_playback ) {
+        val context = LocalContext.current
+        val policyAccessLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) {
+            val accessGranted = PlaybackNotificationSilencer.hasPolicyAccess( context )
+            Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value = accessGranted
+            if( !accessGranted )
+                Toaster.w( R.string.notification_policy_access_not_granted )
+        }
+
+        SettingComponents.BooleanEntry(
+            Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK,
+            R.string.settings_silence_notifications_during_playback,
+            R.string.settings_silence_notifications_during_playback_info
+        ) { isEnabled ->
+            if( !isEnabled || PlaybackNotificationSilencer.hasPolicyAccess( context ) )
+                return@BooleanEntry
+
+            // BooleanEntry flips the preference before this callback. Keep it disabled until the
+            // system confirms the special access; setting it after the result also wakes the
+            // player-service listener on devices that omit the framework change broadcast.
+            Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value = false
+            try {
+                policyAccessLauncher.launch(
+                    Intent( Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS )
+                )
+            } catch( _: RuntimeException ) {
+                Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value = false
+                Toaster.w( R.string.notification_policy_settings_unavailable )
+            }
+        }
+    }
     entry( search, R.string.event_volumekeys ) {
         SettingComponents.BooleanEntry(
             Preferences.AUDIO_VOLUME_BUTTONS_CHANGE_SONG,
@@ -305,35 +345,6 @@ fun LazyListScope.playerSettingsSection( search: SettingEntrySearch ) {
             R.string.shake_to_change_song,
             action = SettingComponents.Action.RESTART_PLAYER_SERVICE
         )
-    }
-    entry( search, R.string.settings_enable_pip ) {
-        SettingComponents.BooleanEntry(
-            Preferences.IS_PIP_ENABLED,
-            R.string.settings_enable_pip,
-            action = SettingComponents.Action.RESTART_PLAYER_SERVICE
-        )
-    }
-    animatedEntry(
-        key = "pipChildren",
-        visible = Preferences.IS_PIP_ENABLED.value,
-        modifier = Modifier.padding( start = SettingComponents.CHILDREN_PADDING.dp )
-    ) {
-        Column {
-            if( search appearsIn R.string.settings_pip_module )
-                SettingComponents.EnumEntry(
-                    Preferences.PIP_MODULE,
-                    R.string.settings_pip_module,
-                    action = SettingComponents.Action.RESTART_PLAYER_SERVICE
-                )
-
-            if( search appearsIn R.string.settings_enable_pip_auto )
-                SettingComponents.BooleanEntry(
-                    Preferences.IS_AUTO_PIP_ENABLED,
-                    R.string.settings_enable_pip_auto,
-                    R.string.pip_info_from_android_12_pip_can_be_automatically_enabled,
-                    action = SettingComponents.Action.RESTART_PLAYER_SERVICE
-                )
-        }
     }
     entry( search, R.string.settings_enable_autodownload_song ) {
         SettingComponents.BooleanEntry(

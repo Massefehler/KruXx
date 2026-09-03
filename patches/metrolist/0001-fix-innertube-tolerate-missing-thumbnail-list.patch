@@ -1,0 +1,30 @@
+From 38a006a473a5d42baf41db2bf673e26be1ffc42b Mon Sep 17 00:00:00 2001
+From: User <user@example.com>
+Date: Thu, 3 Sep 2026 15:13:55 +0200
+Subject: [PATCH] fix(innertube): tolerate missing thumbnail list
+
+---
+ .../main/kotlin/com/metrolist/innertube/models/Thumbnails.kt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/innertube/src/main/kotlin/com/metrolist/innertube/models/Thumbnails.kt b/innertube/src/main/kotlin/com/metrolist/innertube/models/Thumbnails.kt
+index ef2011dd..17119dc2 100644
+--- a/innertube/src/main/kotlin/com/metrolist/innertube/models/Thumbnails.kt
++++ b/innertube/src/main/kotlin/com/metrolist/innertube/models/Thumbnails.kt
+@@ -4,7 +4,10 @@ import kotlinx.serialization.Serializable
+ 
+ @Serializable
+ data class Thumbnails(
+-    val thumbnails: List<Thumbnail>,
++    // YouTube Music occasionally returns an empty `thumbnail` object for
++    // library entries. Treat that as "no artwork" instead of rejecting the
++    // complete browse response.
++    val thumbnails: List<Thumbnail> = emptyList(),
+ )
+ 
+ @Serializable
+
+base-commit: 3070fba678d9c38850410eeeb0ccfbdfd1dcb70d
+-- 
+2.43.0
+

@@ -42,6 +42,7 @@ import androidx.media3.session.SessionToken
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.service.player.ExoPlayerListener
+import app.kreate.android.service.player.PlaybackNotificationSilencer
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.service.player.VolumeObserver
 import app.kreate.android.utils.centerCropBitmap
@@ -70,7 +71,6 @@ import it.fast4x.rimusic.utils.isAtLeastAndroid6
 import it.fast4x.rimusic.utils.isAtLeastAndroid7
 import it.fast4x.rimusic.utils.playNext
 import it.fast4x.rimusic.utils.playPrevious
-import it.fast4x.rimusic.utils.preferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -84,6 +84,8 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -122,6 +124,10 @@ class PlayerServiceModern:
 
     private lateinit var listener: ExoPlayerListener
     private val coroutineScope = CoroutineScope(Dispatchers.IO) + Job()
+    // Media3 enforces that every Player read/write happens on the application (main) thread.
+    // Keep this scope attached to the service job so cancellation still happens in onDestroy().
+    private val playerCoroutineScope =
+        CoroutineScope( coroutineScope.coroutineContext + Dispatchers.Main.immediate )
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var mediaSession: MediaLibrarySession
     private var mediaLibrarySessionCallback: MediaLibrarySessionCallback =
@@ -145,6 +151,27 @@ class PlayerServiceModern:
     private var notificationManager: NotificationManager? = null
 
     private lateinit var notificationActionReceiver: NotificationActionReceiver
+    private lateinit var playerPreferences: SharedPreferences
+    private lateinit var playbackNotificationSilencer: PlaybackNotificationSilencer
+    @Volatile
+    private var embeddedVideoPlaybackActive = false
+    private var embeddedVideoPlaybackJob: Job? = null
+    private var notificationPolicyAccessReceiverRegistered = false
+    private val notificationPolicyAccessReceiver = object : BroadcastReceiver() {
+        override fun onReceive( context: Context?, intent: Intent? ) {
+            if( !::playbackNotificationSilencer.isInitialized ) return
+
+            val hasAccess = PlaybackNotificationSilencer.hasPolicyAccess( this@PlayerServiceModern )
+            if( !hasAccess && Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value )
+                Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value = false
+
+            playbackNotificationSilencer.onPolicyAccessChanged(
+                isPlaying = player.isPlaying || embeddedVideoPlaybackActive,
+                isEnabled = hasAccess &&
+                    Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value
+            )
+        }
+    }
 
     private var wallpaperRevertJob: Job? = null
     private var wallpaper_cleared: Boolean = false
@@ -183,6 +210,14 @@ class PlayerServiceModern:
 
         super.onCreate()
 
+        playbackNotificationSilencer = PlaybackNotificationSilencer( this )
+        embeddedVideoPlaybackJob = PlaybackNotificationSilencer.embeddedVideoPlaybackActive
+            .onEach { isActive ->
+                embeddedVideoPlaybackActive = isActive
+                updatePlaybackNotificationSilencing()
+            }
+            .launchIn( playerCoroutineScope )
+
         volumeObserver.register()
 
         // Enable Android Auto if disabled, REQUIRE ENABLING DEV MODE IN ANDROID AUTO
@@ -220,12 +255,28 @@ class PlayerServiceModern:
             logger.e( it ) { "Failed init bitmap provider" }
         }
 
-        val preferences = preferences
+        playerPreferences = Preferences.preferences
 
         PlaybackStatsListener(false, this@PlayerServiceModern)
             .also( player::addAnalyticsListener )
 
-        preferences.registerOnSharedPreferenceChangeListener(this)
+        playerPreferences.registerOnSharedPreferenceChangeListener(this)
+
+        runCatching {
+            ContextCompat.registerReceiver(
+                this,
+                notificationPolicyAccessReceiver,
+                IntentFilter( NotificationManager.ACTION_NOTIFICATION_POLICY_ACCESS_GRANTED_CHANGED ),
+                // This is a framework broadcast. The receiver re-checks the real system grant, so a
+                // spoofed unprotected broadcast cannot grant access or broaden KruXx's capabilities.
+                ContextCompat.RECEIVER_EXPORTED
+            )
+        }.onSuccess {
+            notificationPolicyAccessReceiverRegistered = true
+        }.onFailure {
+            // A broken vendor implementation must not prevent the player service from starting.
+            logger.e( it ) { "Failed to register notification policy access receiver" }
+        }
 
         // Build the media library session
         mediaSession =
@@ -331,6 +382,8 @@ class PlayerServiceModern:
             val token by Preferences.DISCORD_ACCESS_TOKEN
             discord.login( token )
         }
+
+        updatePlaybackNotificationSilencing()
     }
 
     override fun onUpdateNotification( session: MediaSession, startInForegroundRequired: Boolean ) =
@@ -341,6 +394,8 @@ class PlayerServiceModern:
         }
 
     override fun onIsPlayingChanged( isPlaying: Boolean ) {
+        updatePlaybackNotificationSilencing( nativePlaybackActive = isPlaying )
+
         wallpaperRevertJob?.cancel()
 
 
@@ -411,6 +466,21 @@ class PlayerServiceModern:
 
     @UnstableApi
     override fun onDestroy() {
+        embeddedVideoPlaybackJob?.cancel()
+        if( ::playbackNotificationSilencer.isInitialized )
+            playbackNotificationSilencer.release()
+
+        if( notificationPolicyAccessReceiverRegistered ) {
+            runCatching {
+                unregisterReceiver( notificationPolicyAccessReceiver )
+            }.onFailure {
+                logger.e( it ) {
+                    "onDestroy unregisterReceiver notificationPolicyAccessReceiver failed!"
+                }
+            }
+            notificationPolicyAccessReceiverRegistered = false
+        }
+
         runCatching {
             listener.saveQueueToDatabase()
             volumeObserver.unregister()
@@ -428,7 +498,6 @@ class PlayerServiceModern:
                 logger.e( e ) { "onDestroy unregisterReceiver notificationActionReceiver failed!" }
             }
 
-
             mediaSession.release()
             cache.release()
             //downloadCache.release()
@@ -444,7 +513,7 @@ class PlayerServiceModern:
 
             runBlocking { discord.logout() }
 
-            preferences.unregisterOnSharedPreferenceChangeListener(this)
+            playerPreferences.unregisterOnSharedPreferenceChangeListener(this)
         }.onFailure {
             logger.e( it ) { "onDestroy failed!" }
         }
@@ -460,9 +529,30 @@ class PlayerServiceModern:
             Preferences.Key.AUDIO_SKIP_SILENCE ->
                 player.skipSilenceEnabled = sharedPreferences.getBoolean( key, Preferences.AUDIO_SKIP_SILENCE.defaultValue )
 
+            Preferences.Key.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK ->
+                updatePlaybackNotificationSilencing(
+                    isEnabled = sharedPreferences.getBoolean(
+                        key,
+                        Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.defaultValue
+                    )
+                )
+
             Preferences.Key.QUEUE_LOOP_TYPE ->
                 player.repeatMode = sharedPreferences.getEnum( key, Preferences.QUEUE_LOOP_TYPE.defaultValue ).type
         }
+    }
+
+    @MainThread
+    private fun updatePlaybackNotificationSilencing(
+        nativePlaybackActive: Boolean = player.isPlaying,
+        isEnabled: Boolean = Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value
+    ) {
+        if( !::playbackNotificationSilencer.isInitialized ) return
+
+        playbackNotificationSilencer.update(
+            isPlaying = nativePlaybackActive || embeddedVideoPlaybackActive,
+            isEnabled = isEnabled
+        )
     }
 
     private var audioManager: AudioManager? = null

@@ -9,6 +9,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import app.kreate.android.Preferences
 import app.kreate.android.drawable.AppIcon
 import app.kreate.android.service.innertube.InnertubeProvider
+import app.kreate.android.service.player.PlaybackNotificationSilencer
 import app.kreate.android.utils.ConnectivityUtils
 import app.kreate.android.utils.CrashHandler
 import app.kreate.di.THUMBNAIL_SIZE
@@ -54,7 +55,13 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         }
 
         setupLogging( koinLogger )
+        // A service process can be killed without receiving onDestroy(). Restore any temporary
+        // notification policy snapshot before KruXx starts a new playback session.
+        PlaybackNotificationSilencer.restoreStaleState( this )
         Preferences.applyProductDefaults()
+        if( Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value &&
+            !PlaybackNotificationSilencer.hasPolicyAccess( this ) )
+            Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value = false
 
         Innertube.setProvider( InnertubeProvider() )
         YouTube.cookie = Preferences.YOUTUBE_COOKIES.value

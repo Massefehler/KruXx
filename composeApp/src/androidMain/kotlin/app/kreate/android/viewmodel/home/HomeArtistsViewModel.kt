@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.utils.innertube.InnertubeUtils
+import app.kreate.constant.ArtistSortBy
+import app.kreate.constant.SortOrder
 import app.kreate.database.models.Artist
 import co.touchlab.kermit.Logger
 import com.metrolist.innertube.YouTube
@@ -29,6 +31,45 @@ import kotlinx.coroutines.withContext
 import me.knighthat.utils.Toaster
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+
+
+internal fun mergeAndSortArtists(
+    online: List<Artist>,
+    local: List<Artist>,
+    filterBy: FilterBy,
+    sortBy: ArtistSortBy,
+    sortOrder: SortOrder
+): List<Artist> {
+    val filtered = when( filterBy ) {
+        FilterBy.All            -> online + local
+        FilterBy.YoutubeLibrary -> (online + local).filter { it.isYoutubeArtist }
+        FilterBy.Local          -> local.filterNot { it.isYoutubeArtist }
+    }
+
+    // The same artist can be present in both the current YouTube response and
+    // the local database. Keep a single row while retaining useful local
+    // metadata such as bookmark and insertion timestamps.
+    val unique = linkedMapOf<String, Artist>()
+    filtered.forEach { artist ->
+        val existing = unique[artist.id]
+        unique[artist.id] = existing?.copy(
+            name = existing.name ?: artist.name,
+            thumbnailUrl = existing.thumbnailUrl ?: artist.thumbnailUrl,
+            timestamp = artist.timestamp ?: existing.timestamp,
+            bookmarkedAt = artist.bookmarkedAt ?: existing.bookmarkedAt,
+            isYoutubeArtist = existing.isYoutubeArtist || artist.isYoutubeArtist
+        ) ?: artist
+    }
+
+    val merged = unique.values.toList()
+    return when( sortBy ) {
+        ArtistSortBy.TITLE      -> sortOrder.applyTo( merged.sortedBy( Artist::cleanName ) )
+        ArtistSortBy.RANDOM     -> merged.shuffled()
+        // YouTube does not provide a reliable added-at timestamp here. Preserve
+        // its server order and the database's already sorted local order.
+        ArtistSortBy.DATE_ADDED -> merged
+    }
+}
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,15 +103,13 @@ class HomeArtistsViewModel : ViewModel(), KoinComponent {
         }
         viewModelScope.launch( Dispatchers.Default ) {
             val filterByFlow = snapshotFlow { Preferences.HOME_ARTIST_AND_ALBUM_FILTER.value }
+            val sortByFlow = snapshotFlow { Preferences.HOME_ARTISTS_SORT_BY.value }
+            val sortOrderFlow = snapshotFlow { Preferences.HOME_ARTISTS_SORT_ORDER.value }
+            val sortingFlow = combine( sortByFlow, sortOrderFlow, ::Pair )
 
-            combine( _syncedArtists, _localArtists, filterByFlow ) { online, local, filterBy ->
-                val combined = online + local
-
-                when( filterBy ) {
-                    FilterBy.All            -> combined
-                    FilterBy.YoutubeLibrary -> combined.filter { it.isYoutubeArtist }
-                    FilterBy.Local          -> combined.filterNot { it.isYoutubeArtist }
-                }
+            combine( _syncedArtists, _localArtists, filterByFlow, sortingFlow ) {
+                    online, local, filterBy, (sortBy, sortOrder) ->
+                mergeAndSortArtists( online, local, filterBy, sortBy, sortOrder )
             }.collectLatest { artists -> _artists.update { artists } }
         }
 

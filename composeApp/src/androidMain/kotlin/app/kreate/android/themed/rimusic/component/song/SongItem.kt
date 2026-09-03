@@ -92,6 +92,16 @@ object SongItem: Visual() {
 
     override fun thumbnailSize() = DpSize(Preferences.SONG_THUMBNAIL_SIZE.value.dp, Preferences.SONG_THUMBNAIL_SIZE.value.dp)
 
+    @Composable
+    private fun videoTypeLabel(video: Innertube.VideoItem): String = stringResource(
+        when (video.videoType) {
+            Innertube.VideoItem.VideoType.OFFICIAL_MUSIC_VIDEO -> R.string.video_type_official_music_video
+            Innertube.VideoItem.VideoType.USER_GENERATED_VIDEO -> R.string.video_type_user_generated
+            Innertube.VideoItem.VideoType.ART_TRACK -> R.string.video_type_art_track
+            Innertube.VideoItem.VideoType.UNKNOWN -> R.string.video_type_unknown
+        }
+    )
+
     /**
      * Text is clipped if exceeds length limit, plus,
      * conditional marquee effect is applied by default.
@@ -641,7 +651,10 @@ object SongItem: Visual() {
                 Spacer( modifier = Modifier.weight(1f) )
 
                 Duration(
-                    duration = innertubeVideo.viewsText.orEmpty().trim(),
+                    duration = listOf(
+                        videoTypeLabel(innertubeVideo),
+                        innertubeVideo.viewsText.orEmpty().trim()
+                    ).filter(String::isNotBlank).joinToString(" · "),
                     values = values,
                     modifier = Modifier.fillMaxWidth()
                 )

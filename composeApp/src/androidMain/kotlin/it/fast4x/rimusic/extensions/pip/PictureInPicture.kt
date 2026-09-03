@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.util.Log
 import android.util.Rational
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
@@ -50,32 +51,40 @@ fun Activity.maybeEnterPip() = when {
     }.onFailure(::logError).isSuccess
 }
 
-fun Activity.setAutoEnterPip(autoEnterIfPossible: Boolean) = if (isAtLeastAndroid12) setPictureInPictureParams(
-    PictureInPictureParams.Builder()
-        .setAutoEnterEnabled(autoEnterIfPossible)
-        .build()
-) else Unit
-
 fun Activity.setPipParams(
-    rect: Rect,
+    rect: Rect?,
     targetNumerator: Int,
     targetDenominator: Int,
+    actions: ActionReceiver? = null,
     autoEnterIfPossible: Boolean = false,
-    block: PictureInPictureParams.Builder.() -> PictureInPictureParams.Builder = { this }
 ) {
-    if (isAtLeastAndroid8) setPictureInPictureParams(
-        PictureInPictureParams.Builder()
-            .block()
-            .setSourceRectHint(rect)
-            .setAspectRatio(Rational(targetNumerator, targetDenominator))
-            .let {
-                if (isAtLeastAndroid12) it
-                    .setAutoEnterEnabled(autoEnterIfPossible)
-                    .setSeamlessResizeEnabled(true)
-                else it
+    if (!isAtLeastAndroid8) return
+
+    val activity = this
+    val params = PictureInPictureParams.Builder()
+        .setAspectRatio(Rational(targetNumerator, targetDenominator))
+
+    if (rect != null && rect.width() > 0 && rect.height() > 0)
+        params.setSourceRectHint(rect)
+
+    if (actions != null)
+        params.setActions(
+            actions.all.values.map {
+                RemoteAction(
+                    it.icon ?: AppIcon.Round.bitmap(activity).toIcon(),
+                    it.title.orEmpty(),
+                    it.contentDescription.orEmpty(),
+                    with(activity) { it.pendingIntent }
+                )
             }
-            .build()
-    )
+        )
+
+    if (isAtLeastAndroid12)
+        params
+            .setAutoEnterEnabled(autoEnterIfPossible)
+            .setSeamlessResizeEnabled(true)
+
+    setPictureInPictureParams(params.build())
 }
 
 fun Activity.maybeExitPip() = when {
@@ -140,38 +149,13 @@ fun isInPip(
     return pip
 }
 
-fun Modifier.pip(
-    activity: Activity,
-    targetNumerator: Int,
-    targetDenominator: Int,
-    actions: ActionReceiver? = null,
-    autoEnterIfPossible: Boolean = false
-) = this.onGloballyPositioned { layoutCoordinates ->
-    activity.setPipParams(
-        rect = layoutCoordinates.boundsInWindow().toAndroidRectF().toRect(),
-        targetNumerator = targetNumerator,
-        targetDenominator = targetDenominator,
-        autoEnterIfPossible = autoEnterIfPossible
-    ) {
-        if (actions != null) setActions(
-            actions.all.values.map {
-                RemoteAction(
-                    it.icon ?: AppIcon.Round.bitmap( activity ).toIcon(),
-                    it.title.orEmpty(),
-                    it.contentDescription.orEmpty(),
-                    with(activity) { it.pendingIntent }
-                )
-            }
-        ) else this
-    }
-}
-
 @Composable
 fun Pip(
     numerator: Int,
     denominator: Int,
     modifier: Modifier = Modifier,
     actions: ActionReceiver? = null,
+    autoEnterIfPossible: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
     val context = LocalContext.current
@@ -179,26 +163,65 @@ fun Pip(
 
     val enablePictureInPicture by Preferences.IS_PIP_ENABLED
     val enablePictureInPictureAuto by Preferences.IS_AUTO_PIP_ENABLED
+    var sourceRect by remember(activity) { mutableStateOf<Rect?>(null) }
+    val shouldAutoEnter = autoEnterIfPossible &&
+            enablePictureInPicture &&
+            enablePictureInPictureAuto
 
-    DisposableEffect(context, actions) {
-        val currentActions = actions ?: return@DisposableEffect onDispose { }
-        currentActions.register(context)
+    // Android 12+ handles automatic PiP through PictureInPictureParams. Older
+    // supported versions require an explicit request when the user leaves the app.
+    DisposableEffect(activity, shouldAutoEnter) {
+        val componentActivity = activity as? ComponentActivity
+        if (
+            componentActivity == null ||
+            !shouldAutoEnter ||
+            !isAtLeastAndroid7 ||
+            isAtLeastAndroid12
+        ) return@DisposableEffect onDispose { }
+
+        val enterPipOnLeave = Runnable { activity.maybeEnterPip() }
+        componentActivity.addOnUserLeaveHintListener(enterPipOnLeave)
+
         onDispose {
-            context.unregisterReceiver(currentActions)
-            activity.setAutoEnterPip(false)
+            componentActivity.removeOnUserLeaveHintListener(enterPipOnLeave)
         }
     }
 
-    Box(
-        modifier = modifier.pip(
-            activity = activity,
+    DisposableEffect(context, actions) {
+        actions?.register(context)
+        onDispose {
+            actions?.let { context.unregisterReceiver(it) }
+        }
+    }
+
+    // Keep Android's PiP parameters in sync with preference and playback
+    // changes even when the composable's position itself did not change.
+    DisposableEffect(
+        activity,
+        sourceRect,
+        numerator,
+        denominator,
+        actions,
+        shouldAutoEnter
+    ) {
+        activity.setPipParams(
+            rect = sourceRect,
             targetNumerator = numerator,
             targetDenominator = denominator,
             actions = actions,
-            autoEnterIfPossible = enablePictureInPictureAuto && enablePictureInPicture
-        ),
+            autoEnterIfPossible = shouldAutoEnter
+        )
+        onDispose { }
+    }
+
+    Box(
+        modifier = modifier.onGloballyPositioned { layoutCoordinates ->
+            val newRect = layoutCoordinates
+                .boundsInWindow()
+                .toAndroidRectF()
+                .toRect()
+            if (sourceRect != newRect) sourceRect = newRect
+        },
         content = content
     )
 }
-
-

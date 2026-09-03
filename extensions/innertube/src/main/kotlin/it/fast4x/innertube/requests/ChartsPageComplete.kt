@@ -237,8 +237,9 @@ fun parseChart(data: SectionListRenderer?): Innertube.ChartsPage? {
 fun parseSongChart(contents: List<MusicCarouselShelfRenderer.Content>): ArrayList<Innertube.VideoItem> {
     val listVideoItem: ArrayList<Innertube.VideoItem> = arrayListOf()
     for (content in contents) {
-        val title = content.musicTwoRowItemRenderer?.title?.runs?.get(0)?.text
-        val runs = content.musicTwoRowItemRenderer?.subtitle?.runs
+        val renderer = content.musicTwoRowItemRenderer ?: continue
+        val title = renderer.title?.runs?.firstOrNull()?.text
+        val runs = renderer.subtitle?.runs
         var view = ""
         val artists: ArrayList<Innertube.ArtistItem> = arrayListOf()
         val albums: ArrayList<Innertube.AlbumItem> = arrayListOf()
@@ -282,8 +283,25 @@ fun parseSongChart(contents: List<MusicCarouselShelfRenderer.Content>): ArrayLis
             }
         }
         val thumbnails =
-            content.musicTwoRowItemRenderer?.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail?.thumbnails
-        val videoId = content.musicTwoRowItemRenderer?.navigationEndpoint?.watchEndpoint?.videoId
+            renderer.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail?.thumbnails
+        val directWatchEndpoint = renderer.navigationEndpoint?.watchEndpoint
+        val overlayWatchEndpoint = renderer.thumbnailOverlay
+            ?.musicItemThumbnailOverlayRenderer
+            ?.content
+            ?.musicPlayButtonRenderer
+            ?.playNavigationEndpoint
+            ?.watchEndpoint
+        val endpointCandidates = listOfNotNull(directWatchEndpoint, overlayWatchEndpoint)
+        val targetVideoId = directWatchEndpoint?.videoId
+            ?: overlayWatchEndpoint?.videoId
+            ?: continue
+        val matchingEndpoints = endpointCandidates.filter { it.videoId == targetVideoId }
+        val watchEndpoint = matchingEndpoints.firstOrNull { it.type != null }
+            ?: endpointCandidates
+                .firstOrNull { it.videoId == null && it.type != null }
+                ?.copy(videoId = targetVideoId)
+            ?: matchingEndpoints.firstOrNull()
+            ?: NavigationEndpoint.Endpoint.Watch(videoId = targetVideoId)
         listVideoItem.add(
             /*
             ItemVideo(
@@ -298,7 +316,8 @@ fun parseSongChart(contents: List<MusicCarouselShelfRenderer.Content>): ArrayLis
             Innertube.VideoItem(
                 info = Innertube.Info(
                     name = title,
-                    endpoint = NavigationEndpoint.Endpoint.Watch(videoId = videoId)
+                    // Keep musicVideoType: it distinguishes real videos from static art tracks.
+                    endpoint = watchEndpoint
                 ),
                 authors = artists.map {
                     Innertube.Info(
@@ -306,7 +325,7 @@ fun parseSongChart(contents: List<MusicCarouselShelfRenderer.Content>): ArrayLis
                         endpoint = it.info?.endpoint
                     )
                 },
-                viewsText = null,
+                viewsText = view.takeIf(String::isNotBlank),
                 durationText = null,
                 thumbnail = thumbnails?.toListThumbnail()?.getBestQuality()
             )

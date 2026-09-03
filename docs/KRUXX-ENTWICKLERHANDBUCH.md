@@ -1,6 +1,13 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 02.09.2026 · KruXx `1.0.0` · historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
+Stand: 03.09.2026 · KruXx `1.0.1` · historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
+
+Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
+[`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
+[`README.md`](README.md). KruXx 1.0.1 ist derzeit ein lokal vollständig getesteter, gelinteter,
+signierter und breit auf Gerät geprüfter Release-Kandidat, aber noch kein öffentlicher Release. Vor
+der Veröffentlichung steht nur noch der Installations-/Kaltstartcheck des exakt archivierten APKs
+aus; danach werden freigegebener Quellstand, Submodul-Pins und Tag gemeinsam veröffentlicht.
 
 KruXx ist ein eigenständiger, öffentlicher Fork von
 [Kreate](https://github.com/knighthat/Kreate) (RiMusic/ViMusic-Linie). Quellcode und Releases liegen
@@ -25,7 +32,15 @@ unter <https://github.com/Massefehler/KruXx>. Drei zentrale Unterschiede zum Ori
   vollständige Quellstand über das gleichnamige Git-Tag öffentlich zugänglich gemacht. `LICENSE`,
   `NOTICE.md` und die Kreate/RiMusic-Credits bleiben erhalten.
 - `.ignore.d/` (Keystore, Passwörter) und `local.properties` sind gitignored und dürfen nie
-  committet werden. Das gilt ebenso für manuell exportierte Crashlogs wie `docs/crash-report.txt`.
+  committet werden. Das gilt ebenso für GitHub-Tokens, Cookies, OAuth-Client-Secrets, private
+  API-Schlüssel und manuell exportierte Crashlogs wie `docs/crash-report.txt`. Letztere sind keine
+  Dokumentation und werden ohne ausdrückliche, lokale Freigabe weder geöffnet noch weitergegeben.
+- GitHub-Secret-Scanning-Alarme immer klassifizieren (§3.2). Bei einem gültigen Geheimnis zuerst
+  widerrufen/rotieren; bloßes Entfernen aus der aktuellen Datei beseitigt den Fund in alten Commits
+  nicht. Schlüsselwerte niemals in Logs, Dokumentation, Issues oder Chat kopieren.
+- Aktuellen Funktions- und Prüfstatus zuerst in `docs/KRUXX-IST-STAND.md` pflegen. Historische
+  Changelogs bleiben unverändert; geerbte Kreate-/Drittanbieter-Dokumente werden nicht als aktueller
+  KruXx-Stand umgeschrieben.
 
 ---
 
@@ -45,17 +60,20 @@ Wichtige Pfade:
 |---|---|
 | `composeApp/` | Die App (Kotlin Multiplatform; Android in `src/androidMain`, Flavor-Quellen in `src/android<Flavor>`) |
 | `composeApp/src/androidKruxx/` | Nur KruXx: sicherer GitHub-Updater (`kotlin/`) und Icon-Ressourcen (`res/`, generiert) |
-| `modules/innertube` | Submodul: `me.knighthat.innertube` (öffentlicher KruXx-Spiegel mit lokalem Charts-Fix) – Browse, Charts und Song-Metadaten; **nicht** die sichtbare Suchergebnisseite |
-| `modules/metrolist/innertube` | Submodul: Metrolists altes InnerTube-Modul (knighthat-Fork, Branch `kreate-old`) – YouTube-Login, Bibliothek/Alben/Künstler, `YouTube`-Session |
+| `modules/innertube` | Submodul: `me.knighthat.innertube` (öffentlicher KruXx-Spiegel) – anonymer Playlist-Browse, Charts und Song-Metadaten; **nicht** die sichtbare Suchergebnisseite |
+| `modules/metrolist/innertube` | Submodul: KruXx-Spiegel von Metrolists altem InnerTube-Modul (Basis `kreate-old`) – YouTube-Login, Bibliothek/Alben/Künstler, `YouTube`-Session und angemeldete Playlistseiten |
 | `modules/kizzy` | Submodul: Discord-RPC |
 | `scripts/strings-modifier` | Submodul: Dev-Skript, nicht Teil des Builds |
 | `extensions/` | Kreates eigene Module; `extensions/innertube` („oldtube“, Gradle-Modul `:oldtube`) liefert die sichtbare YTM-Suche und Suchvorschläge, daneben kugou/lrclib/discord |
 | `icons/KruXx_App_Icon.png` | Quellbild des KruXx-Icons (1254², rotes „K“ mit blauer Audiowelle auf schwarzer Kachel) |
+| `icons/animation/` | Zehn hochauflösende Quellframes des KruXx-Startscreens; der Unterordner `old/` enthält verworfene lokale Vorstufen und ist bewusst gitignored |
 | `scripts/build-local-release.sh` | Release bauen **und** signieren |
 | `scripts/make-kruxx-icon.py` | Alle Icon-Ressourcen aus dem Quellbild erzeugen |
 | `patches/innertube/` | Sicherung und nachvollziehbarer Diff der KruXx-Änderung im Submodul (§2.3) |
 | `docs/changelogs/kruxx/<versionName>.txt` | Release-Notes je KruXx-Version; landen als `release_notes` im Flavor `kruxx` (Changelog-Dialog nach dem Update). Format: Abschnitt als `Überschrift:`, Einträge als `- Text` |
+| `docs/KRUXX-IST-STAND.md` | verbindlicher aktueller Funktions-, Prüf-, Artefakt- und Freigabestatus |
 | `docs/KRUXX-ENTWICKLERHANDBUCH.md` | diese Datei |
+| `docs/README.md` | Dokumentationsindex und Abgrenzung zu historischen/geerbten Dateien |
 
 Submodule nach einem frischen Clone: `git submodule update --init` (oder direkt
 `git clone --recurse-submodules …`).
@@ -95,6 +113,7 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | `me/knighthat/utils/Repository.kt` | Repository-Links werden je Flavor aus `BuildConfig.REPO_OWNER`/`REPO_NAME` gebildet; KruXx verweist nur auf `Massefehler/KruXx` |
 | `composeApp/src/androidKruxx/kotlin/…/updater` | Eigener Updater: stabile GitHub-Releases, SemVer-Vergleich, exakter Assetname, HTTPS-/Repo-Bindung, SHA-256-, Paket-, Versions- und Signaturprüfung; höchstens eine automatische Prüfung pro 24 Stunden |
 | `composeApp/src/androidKruxx/res/…` | generierte Icon-Ressourcen (siehe §5) |
+| `StartupSplash.kt`, `MainActivity.kt`, `androidKruxx/res/drawable-nodpi/kruxx_startup_frame_*.webp` | KruXx zeigt nur beim kalten Activity-Start einen blockierenden Vollbild-Overlay mit zehn vorab decodierten Frames. Ein Frame dauert 120 ms; 2,4 Sekunden ergeben exakt zwei Durchläufe, anschließend blendet der Overlay 420 ms aus. Die App komponiert darunter bereits weiter |
 | `Preferences.kt`, `MainApplication.kt` | KruXx-Standardseite ist `HomeScreenTabs.QuickPics` („Startseite“). Eine einmalige Migration setzt auch den bisher gespeicherten Standard `Songs` („Titel“) um; spätere manuelle Änderungen bleiben erhalten |
 | `CrashReportDialog.kt`, `AppNavigation.kt` | Für KruXx wird der CrashReport-Dialog samt Link zum Kreate-Issue-Tracker nicht aktiviert. Der `CrashHandler` schreibt weiterhin ausschließlich ein lokales Log für die eigene Diagnose |
 | `ChangelogsDialog.kt`, `ChangelogParser.kt` | Parser akzeptiert Kreates Format sowie ältere KruXx-Notizen (`•` und Folgezeilen); bei null Abschnitten wird kein Pager gerendert, damit fehlerhafte Release-Notes den App-Start nicht mehr abstürzen lassen |
@@ -102,11 +121,17 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | `src/kruxx/AndroidManifest.xml` | KruXx-spezifische Package-Visibility-Abfrage für Spracheingabe sowie Installationsberechtigung und eng begrenzter `FileProvider` für verifizierte Update-APKs |
 | `SearchResultScreen.kt`, `SearchResultProvider.kt` | Such-Cache berücksichtigt Sprache/Region und Konto/Anonym-Modus. Der Reiter „Titel“ führt die YTM-Filter **Titel und Videos parallel** aus, hängt abspielbare Video-/UGC-Treffer hinter die originale Titelrangfolge und entfernt Dubletten per `videoId`; der separate Video-Reiter bleibt unverändert nutzbar |
 | `extensions/innertube/...` | YTM-Suchfilter und Parser aktualisiert; `playlistItemData.videoId` dient als zusätzlicher Endpunkt-Fallback. Suche und Vorschläge verwenden App-Sprache + eingestellte Region sowie – wenn aktiv – die angemeldete Sitzung; eine ungültige Sitzung fällt auf eine anonyme Anfrage zurück |
+| `HomeQuickPicks.kt` | „Vorschläge“ lädt zur aktuellen Empfehlung eine deduplizierte Radio-Liste mit bis zu 18 Titeln und stellt sie abhängig von der Menge in ein bis drei gleich großen Reihen dar; der Play-Button startet die gesamte Liste. „Top Artists“ navigiert beim Tippen zur YTM-Interpretenseite; angemeldete Home-Sektionen reichen `useLogin=true` weiter |
+| `HomeLibraryViewModel.kt`, `HomeLibrary.kt`, `PlaylistItem.kt`, `YouTubePlaylistViewModel.kt` | Synchronisierte Konto-Playlists erhalten die Online-Kennung `id=-1` und werden nicht als lokale DB-Playlist geroutet. Angemeldete Playlistseiten und Fortsetzungen laufen über Metrolists nachweislich funktionierenden `YouTube.playlist()`-Pfad; öffentliche/anonyme Listen bleiben beim bisherigen leichten `me.knighthat.innertube`-Browse. Das gilt auch für „From your Library“ auf der Startseite |
+| `Thumbnails.kt`, `HomeArtistsViewModel.kt` | Fehlende `thumbnail.thumbnails`-Arrays werden als leere Liste deserialisiert. Online- und lokale Interpreten werden per ID zusammengeführt, Metadaten erhalten, Dubletten entfernt und **nach** dem Merge erneut nach der gewählten Titel-Sortierung geordnet |
 | `AppTitle.kt`, `scripts/make-kruxx-icon.py` | Der KruXx-Header verwendet die einzeilige Wortmarke „KruXx – The core of your music“; „KruXx“ ist fett und größer, der Zusatz kleiner und regulär gesetzt. Im KruXx-Flavor belegt sie 205 × 42 dp |
-| `DownloadHelperImpl.kt`, `DownloadAllDialog.kt`, `DownloadState.kt` | Massendownloads werden dedupliziert und geordnet an `DownloadService` übergeben. KruXx lädt bis zu fünf Titel parallel und hält den Rest sichtbar in `STATE_QUEUED`; Liedtext-Nebenabrufe sind auf einen begrenzt. Wartende/laufende Downloads lassen sich per Tipp abbrechen |
+| `DownloadHelperImpl.kt`, `DownloadAllDialog.kt`, `DownloadState.kt`, `InnertubeResolvingDataSource.kt`, `PlayerModule.kt` | Einzel- und Massendownloads laufen über denselben dedizierten Resolver: stets InnerTubeX `HIGH`, exakte Dateilänge und begrenzter HTTP-Range-Abruf. Anfragen werden dedupliziert/geordnet an `DownloadService` übergeben; KruXx lädt bis zu fünf Titel parallel, hält den Rest sichtbar in `STATE_QUEUED` und begrenzt Liedtext-Nebenabrufe auf einen. Wartende/laufende Downloads lassen sich per Tipp abbrechen |
 | `PlayerModule.kt`, `StatefulPlayerImpl.kt`, `StatsForNerds.kt` | Kein Channel-Mapping/Downmix: ExoPlayers Standard-Audiopfad bleibt erhalten. Hall ist bei Preset „Keiner“ wirklich deaktiviert; die Decoder-Kanalzahl wird zur Mono-/Stereo-Diagnose angezeigt |
+| `PlaybackNotificationSilencer.kt`, `PlayerServiceModern.kt`, `PlayerSettings.kt`, `AndroidManifest.xml` | Optionale, standardmäßig ausgeschaltete Stummschaltung fremder Benachrichtigungstöne exakt während nativer ExoPlayer- oder eingebetteter Videowiedergabe. Nach einmaligem „Nicht stören“-Zugriff bleiben Medien, Wecker, Anrufe und sichtbare Pop-ups erlaubt; Pause/Stop/Dienstende/App-Neustart/Crash stellen den Zustand wieder her. Sämtliche dabei ausgelösten Media3-Player-Zugriffe laufen über `Dispatchers.Main.immediate`, da ein Zugriff vom IO-Thread den Wiedergabedienst beim App-Start beendet hatte |
+| `VideoItem`, `FromMusicShelfRendererContent.kt`, `ChartsPageComplete.kt`, `Utils.kt`, `YoutubePlayer.kt`, `MainActivity.kt` | YTM-Videotreffer werden semantisch getrennt: `OMV`/`UGC` dürfen nach direktem Tipp den eingebetteten YouTube-Player öffnen; `ATV` (Art Track/Standbild) und unbekannte Typen bleiben Audio. Warteschlange und Menüs fordern nie ungefragt Video an. Audio-/Videowechsel behalten die Position; Embed-Fehler fallen auf Audio zurück |
+| `AppearanceSettings.kt`, `PictureInPicture.kt`, `MainActivity.kt`, `Preferences.kt` | Android-PiP heißt in der Oberfläche „Schwebender Player“ und liegt unter Erscheinungsbild. Es ist ab Android 7 verfügbar, wird nur mit aktuellem MediaItem aktiviert, hält Parameter/Aktionen/Quellrechteck synchron und unterstützt das automatische Verlassen auf Android 7–11 explizit sowie ab Android 12 über `setAutoEnterEnabled`; die Auto-Unteroption ist standardmäßig an |
 
-### 2.3 KruXx-Spiegel und Patch für `modules/innertube`
+### 2.3 KruXx-Spiegel und Submodul-Patches
 
 Das ursprüngliche Modul (GitLab tannguyen047/innertube-kotlin, Branch `dev`) ist seit Juli 2026
 eingefroren. Der von KruXx benötigte Fix liegt daher in einem öffentlichen, MIT-lizenzierten Spiegel
@@ -116,7 +141,8 @@ Patch unter `patches/innertube/` erhalten, damit Änderung und Basis unabhängig
 | Patch | Grund |
 |---|---|
 | `0001-charts-make-menu-item-accessibility-optional.patch` | YouTube liefert in den Ländereinträgen des Charts-Menüs (`musicMultiSelectMenuItemRenderer`) nur noch `accessibility`; die Pflichtfelder `selectedAccessibility`/`deselectedAccessibility` warfen `MissingFieldException` → „Failed to get charts“ auf der Startseite. Felder jetzt optional; Test `InnertubeChartsLiveResponseTest` mit der Live-Antwort vom 02.09.2026 |
-| `0002-tests-update-fixtures-for-current-client-API.patch` | Veralteten Test-Provider auf `KtorProvider` und dieselbe fehlertolerante JSON-Konfiguration wie die App umgestellt; strukturierte Album-Unterzeilen und bewusst verworfene leere Künstlerbereiche korrekt geprüft, obsoleten Test der entfernten Request-API gelöscht. Ergebnis: 54 Innertube-Tests grün |
+| `0002-tests-update-fixtures-for-current-client-API.patch` | Veralteten Test-Provider auf `KtorProvider` und dieselbe fehlertolerante JSON-Konfiguration wie die App umgestellt; strukturierte Album-Unterzeilen und bewusst verworfene leere Künstlerbereiche korrekt geprüft, obsoleten Test der entfernten Request-API gelöscht |
+| `0003-auth-forward-login-headers-and-skip-unavailable-song.patch` | `useLogin` erreicht Browse/Next tatsächlich; Cookie, Visitor-ID und ein exakt geformter `SAPISIDHASH` werden gesendet. Nicht abspielbare Playlistzeilen ohne Video-ID werden übersprungen statt die ganze Liste zu verwerfen. Der Release-Stand umfasst damit 58 grüne Modul-Tests |
 
 Ein frischer Clone benötigt keine manuelle Patch-Anwendung: `git submodule update --init` muss den
 gepinnten Commit direkt laden können. Die Upstream-Basis `9e5f3ac` steht als `base-commit` in den Patches.
@@ -124,6 +150,14 @@ gepinnten Commit direkt laden können. Die Upstream-Basis `9e5f3ac` steht als `b
 Patches neu erzeugen, wenn sich der Branch `kruxx` im Submodul ändert:
 `git -C modules/innertube format-patch --base=9e5f3ac 9e5f3ac..kruxx -o ../../patches/innertube`.
 Nur in den KruXx-Spiegel pushen; das ursprüngliche GitLab-Remote bleibt schreibgeschützt.
+
+Auch `modules/metrolist` liegt für 1.0.1 in einem öffentlichen KruXx-Spiegel. Basis ist der bewusst
+gehaltene Metrolist-Commit aus `kreate-old`; KruXx ergänzt lediglich die fehlertolerante
+Deserialisierung einer leeren `thumbnail`-Struktur. Der einzelne Diff bleibt zusätzlich unter
+`patches/metrolist/` erhalten. Das Modul kompiliert und läuft im Root-Build als
+`:metrolistInnertube`. Sein historischer eigenständiger App-Build ist mit dem gepinnten
+Versionskatalog unter Gradle 9.4.1 bereits im Plugin-Block inkompatibel; dieser Upstream-Buildfehler
+entsteht vor der geänderten Kotlin-Datei und ist kein Ersatz für den erfolgreichen Root-Buildtest.
 
 ---
 
@@ -134,25 +168,27 @@ Voraussetzungen (auf diesem Rechner vorhanden): JDK 21, Android SDK unter `/home
 Python 3 + Pillow, ImageMagick (nur für SVG-Icons).
 
 ```bash
-# Release (R8) bauen + signieren  →  composeApp/build/outputs/apk/kruxxUniversalProd/release/KruXx-release-signed.apk
+# Debug und Release aus demselben Quellbaum bauen, Release signieren und beide archivieren
+# → composeApp/build/outputs/apk/kruxxUniversalProd/release/KruXx-release-signed.apk
 scripts/build-local-release.sh kruxx
-# nur neu signieren, ohne Build
+# vorhandenes unsigned Release nur neu signieren; Debug wird dabei bewusst nicht archiviert
 scripts/build-local-release.sh kruxx --skip-build
-# Debug (unoptimiert, App-ID de.kruxx.music.debug, läuft parallel zur Release-Version)
-./gradlew :composeApp:assembleKruxxUniversalProdDebug
 ```
 
 Fertige APKs werden von `build-local-release.sh` automatisch nach
 `/home/kruxx/Schreibtisch/Android/Kreate-APKs/` kopiert und heißen `KruXx-<versionName>-release.apk` bzw.
-`-debug.apk`. Eine passende, zuvor gebaute Debug-APK wird mit archiviert; eine veraltete Debug-APK
-mit abweichender Version wird bewusst ausgelassen. Der Zielpfad ist absichtlich fest und kann nicht
-per Umgebungsvariable umgeleitet werden. Das Skript verweigert andere Produkt-Flavors, damit nicht
+`-debug.apk`. Ein normaler Lauf baut beide Varianten gemeinsam und archiviert daher nur eine
+nachweislich zum selben Quellbaum gehörende Debug-APK. `--skip-build` archiviert grundsätzlich keine
+Debug-Datei unbekannter Herkunft. Der Zielpfad ist absichtlich fest und kann nicht per
+Umgebungsvariable umgeleitet werden. Das Skript verweigert andere Produkt-Flavors, damit nicht
 versehentlich ein Kreate-Paket mit dem KruXx-Schlüssel veröffentlicht wird.
 
-Erster Build dauert 5–10 min (Downloads), danach 1–4 min. Das Log ist voller
-`WARNING: D8: Unexpected error during rewriting of Kotlin metadata` (AGP 8.13 vs. Kotlin 2.4)
-und beim Release `e: … metadata is 2.4.0, expected version is 2.2.0` (Lint-Vital) – **beides
-harmlos**, der Build ist trotzdem erfolgreich, solange am Ende `>> done:` steht.
+Erster Build dauert 5–10 min (Downloads), danach 1–4 min. D8 beziehungsweise Lint-Vital können wegen
+der Kombination aus AGP 8.13 und Kotlin-Metadaten 2.4 Diagnosezeilen zur erwarteten Metadatenversion
+ausgeben. Maßgeblich ist der separat ausgeführte vollständige
+`:composeApp:lintKruxxUniversalProdRelease`: Die versionierte `composeApp/lint-baseline.xml` friert
+nur geerbte Altbefunde ein, jeder neue Befund lässt den Gate fehlschlagen. Für 1.0.1 lief dieser Gate
+ohne neue Befunde durch; der Release-Build endete anschließend mit `>> done:`.
 
 **Signatur / Keystore**
 
@@ -186,18 +222,51 @@ importieren, danach YouTube neu anmelden (Anmeldedaten sind vom Export ausgeschl
   `versionCode`, installierte Signatur und gepinnter Zertifikatfingerabdruck
 
 Die bisher verteilten Builds `2.2.3-kruxx.x` enthalten noch keinen funktionsfähigen KruXx-Updater.
-Sie benötigen deshalb genau einmal die manuelle Installation von `1.0.0`. Weil Paket-ID und
-Signaturschlüssel gleich bleiben und der neue `versionCode` `1_000_000` höher ist, aktualisiert
-Android die bestehende Installation ohne Löschen der App-Daten. Alle späteren Releases können dann
-über den eigenen Updatekanal installiert werden.
+Sie benötigen deshalb genau einmal die manuelle Installation eines eigenständig versionierten
+KruXx-Releases (`1.0.0` oder neuer). Weil Paket-ID und Signaturschlüssel gleich bleiben und dessen
+`versionCode` mindestens `1_000_000` beträgt, aktualisiert Android die bestehende Installation ohne
+Löschen der App-Daten. Alle danach veröffentlichten Releases können über den eigenen Updatekanal
+installiert werden; ein Gerät kann den manuellen Zwischenschritt `1.0.0` überspringen, wenn bereits
+eine neuere, korrekt signierte 1.x-APK verfügbar ist.
 
 GitHub Actions baut nur eine **unsignierte Debug-APK** und führt die App- sowie Innertube-Tests aus. Der Produktionsschlüssel
 bleibt ausschließlich lokal. Ein Release wird erst nach lokalem signiertem Build, Prüfung und Tag
 hochgeladen. Crashlogs, `.ignore.d/` und `local.properties` gehören nie in ein Release oder Commit.
 
+### 3.2 Geheimnisse und GitHub-Secret-Scanning
+
+Die öffentlichen Repositories haben getrennte Aufgaben: `Massefehler/KruXx` enthält die App,
+`Massefehler/KruXx-innertube` den gepinnten Spiegel des Browse-Moduls und
+`Massefehler/KruXx-metrolist` den gepinnten Spiegel des Login-/Bibliotheksmoduls. Ein Fund kann
+deshalb in der Historie mehrerer Repositories liegen und muss im jeweils betroffenen Projekt geprüft
+werden. Niemals einen Schlüsselwert zur Abstimmung in Issue, Committext, Dokumentation oder Chat
+kopieren; Pfad, Commit und Schlüsselklasse reichen zur Zuordnung.
+
+Vorgehen bei einem Alarm:
+
+1. Fund als **privates Geheimnis**, **öffentliche Client-Kennung** oder **Fehlalarm** klassifizieren.
+   Herkunft, Anbieter, Berechtigungen und mögliche Abrechnung sind entscheidend – der Variablenname
+   allein genügt nicht. Aus Upstream geerbte bzw. für einen öffentlichen Client bestimmte Kennungen
+   können heuristisch als API-Key erkannt werden, sind aber trotzdem bewusst zu dokumentieren.
+2. Ist der Wert geheim oder seine Einordnung unsicher, beim Anbieter zuerst sperren/rotieren. Eine
+   Codeänderung macht einen bereits kopierten Wert nicht wieder sicher.
+3. Den aktuellen Quellstand auf eine Konfiguration außerhalb von Git umstellen und alle Logs,
+   Fixtures, Release-Artefakte sowie beide Repository-Historien auf denselben Fundpfad prüfen – ohne
+   den Wert in der Terminalausgabe offenzulegen.
+4. Ein History-Rewrite nur geplant durchführen: Tags, Forks und Klone müssen koordiniert werden;
+   bereits veröffentlichte Kopien können nicht zuverlässig zurückgerufen werden. Rotation bleibt
+   deshalb die eigentliche Sicherheitsmaßnahme.
+5. Einen GitHub-Alarm erst schließen, wenn Klassifikation und Maßnahme nachvollziehbar festgehalten
+   sind. „Aus aktuellem Code gelöscht“ reicht bei einem Fund in einem alten Commit nicht.
+
+Nicht in Git gehören insbesondere Signierdateien/-passwörter, GitHub-Zugriffstokens, Cookies,
+OAuth-Client-Secrets, private API-Schlüssel, `local.properties` und Crash-/Diagnosedaten. Der fest im
+Updater enthaltene **Zertifikatfingerabdruck** ist dagegen eine öffentliche Prüfinformation, kein
+Signiergeheimnis; der private Schlüssel selbst bleibt ausschließlich lokal.
+
 ---
 
-## 4. Architektur von Wiedergabe, Suche und Downloads
+## 4. Architektur von Startseite, Bibliothek, Wiedergabe, Suche und Downloads
 
 ### 4.1 Wiedergabe
 
@@ -259,6 +328,25 @@ Wichtige Konstanten/Stellen:
   `1 (Mono)` bzw. `2 (Stereo)`. Meldet der Decoder 2, aber beide Seiten klingen gleich, liegt die
   Zusammenführung nach dem App-Decoder (Android-Bedienungshilfe „Mono-Audio“, Geräte-EQ, Bluetooth-
   Profil/Empfänger, Kabel/Adapter oder tatsächlich mittig gemischte Aufnahme).
+- **Audio-Fokus und fremde Benachrichtigungstöne:** ExoPlayer verwendet weiterhin `USAGE_MEDIA`,
+  `AUDIO_CONTENT_TYPE_MUSIC` und Androids regulären Audio-Fokus. Optional kann unter
+  Einstellungen → Wiedergabe „Benachrichtigungstöne bei Wiedergabe stummschalten“ aktiviert werden;
+  die besondere Systemfreigabe `ACCESS_NOTIFICATION_POLICY` wird erst dann vom Nutzer erteilt. Auf
+  Android 15+ schaltet `PlaybackNotificationSilencer` nur KruXx’ implizite DND-Regel. Auf Android
+  6–14 wird der vorherige globale Filter samt Policy synchron gesichert; ein schon aktiver DND-Modus
+  wird nie überschrieben. Wiederherstellung erfolgt bei Pause/Stop, Dienstende, nächstem App-Start und
+  im lokalen Crash-Handler. Pop-ups bleiben durch `suppressedVisualEffects = 0` sichtbar; erlaubt sind
+  Calls sowie – ab Android 9 explizit – Alarme, Medien und Systemtöne. Der Dienst verbindet dafür
+  `ExoPlayer.isPlaying` mit dem tatsächlichen `PLAYING`-/`PAUSED`-Zustand des eingebetteten
+  Videoplayers; ein pausiertes Video hält die Stummschaltung also nicht unnötig aktiv.
+- **Media3-Hauptthread-Invariante:** `StatefulPlayer`/Media3 erzwingt Zugriffe auf dem
+  Application-Looper. Der Service behält seinen IO-Scope für Datenbank/Netz, sammelt Player-nahe
+  Flows aber über `playerCoroutineScope` mit `Dispatchers.Main.immediate`; auch
+  `updatePlaybackNotificationSilencing()` ist `@MainThread`. Diese Trennung nicht zurückbauen: Das
+  Lesen von `player.isPlaying` aus dem IO-Scope löste beim Dienststart eine
+  `IllegalStateException` aus und ließ die App direkt nach dem Start wieder schließen. Ein Fehler
+  beim Registrieren oder Verarbeiten des Policy-Receivers darf den Playerdienst ebenfalls nicht
+  beenden.
 - Log-Tags (adb logcat): `InnerTubeXPlayer`, `dataspec`, `ExoPlayerListener`, `InnerTube`,
   `InnerTubeExtractor`, `YouTubeCipherService`, `RemotePlayerConfigStore`, `PoTokenGenerator`, `PoTokenWebView`.
 
@@ -312,6 +400,15 @@ exakten Titel, Interpret und möglichst die YTM-URL/`videoId` festhalten.
 Einträge herausgefiltert und alle übrigen `DownloadRequest`s geordnet über `MyDownloadService` gesendet.
 Ein Fehler bei einem Titel darf das Einreihen der folgenden Titel nicht abbrechen.
 
+Einzel- und Massendownload verwenden danach denselben, von der Wiedergabe getrennten
+`InnertubeDataSourceType.DOWNLOAD`. Dessen URL-Cache ist ebenfalls getrennt und ruft
+`InnerTubeXPlayer.playerResponseForDownload()` fest mit `AudioQualityFormat.High` auf. Die
+Wiedergabe-Einstellung High/Low/Auto und Androids Kennzeichnung eines WLAN-/Mobilfunknetzes als
+„getaktet“ können die Downloadqualität daher nicht absenken. InnerTubeX `HIGH` wählt das am höchsten
+bewertete verfügbare Audioformat unter den mit KruXx' direktem HTTPS-Pfad kompatiblen Streams. Das ist
+die bestmögliche Qualität, die der jeweilige YTM-Titel und die aktuell funktionierenden Clients
+anbieten; YTM kann für verschiedene Titel trotzdem unterschiedliche Codecs und Bitraten liefern.
+
 KruXx setzt `DownloadManager.maxParallelDownloads = 5` (Media3s Ausgangswert ist drei): Bis zu fünf
 Einträge stehen in `STATE_DOWNLOADING`, alle weiteren in `STATE_QUEUED`. Das ist ein vorsichtiger
 Kompromiss für CDNs, die einzelne Verbindungen begrenzen; wesentlich höhere Werte erhöhen dagegen das
@@ -322,6 +419,161 @@ wird auch offline aus dem lokalen Download-Index gelesen und nicht mehr durch ei
 „fertig“-Wert ersetzt. Media3s Fehlerversuche bleiben auf fünf gesetzt. Liedtexte/Nebenressourcen laufen
 höchstens einzeln, damit bei einem großen Album oder einer Playlist die Audiostreams Netzpriorität
 erhalten.
+
+Der Download-Resolver übernimmt die von InnerTubeX gemeldete vollständige Dateilänge. Fehlt sie,
+ermittelt er sie mit genau einem `Range: bytes=0-0`-Probeabruf aus `Content-Range`. Anschließend trägt
+er die noch fehlende exakte Länge in den `DataSpec` ein; Media3s OkHttp-Quelle erzeugt daraus einen
+begrenzten `Range: bytes=start-end`-Abruf. Damit wird die beim InnerTubeX-Umbau verlorene
+Längenangabe wiederhergestellt: Der YT-CDN erhält nicht mehr für jeden Titel einen offenen Abruf mit
+unbekanntem Fortschritt. Bereits im normalen Player-Cache vorhandene Bytes werden nur übernommen,
+wenn itag und – sofern bekannt – Gesamtlänge zum gewählten High-Stream passen; Low-/Auto-Bytes werden
+gezielt umgangen.
+
+Lehnt der CDN eine signierte Download-URL mit HTTP 403, 410 oder 416 ab, entfernt der nur für
+Downloads verwendete OkHttp-Interceptor exakt diese URL aus dem Download-Resolver-Cache. Media3s
+nächster zulässiger Versuch löst den Titel dadurch neu auf, statt dieselbe abgelaufene oder abgelehnte
+Adresse wiederholt zu verwenden. Die signierte URL wird dabei weder von dieser Logik protokolliert
+noch gespeichert.
+
+Im Download-Cache stehen zusätzlich `kruxx_itag`, Gesamtlänge und die Richtlinie
+`kruxx_download_policy=1`. Unfertige Alt-Downloads ohne diese High-Richtlinie werden vor der
+Initialisierung des `DownloadManager` sauber auf Byte null zurückgesetzt. Fertige Alt-Downloads
+werden nie ungefragt gelöscht oder neu übertragen; um einen bereits vollständig gespeicherten Titel
+auf High zu aktualisieren, muss er einmal entfernt und neu heruntergeladen werden. Ändert YTM bei
+einem laufenden Download unerwartet itag oder Länge, bricht KruXx ab, statt zwei Dateien zu
+vermischen, verwirft den unvereinbaren Teil nach dem Stopp und startet beim manuellen Wiederholen
+sauber von vorn.
+
+### 4.4 Musikvideos und Art Tracks
+
+Die sichtbare YTM-Suche liefert bei Videotreffern neben `videoId` und Vorschaubild nach Möglichkeit
+`watchEndpointMusicConfig.musicVideoType`. KruXx verwendet `playlistItemData.videoId` – falls vorhanden –
+als Identität der Zeile und sucht dazu den vollständigsten passenden Wiedergabe-Endpunkt in Titel und
+Zeile. Ein Typ von einer abweichenden sekundären Video-ID wird ausdrücklich nicht übernommen. Fehlt
+ein vollständiger Endpunkt, bleibt die Video-ID als konservativer Audio-Fallback erhalten. Die Typen
+werden wie folgt eingeordnet:
+
+| YTM-Typ | Anzeige | Verhalten beim direkten Antippen |
+|---|---|---|
+| `MUSIC_VIDEO_TYPE_OMV` | Offizielles Musikvideo | eingebetteten YouTube-Player öffnen |
+| `MUSIC_VIDEO_TYPE_UGC` | Nutzer-Video | eingebetteten YouTube-Player öffnen |
+| `MUSIC_VIDEO_TYPE_ATV` | Audio (Standbild) | ausschließlich Audiostream abspielen |
+| fehlend/unbekannt | Audio (Typ nicht erkannt) | konservativ ausschließlich Audio |
+
+Ein erfolgreich ladbarer YouTube-Embed beweist nicht, dass ein Video bewegte Bilder enthält: Auch ein
+Art Track besitzt eine Video-ID und kann sein festes Cover als Videospur ausgeben. Unbekannte Typen
+werden daher nicht probeweise als Video geöffnet. Die normale KruXx-Wiedergabekette bleibt immer
+audio-only; nur ein direkter Tipp auf einen sicher erkannten `OMV`-/`UGC`-Treffer erzeugt ein
+MediaItem mit dem flüchtigen Auftrag `isVideo=true`. „Als Nächstes“, Warteschlange und Kontextmenüs
+verwenden dasselbe Ergebnis ohne diesen Auftrag und spielen es als Audio. Die Einstellung
+„Schaltfläche ‚Musikvideo suchen‘ anzeigen“ steuert nur die zusätzliche Suche im Player und ist kein
+globaler Video-Schalter.
+
+Das Videofenster verwendet `YouTubePlayerView` (IFrame) mit der `videoId`. Währenddessen bleibt der
+native ExoPlayer pausiert; dessen Position wird jedoch aus den IFrame-Zeitereignissen mitgeführt. Bei
+„Nur Audio abspielen“ wird das MediaItem mit `isVideo=false` an den Audio-Resolver übergeben und an
+dieser Position vorbereitet. Jeder vom IFrame gemeldete Wiedergabefehler sowie eine fehlgeschlagene
+Player-Initialisierung führen automatisch zum selben Audio-Rückfall und zu einem lokalen Hinweis.
+Das Videofenster meldet seinen echten Wiedergabe-/Pausezustand außerdem an den optionalen
+Benachrichtigungsschutz. Beim Verlassen wird es aus dem Lifecycle entfernt und freigegeben.
+
+Wichtig für spätere Änderungen: Media3 berücksichtigt den **Inhalt** von `MediaMetadata.extras` bei
+`MediaItem.equals()` nicht. `isVideo=true` und `isVideo=false` können bei derselben `videoId` deshalb
+für ein `StateFlow<MediaItem>` gleich aussehen. `MainActivity` übernimmt Video-/Audio-Varianten
+absichtlich direkt aus `Player.Listener.onMediaItemTransition` und speichert sie mit referenzieller
+Gleichheit; diesen Übergang nicht wieder ausschließlich aus `currentMediaItemState` ableiten.
+
+### 4.5 Startseite, Konto-Bibliothek und Interpreten
+
+Die Startseite kombiniert mehrere Backend-Wege, die bei der Fehlersuche getrennt betrachtet werden
+müssen:
+
+```text
+HomeQuickPicks
+  ├─ Charts/Radio/Related/Discover → me.knighthat.innertube (`modules/innertube`)
+  └─ angemeldete YTM-Home-Sektionen → YtMusic/HomePage (`extensions/innertube`)
+
+HomeLibraryViewModel / HomeArtistsViewModel
+  ├─ YTM-Konto-Bibliothek → com.metrolist.innertube.YouTube (`modules/metrolist`)
+  └─ gespeicherte lokale Einträge → Room/Database
+```
+
+**Vorschläge:** `HomeQuickPicks` wählt den aktuellen Trending-/Quick-Pick-Titel als Radio-Seed und
+verwendet nur im leeren Ausgangszustand einen festen Fallback. Die Radio-Antwort wird um den Seed
+bereinigt, per Song-ID dedupliziert und auf 18 Einträge begrenzt. Für die Anzeige werden Seed,
+Radio-Ergebnisse und vorhandene Related-Songs erneut zusammengeführt, Kindersicherung und Dubletten
+angewendet und je nach Ergebniszahl ein bis drei `LazyHorizontalGrid`-Reihen mit der normalen
+`SongItem`-Höhe erzeugt. Der Spinner erscheint nur, solange höchstens der einzelne Seed sichtbar ist.
+Der kleine Play-Button startet den ersten Eintrag und hängt den Rest als zusammenhängende Queue an;
+das Antippen eines einzelnen Vorschlags behält das bisherige Radio-Verhalten.
+
+**Top Artists:** Die komplette Rangzeile einschließlich Rang, Bild, Name und Abonnentenzahl ist
+klickbar und navigiert über `NavRoutes.YT_ARTIST` mit der jeweiligen Artist-ID. Eine fehlende
+Thumbnail-URL verhindert die Navigation nicht.
+
+**„From your Library“ und Bibliotheks-Playlists:** Angemeldete Home-Sektionen reichen
+`useLogin=true` an `ItemUtils.LazyRowItem` weiter. Synchronisierte Konto-Playlists erhalten bewusst
+`Playlist.id = -1L` und `isYoutubePlaylist = true`; `PlaylistItem` routet diese Einträge zu
+`YT_PLAYLIST` statt zur lokalen Datenbank und hängt den Login-Parameter an.
+
+`YouTubePlaylistViewModel` trennt danach bewusst zwei Transportwege: Mit `useLogin=true` werden erste
+Seite und Fortsetzungen über Metrolists `YouTube.playlist()` beziehungsweise
+`playlistContinuation()` geladen. Das ist derselbe Client samt Sitzung, Cookies, `visitorData` und
+`dataSyncId`, den KruXx bereits für Login und Bibliothek nutzt und der im direkten Vergleich die
+betroffenen Listen vollständig lieferte. Weil Metrolist intern selbst `VL` ergänzt, übergibt das
+ViewModel dort die nackte Playlist-ID; intern und für Teilen/Export hält es weiterhin die
+normalisierte Browse-ID mit exakt einem `VL`. Öffentliche/anonyme Listen verwenden unverändert
+`me.knighthat.innertube`, einschließlich dessen `visitorData` für Fortsetzungen. Beide Antworten
+werden auf dasselbe schlanke Header- und `Song`-Modell abgebildet; ein Mutex verhindert doppelte
+Continuation-Abrufe am Listenende.
+
+Der inzwischen ebenfalls korrigierte Login-Pfad in `me.knighthat.innertube` bleibt durch
+`InnertubeImplAuthenticationTest` abgesichert: `ytmBrowse()`/`ytmNext()` reichen `useLogin` bis
+`post()` weiter und senden Cookie, Visitor-Header sowie exakt `SAPISIDHASH <Zeit>_<SHA1>` ohne das
+frühere `_u`-Suffix. Er ist jedoch nicht mehr der Produktionspfad für angemeldete Playlistseiten.
+Die Dateiendung eines enthaltenen Elements (`mp4`, Video oder Audio) entscheidet nicht, ob die
+Playlistseite geladen werden kann; nicht abspielbare Zeilen ohne Video-ID werden übersprungen.
+
+**Interpreten-Synchronisation:** YTM kann `musicThumbnailRenderer` ohne das Array `thumbnails`
+liefern. `Thumbnails.thumbnails` hat deshalb `emptyList()` als Default; ein einzelner Eintrag ohne
+Bild darf nicht mehr die komplette Browse-Antwort mit `MissingFieldException` verwerfen und ein
+rotes „Synchronisation fehlgeschlagen“-Banner auslösen. Das Banner ist nur noch bei einem echten
+Fehlschlag der Browse-Anfrage/Deserialisierung berechtigt.
+
+`HomeArtistsViewModel` hält die aktuelle Online-Antwort und die bereits sortierte lokale
+Datenbankliste getrennt. `mergeAndSortArtists()` führt beide nach `Artist.id` zusammen, übernimmt
+nützliche Namen-, Bild-, Zeit- und Bookmark-Metadaten, entfernt Dubletten und wendet danach Filter
+und Sortierung global an. Bei `TITLE` wird `cleanName` verwendet und anschließend die gewählte
+auf-/absteigende Reihenfolge angewendet. Bei `DATE_ADDED` bleibt die Server-/DB-Reihenfolge erhalten,
+weil YTM für diese Antwort keinen verlässlichen Hinzugefügt-Zeitpunkt liefert; `RANDOM` mischt wie
+gewählt. Das bedeutet: Alphabetische Anzeige ist garantiert, wenn in der Oberfläche
+„Titel / aufsteigend“ ausgewählt ist, nicht bei den beiden anderen Sortiermodi.
+
+### 4.6 Schwebender Player (Android Picture-in-Picture)
+
+Die Nutzeroptionen liegen unter **Einstellungen → Erscheinungsbild**:
+
+- `IS_PIP_ENABLED`: „Schwebenden Player erlauben“, standardmäßig aus;
+- `IS_AUTO_PIP_ENABLED`: „Beim Verlassen automatisch öffnen“, standardmäßig an und nur sichtbar,
+  wenn der Hauptschalter aktiv ist.
+
+PiP ist ab Android 7 verfügbar. `MainActivity` bindet `PipEventContainer` nur dann aktiv an, wenn der
+Hauptschalter gesetzt und ein aktuelles `MediaItem` vorhanden ist; ein leerer Player erzeugt bewusst
+kein Fenster. `PictureInPictureParams` werden bei Änderungen an Quellrechteck, Seitenverhältnis,
+Aktionen oder Auto-Option erneut gesetzt. Android 12+ übernimmt den automatischen Eintritt über
+`setAutoEnterEnabled`; Android 7–11 benötigen den registrierten `OnUserLeaveHintListener`, der beim
+echten Verlassen `maybeEnterPip()` aufruft. So funktioniert sowohl Gesten-/Home-Navigation als auch
+das klassische Verlassen auf älteren unterstützten Versionen.
+
+Das PiP-Fenster bildet den aktuellen Player-Container ab: bei normaler Audiowiedergabe das Cover,
+bei aktivem eingebettetem Musikvideo dessen Player. Play/Pause-/Beenden-Aktionen und das
+Quellrechteck bleiben synchron. Android beziehungsweise die Herstelleroberfläche kann PiP pro App
+dennoch sperren; das ist zusätzlich in den System-App-Einstellungen zu erlauben.
+
+Nicht verwechseln: Die Einstellung „Miniaturansicht/Thumbnail anzeigen“ steuert ausschließlich das
+Cover im großen KruXx-Player. Sie aktiviert Android-PiP nicht. Um beim Wegwischen/Verlassen ein
+kleines Fenster zu erhalten, müssen „Schwebenden Player erlauben“ und die Auto-Unteroption aktiv
+sein, ein Titel muss laufen und das Gerät muss PiP für KruXx zulassen.
 
 ---
 
@@ -383,11 +635,15 @@ gezielt per `git cherry-pick -x <commit>` übernommen. Besonders kritisch sind
 ### 6.3 Submodule aktualisieren
 
 ```bash
-git -C modules/metrolist fetch && git -C modules/metrolist log --oneline HEAD..origin/kreate-old
-git -C modules/metrolist checkout <commit>   # dann im Hauptrepo: git add modules/metrolist && commit
+git -C modules/metrolist fetch upstream
+git -C modules/metrolist log --oneline HEAD..upstream/kreate-old
+git -C modules/metrolist checkout <commit>   # dann KruXx-Patch neu anwenden/testen/committen
+git add modules/metrolist                    # Gitlink im Hauptrepo gemeinsam aktualisieren
 ```
-Bei `modules/metrolist` gibt es auch Branches `upstream`/`metrolist-v3` (näher an Metrolist); das
-Build-Skript des Moduls muss zu Kreates Versionskatalog passen.
+`origin` des Submoduls zeigt auf `Massefehler/KruXx-metrolist`; das fremde Repository ist dort nur
+als schreibgeschütztes `upstream` eingetragen. Neben `kreate-old` gibt es dort auch neuere
+Metrolist-Zweige. Ein Wechsel ist eine Migration: API, Parser und Versionskatalog müssen zuerst im
+KruXx-Root-Build zusammenpassen.
 
 `modules/innertube` zeigt auf den KruXx-Spiegel (§2.3). Vor einem Update dort den ursprünglichen
 GitLab-Stand prüfen, den KruXx-Fix neu testen und danach Spiegel-Pin sowie Patch-Datei gemeinsam
@@ -423,36 +679,106 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
 | Symptom | Wahrscheinliche Ursache | Wo ansetzen |
 |---|---|---|
 | „Kein abspielbares Format“ / `StreamResolveException NO_PLAYABLE_STREAM` bei allen Songs | YouTube hat Clients geändert; InnerTubeX-Version veraltet | §6.1 – Bibliothek aktualisieren |
-| HTTP 403 kurz nach Start, Song springt/stoppt | Signatur/`pot` abgelehnt; Recovery läuft (max. 2×) | Log `Stream of … rejected`; wenn dauerhaft: InnerTubeX-Update, ggf. `refreshAfterStreamRejection` |
+| HTTP 403 kurz nach Start, Song springt/stoppt | Signatur/`pot` abgelehnt; Recovery läuft (max. 3× je Song) | Log `Stream of … rejected`; wenn dauerhaft: InnerTubeX-Update, ggf. `refreshAfterStreamRejection` |
 | Song endet nach ~30 s oder bricht mit „unbekanntem Fehler“ ab, danach bei jedem Abspielen | Cache-Index hat eine zu kleine Gesamtlänge (begrenzter Sub-Range im Cache, §4) | Seit 02.09.2026 ausgeschlossen; Altlasten: Player-Cache leeren (Einstellungen → Daten) |
 | „Skipping atom with length > 2147483647“ / „Unrecognized input format“ / „unbekannter Wiedergabefehler“ bei Position 0, nur bei bestimmten Songs | gecachte Bytes gehören zu einem anderen itag als der aufgelöste Stream (§4: Qualität/Client gewechselt) | Seit 02.09.2026 heilt sich das selbst (Log `Cached data of … unusable`, `Cached bytes of … are itag`); wenn nicht: Player-Cache leeren (Einstellungen → Daten) |
 | Nur bestimmte Songs: `AGE_RESTRICTED` / `LoginRequiredException` | Altersbeschränkung; braucht Login + PO-Token | YouTube-Login in der App; PoToken-Logs prüfen |
 | `PoToken … timed out` / `BadWebViewException` | System-WebView fehlt/kaputt; InnerTubeX fällt auf tokenfreie Clients zurück | Android System WebView aktualisieren |
 | Suchergebnisse/Vorschläge leer, Wiedergabe geht | YTM-Filter/Antwort hat sich geändert oder die `:oldtube`-Sitzung ist veraltet; nicht InnerTubeX | `extensions/innertube`, `SearchResultScreen`, Innertube-Logs; anonym und angemeldet vergleichen |
 | Track ist nachweislich auf YTM, fehlt aber unter „Titel“ | YTM sortiert ihn nur als Video/UGC ein; Region/Konto/Restriktion weicht ab; Parser kannte den Endpunkt nicht | Seit 2.2.3-kruxx.5 werden Titel+Videos zusammengeführt, App-Sprache/-Region und Login genutzt sowie weitere Endpunktformen erkannt. Bleibt er weg: YTM-URL/`videoId` mit beiden Kontomodi prüfen |
+| „Vorschläge“ zeigt nur einen anders großen Titel und dauerhaft einen gestrichelten Kreis | Nur der Seed war vorhanden; die alte Darstellung reservierte keine normalen Song-Zeilen oder der Radio-Aufruf scheiterte | Seit 1.0.1: Seed + deduplizierte Radio-/Related-Ergebnisse, bis zu 18 Titel in 1–3 normalen Reihen; Loader nur bei höchstens einem Ergebnis. Bei erneutem Auftreten Log-Tag `HomeQuickPicks` und `Innertube.radio()` prüfen (§4.5) |
+| „Top Artists“ reagiert nicht auf Tippen | Rangzeile hatte keine Navigation | Seit 1.0.1 navigiert die ganze Zeile über `NavRoutes.YT_ARTIST`; bei erneutem Auftreten Artist-ID und überlagernde Modifier prüfen (§4.5) |
+| Von mehreren YTM-Playlists lädt nur eine; die übrigen öffnen leer oder melden HTTP 401 | Synchronisierte Konto-Playlist wurde als lokale DB-ID behandelt oder der angemeldete Abruf lief fälschlich über `me.knighthat.innertube`. Enthaltene Videos/`mp4` verhindern nicht das Laden der Playlistseite | Seit 1.0.1: Online-ID `-1`, `isYoutubePlaylist=true`; angemeldete Seite samt Continuation über Metrolists `YouTube.playlist()`, anonyme Listen über `me.knighthat.innertube`. Bleibt eine einzelne Liste leer: dieselbe Playlist im YTM-Konto prüfen und normalisierte Browse-ID/Session untersuchen (§4.5) |
+| Interpreten sind sichtbar, Pull-to-refresh zeigt trotzdem das rote Banner „Synchronisation … fehlgeschlagen“ | Ein YTM-Eintrag ohne `thumbnail.thumbnails` ließ die gesamte neue Antwort beim Deserialisieren scheitern; sichtbar blieb die lokale/alte Liste | Seit 1.0.1 wird die Thumbnail-Liste optional als leer behandelt. Das Banner darf nur bei echtem Browse-/Parserfehler kommen; Log-Tag `HomeArtists` prüfen (§4.5) |
+| Interpreten sind nach Aktualisierung nicht mehr alphabetisch | Online- und lokal bereits sortierte Listen wurden erst danach aneinandergehängt | Seit 1.0.1 wird nach dem Merge global sortiert und dedupliziert. In der Oberfläche „Titel / aufsteigend“ wählen; `DATE_ADDED` und `RANDOM` sind bewusst nicht alphabetisch (§4.5) |
+| Treffer aus „Videos“ zeigt nur ein Cover | YTM kennzeichnet ihn als `MUSIC_VIDEO_TYPE_ATV` (Art Track); das ist beabsichtigt kein Musikvideo | Kennzeichnung in der dritten Zeile prüfen: „Audio (Standbild)“ bleibt im Audioplayer. Nur `OMV`/`UGC` öffnet Video (§4.4) |
+| Musikvideo kann nicht eingebettet werden | Video gelöscht, regional/alterstechnisch gesperrt, Einbettung vom Rechteinhaber untersagt oder IFrame/WebView-Fehler | KruXx fällt automatisch bei gleicher Position auf Audio zurück. Bei dauerhaftem Fehler Android System WebView und Netz prüfen |
 | Browse/Charts leer, Wiedergabe geht | Problem in `me.knighthat.innertube` (Submodul), nicht InnerTubeX | `modules/innertube`, Innertube-Logs |
 | „Failed to get charts“ beim Öffnen der Startseite (Log-Tag `HomeQuickPicks`) | YouTube hat die Charts-Antwort geändert; das Modul deserialisiert strikt (`MissingFieldException`) | Live-Antwort holen (`POST youtubei/v1/browse`, `browseId=FEmusic_charts`, `formData.selectedValues=["DE"]`), als Fixture nach `modules/innertube/src/test/resources/ytm/browse/`, `InnertubeChartsLiveResponseTest` nennt das fehlende Feld, Modell anpassen (§2.3) |
 | App stürzt nur beim ersten Start nach einem Update mit `IndexOutOfBoundsException: Index 0 out of bounds for length 0` ab; beim zweiten Start erscheint ein CrashReport | Release-Notes wurden nicht in Abschnitte geparst, der Changelog-Pager hatte deshalb null Seiten (trat in 2.2.3-kruxx.1/.2 durch `•` statt `-` und eine Überschrift ohne `:` auf) | Seit 2.2.3-kruxx.3: robuster Parser plus Schutz vor leeren Abschnitten. Neue Notizen immer im Format `Überschrift:` und `- Eintrag` schreiben |
-| Bei „Alle Tracks downloaden“ werden nur drei Titel markiert oder der Gesamtdurchsatz ist trotz gutem Netz gering | Media3s Standard sind drei aktive Downloads; weitere Einträge waren korrekt `QUEUED`, aber `SongItem` zeigte diesen Zustand früher nicht. Liedtext-Nebenabrufe können zusätzlich konkurrieren; außerdem kann der YT-CDN einzelne Verbindungen drosseln | Seit 2.2.3-kruxx.6 sind Queue-/Restart-Zustände sichtbar und die Bulk-Übergabe geordnet; seit 2.2.3-kruxx.7 laufen bis zu fünf Audiodownloads, aber höchstens ein Nebenabruf. Bei echtem Stillstand Download-Benachrichtigung und Logs `DownloadHelperImpl`, `MyDownloadService`, `dataspec`, `InnerTubeXPlayer` prüfen |
+| App schließt direkt beim Start; Log meldet, der Media3-Player werde vom falschen Thread angesprochen | Der Flow des Benachrichtigungsschutzes lief im IO-Scope und las `player.isPlaying` außerhalb des Application-Loopers | Player-nahe Flows ausschließlich in `playerCoroutineScope`/`Dispatchers.Main.immediate`; `updatePlaybackNotificationSilencing()` bleibt `@MainThread` (§4.1) |
+| „Miniaturansicht“ ist aktiv, beim Verlassen erscheint aber kein kleines Fenster | Thumbnail im großen Player wurde mit Android-PiP verwechselt; PiP-Hauptschalter/Systemfreigabe aus, Auto-Unteroption aus oder kein aktueller Titel | Einstellungen → Erscheinungsbild → „Schwebenden Player erlauben“ plus „Beim Verlassen automatisch öffnen“ aktivieren; Androids PiP-Freigabe für KruXx und laufenden Titel prüfen (§4.6) |
+| Fremde Benachrichtigung ertönt trotz aktiviertem Schutz | „Nicht stören“-Zugriff fehlt/wurde entzogen, Wiedergabe ist pausiert oder der Ton ist Medien-, Wecker-, Anruf- bzw. Systemaudio und daher bewusst erlaubt | Systemzugriff und KruXx-Schalter prüfen; Log/Status von `PlaybackNotificationSilencer`. Pop-ups bleiben absichtlich sichtbar, der Schutz ist kein allgemeiner Audio-Mute (§4.1) |
+| Bei „Alle Tracks downloaden“ werden nur drei Titel markiert oder der Gesamtdurchsatz ist trotz gutem Netz gering | Media3s Standard sind drei aktive Downloads; weitere Einträge waren korrekt `QUEUED`, aber `SongItem` zeigte diesen Zustand früher nicht. Liedtext-Nebenabrufe können zusätzlich konkurrieren. Nach dem InnerTubeX-Umbau fehlte außerdem die Gesamtlänge im `DataSpec`, weshalb der CDN offene statt exakt begrenzter Range-Abrufe erhielt | Queue-/Restart-Zustände sind sichtbar, die Bulk-Übergabe ist geordnet, bis zu fünf Audiodownloads laufen parallel und höchstens ein Nebenabruf. Der eigene Download-Resolver setzt nun High-Qualität und exakte Länge. Bei echtem Stillstand Download-Benachrichtigung und Logs `DownloadHelperImpl`, `MyDownloadService`, `dataspec`, `InnerTubeXPlayer` prüfen; CDN-Drosselung bleibt extern möglich |
 | Wiedergabe wirkt mono | Quelle ist selbst mono/zentriert oder Android/Gerät mischt nach dem Decoder zusammen; KruXx enthält keinen Downmix. Ein gewählter Hall/EQ kann die Räumlichkeit verändern | „Stats for Nerds“ aufklappen: `Decoder-Kanäle: 2 (Stereo)` belegt ein Stereo-Quellformat. Dann Android → Bedienungshilfen → Audio → Mono-Audio, System-/Hersteller-EQ, Bluetooth-Gerät und Kabel/Adapter prüfen; Hall in KruXx auf „Keiner“ setzen |
 | YouTube-Login/Bibliothek defekt | `modules/metrolist` (Metrolist-Innertube) | Submodul-Update (§6.3) |
 | Build: `Dependency … requires compileSdk 37` | Flag in `gradle.properties` fehlt | §2.1 / §6.4 |
-| Build: Lint-`e:`-Zeilen „expected version 2.2.0“ | Lint-Vital mit altem Kotlin | ignorieren (nur Release), Build läuft weiter |
+| Build: Lint-`e:`-Zeilen „expected version 2.2.0“ | Lint-Werkzeug kann Kotlin-Metadaten 2.4 noch nicht vollständig lesen | Nicht isoliert bewerten: vollständiges `lintKruxxUniversalProdRelease` ausführen. Nur wenn dieser Gate ohne **neue** Befunde und der Build erfolgreich endet, ist die bekannte Metadaten-Diagnose unkritisch |
 | „Paket in Konflikt mit bestehendem Paket“ | gleiche App-ID, andere Signatur | KruXx-Flavor verwenden bzw. alte App deinstallieren |
 
 ### 7.3 Schnelltest nach Änderungen
 
-1. Debug-APK bauen, installieren (koexistiert).
-2. Frische Installation/gelöschte App-Daten: erster Start öffnet die Startseite ohne Absturz; zweiter Start zeigt keinen CrashReport-Dialog.
-3. Spracheingabe (Android 12+): Suche öffnen, Mikrofon antippen, Berechtigung erteilen und sprechen. Text muss im Feld stehen und darf erst nach manueller Bestätigung gesucht werden. Abbrechen, Reiterwechsel und „Berechtigung verweigern“ ebenfalls prüfen. Flugmodus-Test mit installiertem lokalem Sprachmodell bestätigt den Offline-Betrieb.
-4. Suche anonym prüfen: App-Sprache/Region Deutschland, bekannter Song sowie ein Treffer, den YTM nur als Musikvideo führt. Letzterer muss unter „Titel“ **und** „Videos“ erscheinen; keine doppelte `videoId`. Vorschläge, Reiter, Titel-Fortsetzung und Kindersicherung mit explizitem Video testen.
-5. Suche angemeldet wiederholen; danach Cookie absichtlich ungültig machen und den anonymen Rückfall prüfen. Wechsel von Sprache/Region oder Login darf keine alten Suchergebnisse aus dem Cache zeigen.
-6. Branding prüfen: Launcher-Icon (normal/rund), Themed Icon, Benachrichtigungssymbol, Ersatzgrafik bei fehlendem Cover und Header „KruXx – The core of your music“; „KruXx“ muss sichtbar größer als der Zusatz sein, auf schmalem Display dürfen die rechten Header-Aktionen nicht abgeschnitten werden; auf Android TV zusätzlich das Banner.
-7. Album/Playlist mit mindestens 10 Titeln: „Alle Tracks downloaden“. Sofort müssen alle fünf aktiven **und alle wartenden** Titel markiert sein; nach Abschluss alle offline abspielen. Einen wartenden und einen laufenden Titel per Tipp abbrechen; ein einzelner Fehler darf die restliche Queue nicht stoppen. Für einen belastbaren Geschwindigkeitsvergleich dasselbe Album bei stabilem Netz einmal mit leerem Download-Cache messen.
-8. Stereo-Testdatei bzw. bekannter YTM-Stereotest: „Stats for Nerds“ aufklappen und `Decoder-Kanäle: 2 (Stereo)` prüfen; links/rechts getrennt über kabelgebundene Kopfhörer testen. Danach optional Mono-Audio in Android aktivieren, um den Unterschied eindeutig gegenzuprüfen.
-9. Anonym (ausgeloggt): 3–4 Songs aus Suche/Charts abspielen, dazwischen seeken; 1 explizit markierter Song.
-10. Eingeloggt: Song aus der eigenen Bibliothek; Cache-Verhalten (zweites Abspielen offline).
-11. `adb logcat` auf `Playback: client=…` prüfen – welcher Client liefert? (VISIONOS ohne Token, WEB_REMIX mit PO-Token.)
+1. `:innertube:test` und `:composeApp:testKruxxUniversalProdDebugUnitTest` ausführen; anschließend
+   Debug-APK bauen und parallel zur Release-App installieren.
+2. Frische **Debug**-Installation beziehungsweise gezielt gelöschte Debug-Daten: erster Start öffnet
+   die Startseite ohne Absturz; zweiter Start zeigt keinen CrashReport-Dialog. Daten der installierten
+   Release-App niemals für einen Test löschen.
+3. Zusätzlich die bestehende Release-App kalt starten und `adb logcat` auf `AndroidRuntime`,
+   „Player is accessed on the wrong thread“ und `PlayerServiceModern` prüfen. Wiedergabe einmal vor
+   und einmal nach dem Neustart starten; der optionale Benachrichtigungsschutz darf den Dienststart
+   auch ohne Policy-Freigabe nicht beenden.
+4. Startseite: Unter „Vorschläge“ müssen nach dem Laden mehrere normal große Songzeilen erscheinen
+   (sofern der Radio-Endpunkt Ergebnisse liefert), höchstens 18 und ohne doppelte Song-ID. Bei 1/2/3+
+   Ergebnissen die Höhe von 1/2/3 Reihen und den verschwindenden Loader prüfen. Der Play-Button muss
+   die vollständige Liste einreihen; ein einzelner Tipp startet weiterhin das Radio dieses Songs.
+5. „Top Artists“ an Bild, Text und Rand antippen; jede Stelle muss dieselbe Interpretenseite öffnen.
+   Danach einen Eintrag ohne Bild simulieren/verwenden und die Navigation erneut prüfen.
+6. Angemeldet alle sichtbaren Playlists aus „From your Library“ sowie der Bibliotheksansicht öffnen,
+   mindestens fünf unterschiedliche Listen und eine mit Video-/Art-Track-Einträgen. Erste Seite und
+   Continuation müssen laden; keine darf als lokale leere Playlist geöffnet werden. Anonym darf eine
+   private Konto-Liste nicht fälschlich als erfolgreich gelten.
+7. Interpreten auf „Titel / aufsteigend“ stellen und Pull-to-refresh zweimal ausführen. Es darf kein
+   rotes Fehlerbanner erscheinen; die zusammengeführte Liste bleibt über Online-/Lokal-Grenzen hinweg
+   alphabetisch und ohne Dubletten. Danach absteigend, `DATE_ADDED`, `RANDOM` und die Filter
+   Alle/YTM/Lokal jeweils auf ihr beabsichtigtes Verhalten prüfen.
+8. Spracheingabe (Android 12+): Suche öffnen, Mikrofon antippen, Berechtigung erteilen und sprechen.
+   Text muss im Feld stehen und darf erst nach manueller Bestätigung gesucht werden. Abbrechen,
+   Reiterwechsel und „Berechtigung verweigern“ ebenfalls prüfen. Flugmodus-Test mit installiertem
+   lokalem Sprachmodell bestätigt den Offline-Betrieb; ein Gerät ohne Modell muss verständlich
+   ablehnen statt einen Cloud-Erkenner zu verwenden.
+9. Suche anonym prüfen: App-Sprache/Region Deutschland, bekannter Song sowie ein Treffer, den YTM nur
+   als Musikvideo führt. Letzterer muss unter „Titel“ **und** „Videos“ erscheinen; keine doppelte
+   `videoId`. Vorschläge, Reiter, Titel-Fortsetzung und Kindersicherung mit explizitem Video testen.
+10. Suche angemeldet wiederholen; anschließend nur in einer isolierten Debug-Testinstallation eine
+    ungültige Sitzung herstellen und den anonymen Rückfall prüfen. Wechsel von Sprache/Region oder
+    Login darf keine alten Suchergebnisse aus dem Cache zeigen. Konto-/Cookie-Werte nie loggen.
+11. Im Reiter „Videos“ je einen `OMV`-, `UGC`- und `ATV`-Treffer prüfen: Typbeschriftung muss stimmen;
+    nur OMV/UGC öffnet nach direktem Tipp das 16:9-Videofenster, ATV startet Audio. Einen echten
+    Videotreffer über „Als Nächstes“ einreihen – beim automatischen Übergang muss er Audio bleiben.
+    Im Video vorspulen, auf „Nur Audio“ wechseln und dieselbe Position kontrollieren. Ein nicht
+    einbettbares Video muss ohne App-Absturz an derselben Stelle als Audio weiterlaufen.
+12. PiP unter Einstellungen → Erscheinungsbild aktivieren. Mit Audio und anschließend echtem Video
+    die App über Home/Geste verlassen: Cover beziehungsweise Video muss im kleinen Fenster erscheinen;
+    Play/Pause und Schließen prüfen. Auto-Unteroption aus: kein selbstständiger Eintritt. Hauptschalter
+    aus oder kein MediaItem: kein PiP. Wenn verfügbar je ein Gerät Android 7–11 und Android 12+
+    verwenden und außerdem Androids app-spezifische PiP-Freigabe testen.
+13. Branding prüfen: Launcher-Icon (normal/rund), Themed Icon, Benachrichtigungssymbol,
+    Ersatzgrafik bei fehlendem Cover und Header „KruXx – The core of your music“; „KruXx“ muss
+    sichtbar größer als der Zusatz sein, auf schmalem Display dürfen die rechten Header-Aktionen
+    nicht abgeschnitten werden; auf Android TV zusätzlich das Banner.
+14. Album/Playlist mit mindestens 10 Titeln: „Alle Tracks downloaden“. Sofort müssen alle fünf
+    aktiven **und alle wartenden** Titel markiert sein; nach Abschluss alle offline abspielen. Einen
+    wartenden und einen laufenden Titel per Tipp abbrechen; ein einzelner Fehler darf die restliche
+    Queue nicht stoppen. Einen früher vollständig geladenen Testtitel zuerst entfernen, dann je
+    einmal über WLAN und ein als getaktet erkanntes Mobilfunknetz laden: `adb logcat` muss jeweils
+    `Download: … itag=… bitrate=…` mit derselben höchsten verfügbaren Variante zeigen. Für einen
+    belastbaren Geschwindigkeitsvergleich dasselbe Album bei stabilem Netz und leerem Download-Cache
+    vor/nach der Änderung messen; zusätzlich einen begonnenen Download durch App-Neustart fortsetzen.
+15. Stereo-Testdatei beziehungsweise bekannten YTM-Stereotest: „Stats for Nerds“ aufklappen und
+    `Decoder-Kanäle: 2 (Stereo)` prüfen; links/rechts getrennt über kabelgebundene Kopfhörer testen.
+    Danach optional Mono-Audio in Android aktivieren, um den Unterschied eindeutig gegenzuprüfen.
+16. Benachrichtigungsschutz aktivieren, Systemzugriff zunächst abbrechen (Schalter muss
+    zurückspringen), dann erteilen und während Audio sowie eingebettetem Video eine normale
+    Benachrichtigung aus einer anderen App auslösen: Pop-up sichtbar, kein Ton. Pause/Stop müssen den
+    vorherigen Zustand sofort herstellen. Zusätzlich Dienstende/Neustart sowie einen schon vorher
+    manuell aktivierten „Nicht stören“-Modus prüfen; letzterer darf nicht überschrieben oder
+    ausgeschaltet werden. Gespeicherte Crashreports werden dafür nicht geöffnet.
+17. Anonym (ausgeloggt): 3–4 Songs aus Suche/Charts abspielen, dazwischen seeken; einen explizit
+    markierten Song einschließen. Eingeloggt einen Song aus der eigenen Bibliothek spielen und das
+    Cache-Verhalten beim zweiten, offline gestarteten Abspielen prüfen.
+18. `adb logcat` auf `Playback: client=…` prüfen – welcher Client liefert? VISIONOS ist typischerweise
+    tokenfrei, WEB_REMIX verwendet den PO-Token-Pfad. Signierte URLs, Cookies und Tokens dürfen in
+    Testnotizen nicht übernommen werden.
 
 ### 7.4 InnerTubeX ohne Handy testen (JVM)
 
@@ -480,21 +806,36 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 
 ## 8. Release-Checkliste
 
-- [ ] `git status` sauber, Branch `main`; `origin` ist `Massefehler/KruXx`, `upstream` hat Push-URL `DISABLED`
+- [ ] Branch `main`; `origin` ist `Massefehler/KruXx`, `upstream` hat Push-URL `DISABLED`. Vor dem
+      finalen Build ist `git status` sauber und jedes Submodul auf den beabsichtigten Commit gepinnt
 - [ ] `KRUXX_VERSION_NAME` in `composeApp/build.gradle.kts` nach SemVer erhöhen und
       `KRUXX_VERSION_CODE` **bei jedem APK-Release** um mindestens 1 erhöhen (nie wiederverwenden/senken)
 - [ ] `docs/changelogs/kruxx/<versionName>.txt` schreiben: jeder Abschnitt beginnt mit
       `Überschrift:`, jeder Eintrag mit `- `; Kreates eigene Notizen unter
       `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` bleiben unangetastet
-- [ ] `./gradlew :innertube:test :composeApp:testKruxxUniversalProdDebugUnitTest` und Debug-Schnelltest (§7.3)
+- [ ] `docs/KRUXX-IST-STAND.md`, Entwicklerhandbuch, Root-README und gegebenenfalls `NOTICE.md`
+      aktualisieren; historische Changelogs nicht umschreiben
+- [ ] `cmp docs/changelogs/kruxx/<versionName>.txt composeApp/src/androidKruxx/res/raw/release_notes.txt`
+      ist erfolgreich; Changelog-Parser-Test deckt alle verwendeten Abschnitte ab
+- [ ] Geheimnis-/Datenschutzprüfung in **App- und Innertube-Repository**: kein Crashlog, Cookie,
+      Token, Keystore, Passwort oder privater API-Schlüssel; offene GitHub-Scanning-Alarme nach §3.2
+      klassifiziert und bei gültigen Geheimnissen zuerst rotiert
+- [ ] Finalen Quellstand auf `main` committen; anschließend aus exakt diesem sauberen Commit
+      `./gradlew :innertube:test :metrolistInnertube:test :composeApp:testKruxxUniversalProdDebugUnitTest`
+      sowie `./gradlew :composeApp:lintKruxxUniversalProdRelease` ausführen. Die Lint-Baseline darf
+      nur geerbte Altbefunde enthalten; neue eigene Befunde werden behoben, nicht aufgenommen
+- [ ] Vollständigen Debug-/Geräte-Schnelltest nach §7.3 abschließen. Besonders 1.0.1: alle Konto-
+      Playlists, Einzel-/Massendownload, Video/Audio-Rückfall, PiP, Benachrichtigungsschutz und
+      Links-/Rechts-Stereo praktisch prüfen
 - [ ] `scripts/build-local-release.sh kruxx` → `>> done:` und
       „Signer #1 certificate DN: CN=Kreate local build …“
 - [ ] `aapt2 dump badging …/KruXx-release-signed.apk` → erwartete Paket-ID, exakter
       `versionCode` und `versionName`; `apksigner verify --print-certs` → erwarteter Fingerabdruck
 - [ ] Im Archiv `/home/kruxx/Schreibtisch/Android/Kreate-APKs/` prüfen, dass das Build-Skript Release und
       passende Debug-APK als `KruXx-<versionName>-release.apk` / `-debug.apk` abgelegt hat (LocalSend)
-- [ ] Geheimnis-/Datenschutzprüfung: insbesondere kein Crashlog, Cookie, Token, Keystore oder Passwort
-- [ ] Release-Commit auf `main`, annotiertes Tag `v<versionName>`, Push ausschließlich zu `origin`
+- [ ] Größe und SHA-256 der **neu gebauten** Archiv-APKs in `docs/KRUXX-IST-STAND.md` aktualisieren;
+      prüfen, dass keine ältere Datei mit gleichem Versionsnamen dokumentiert oder hochgeladen wird
+- [ ] Annotiertes Tag `v<versionName>` auf exakt dem gebauten Commit; Push ausschließlich zu `origin`
 - [ ] GitHub-Release mit exakt dem archivierten APK-Namen erstellen; API anschließend auf Tag,
       Assetname, Größe und `sha256:`-Digest prüfen
 - [ ] Upgrade über die vorherige installierte KruXx-Version testen; Einstellungen → Allgemein →
@@ -504,6 +845,19 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 
 ## 9. Offene Punkte / Ideen
 
+- **Letzter 1.0.1-Freigabegate:** Das Zielgerät war beim abschließenden Archivtest nicht mehr per ADB
+  verbunden. Das exakt in `KRUXX-IST-STAND.md` gehashte Release-APK noch einmal über die bestehende
+  Installation installieren, kalt starten und auf `AndroidRuntime`-Fehler prüfen. Der breite
+  manuelle Nutzertest einschließlich schneller Downloads sowie Konto-Playlist-, App-Start- und
+  Interpretenprüfungen war zuvor ohne Auffälligkeit.
+- Release und Debug wurden im selben normalen Lauf des gehärteten Build-Skripts aus demselben
+  Quellbaum erzeugt; Signatur, Paket, Version und Archiv-Hashes sind dokumentiert. Nach dem letzten
+  Gerätegate den finalen Quellstand committen/taggen beziehungsweise – falls bereits committed –
+  sicherstellen, dass der Build exakt diesem Stand entspricht.
+- Die GitHub-API meldete am 03.09.2026 in den bestehenden App- und Innertube-Spiegeln jeweils null
+  offene Secret-Scanning-Alarme. Den noch anzulegenden Metrolist-Spiegel direkt nach seinem ersten
+  Push kontrollieren. Lokaler Commit-/Pfadscan fand nur den absichtlich synthetischen Auth-Wert eines
+  Unit-Tests; weder Schlüsselwerte noch der gespeicherte Crashreport wurden geöffnet.
 - Monochrom-Glyph (Themed Icons, Benachrichtigung) ist derzeit ein Text-„K“; ein flaches
   Weiß-auf-transparent-Motiv würde besser zum Icon passen (`--mono alpha` mit eigener Datei ergänzen).
 - Unit-Tests für `mapExtractionFailure` und das Cache-Ablaufverhalten im Resolver.
@@ -515,6 +869,6 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 - `isExplicit`-Hint beim allerersten Abspielen: Song-Info wird parallel geladen, der Hint ist dann `null` und
   InnerTubeX nimmt VISIONOS (§4). Option: vor der Auflösung kurz auf `upsertSongInfo` warten oder das Flag aus
   dem MediaItem mitgeben, dann wählt InnerTubeX von Anfang an den passenden Client.
-- `streamCache` bei Wechsel der Audio-Qualität invalidieren (Metrolist: Bypass-Flag), sonst läuft die alte URL bis zum Ablauf.
+- Playback-`streamCache` bei Wechsel der Audio-Qualität invalidieren (Metrolist: Bypass-Flag), sonst läuft die alte Wiedergabe-URL bis zum Ablauf. Downloads sind davon getrennt und immer `HIGH`.
 - Chunking-DataSource zwischen Resolver und OkHttp, falls Bounded-Range-Clients (ANDROID_VR/IOS/TVHTML5_SIMPLY)
   als zusätzliche Reserve gebraucht werden (§4).

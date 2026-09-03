@@ -408,7 +408,8 @@ fun LazyListScope.playerAppearanceSection( search: SettingEntrySearch, isLandsca
     ) {
         SettingComponents.BooleanEntry(
             Preferences.PLAYER_SHOW_THUMBNAIL,
-            R.string.show_thumbnail
+            R.string.show_thumbnail,
+            R.string.show_thumbnail_description
         )
     }
     animatedEntry(

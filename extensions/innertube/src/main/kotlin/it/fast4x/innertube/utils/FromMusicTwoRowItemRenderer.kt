@@ -2,14 +2,31 @@ package it.fast4x.innertube.utils
 
 import it.fast4x.innertube.Innertube
 import it.fast4x.innertube.models.MusicTwoRowItemRenderer
+import it.fast4x.innertube.models.NavigationEndpoint
 
 fun Innertube.VideoItem.Companion.from(renderer: MusicTwoRowItemRenderer): Innertube.VideoItem? {
+    val titleRun = renderer.title?.runs?.firstOrNull()
+    val titleWatchEndpoint = titleRun?.navigationEndpoint?.watchEndpoint
+    val rendererWatchEndpoint = renderer.navigationEndpoint?.watchEndpoint
+    val endpointCandidates = listOfNotNull(rendererWatchEndpoint, titleWatchEndpoint)
+    val targetVideoId = rendererWatchEndpoint?.videoId
+        ?: titleWatchEndpoint?.videoId
+    val watchEndpoint = if (targetVideoId != null) {
+        val matchingEndpoints = endpointCandidates.filter { it.videoId == targetVideoId }
+
+        matchingEndpoints.firstOrNull { it.type != null }
+            ?: endpointCandidates
+                .firstOrNull { it.videoId == null && it.type != null }
+                ?.copy(videoId = targetVideoId)
+            ?: matchingEndpoints.firstOrNull()
+            ?: NavigationEndpoint.Endpoint.Watch(videoId = targetVideoId)
+    } else {
+        endpointCandidates.firstOrNull { it.videoId != null && it.type != null }
+            ?: endpointCandidates.firstOrNull { it.videoId != null }
+    }
+
     return Innertube.VideoItem(
-        info = renderer
-            .title
-            ?.runs
-            ?.firstOrNull()
-            ?.let(Innertube::Info),
+        info = watchEndpoint?.let { Innertube.Info(titleRun?.text, it) },
         authors = null,
         thumbnail = renderer
             .thumbnailRenderer

@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import androidx.core.net.toUri
 import app.kreate.android.BuildConfig
+import app.kreate.android.service.player.PlaybackNotificationSilencer
 import me.knighthat.utils.TimeDateUtils
 import java.io.File
 import java.io.PrintWriter
@@ -43,6 +44,9 @@ class CrashHandler(
     override fun uncaughtException( t: Thread, e: Throwable ) {
         // Make sure error still prints to [System.err]
         if( BuildConfig.DEBUG ) e.printStackTrace()
+
+        // Do not leave a temporary DND state active after a handled KruXx crash.
+        runCatching { PlaybackNotificationSilencer.restoreStaleState( context ) }
 
         val crashlogsDir = getDir( context )
         if( !crashlogsDir.exists() )

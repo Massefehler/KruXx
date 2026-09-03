@@ -11,6 +11,16 @@ Distribution of KruXx is governed by the [GNU GPL version 3](LICENSE); separatel
 licensed bundled components remain governed by the licenses shipped with them and
 listed in the app's Licenses screen.
 
+Substantial inherited work includes Kreate by Knight Hat, RiMusic by fast4x and code
+originating from the Metrolist project and InnerTubeX. The pinned
+[`modules/innertube`](modules/innertube) dependency is maintained for KruXx through the
+public `Massefehler/KruXx-innertube` mirror of the MIT-licensed innertube-kotlin project;
+its original attribution and license are retained. The pinned
+[`modules/metrolist`](modules/metrolist) dependency is likewise maintained through the public
+`Massefehler/KruXx-metrolist` mirror of Knight Hat's Metrolist-innertube fork; its upstream history,
+copyright and license notices remain intact. A mirror or local compatibility patch does not
+transfer authorship of the underlying work to KruXx.
+
 The project and its maintainers are not affiliated with, funded, authorized,
 endorsed by or sponsored by Google LLC, YouTube, Kreate or RiMusic. YouTube,
 YouTube Music, Android and other names or marks belong to their respective owners.
@@ -21,3 +31,6 @@ software is supplied without warranty as described in GPL-3.0.
 
 The complete corresponding source for official KruXx APKs is available at
 <https://github.com/Massefehler/KruXx>, identified by the release's matching Git tag.
+The current feature and verification status is documented in
+[`docs/KRUXX-IST-STAND.md`](docs/KRUXX-IST-STAND.md); historical release notes remain
+available under [`docs/changelogs/kruxx`](docs/changelogs/kruxx).

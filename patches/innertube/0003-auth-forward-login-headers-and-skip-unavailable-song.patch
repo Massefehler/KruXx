@@ -1,0 +1,402 @@
+From c0defa738e98da325b680ce7a113dcc3e68dc73a Mon Sep 17 00:00:00 2001
+From: kruxx <massefehler@protonmail.com>
+Date: Thu, 3 Sep 2026 15:13:55 +0200
+Subject: [PATCH 3/3] auth: forward login headers and skip unavailable songs
+
+---
+ build.gradle.kts                              |   1 +
+ gradle/libs.versions.toml                     |   1 +
+ .../me/knighthat/internal/InnertubeImpl.kt    |  25 ++--
+ .../internal/model/ContinuedPlaylistImpl.kt   |   2 +-
+ .../internal/model/InnertubeSongImpl.kt       |  12 +-
+ .../me/knighthat/internal/util/CookieUtil.kt  |  48 ++++---
+ .../InnertubeImplAuthenticationTest.kt        | 132 ++++++++++++++++++
+ .../model/ContinuedPlaylistImplTest.kt        |  28 +++-
+ 8 files changed, 219 insertions(+), 30 deletions(-)
+ create mode 100644 src/test/kotlin/me/knighthat/internal/InnertubeImplAuthenticationTest.kt
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 05ede3e..c3890dd 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -20,6 +20,7 @@ dependencies {
+     testImplementation( libs.bundles.junit5 )
+     testRuntimeOnly( libs.junit.platform )
+     testImplementation( libs.kotlin.reflect )
++    testImplementation( libs.ktor.mock )
+ 
+     testImplementation( libs.bundles.ktor )
+     testImplementation( libs.okhttp3.logging.interceptor )
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index 6c76a4f..9472adf 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -14,6 +14,7 @@ kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutin
+ 
+ # Ktor
+ ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
++ktor-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
+ ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ ktor-serialization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ ktor-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+diff --git a/src/main/kotlin/me/knighthat/internal/InnertubeImpl.kt b/src/main/kotlin/me/knighthat/internal/InnertubeImpl.kt
+index c1a68c4..7fe2b73 100644
+--- a/src/main/kotlin/me/knighthat/internal/InnertubeImpl.kt
++++ b/src/main/kotlin/me/knighthat/internal/InnertubeImpl.kt
+@@ -113,14 +113,21 @@ internal class InnertubeImpl: Innertube {
+                 append( "X-YouTube-Client-Name", client.xClientName.toString() )
+                 append( "X-YouTube-Client-Version", client.clientVersion )
+ 
+-                if( useLogin && "SAPISID" in provider.cookies ) {
++                if( useLogin ) {
+                     val sapisidHash = getSapisidHash( provider.cookies, host )
+                     if( sapisidHash.isNotBlank() ) {
+                         append( HttpHeaders.Cookie, provider.cookies )
+-                        append(
+-                            name = HttpHeaders.Authorization,
+-                            value = "SAPISIDHASH $sapisidHash SAPISID1PHASH $sapisidHash SAPISID3PHASH $sapisidHash"
+-                        )
++                        // YouTube ties an account session to the visitor id it was created with and
++                        // expects it as a header, not only inside the request body. Both working
++                        // clients in this app (Metrolist, it.fast4x.innertube) send these two.
++                        provider.visitorData
++                                .takeIf( String::isNotBlank )
++                                ?.let { append( "X-Goog-Visitor-Id", it ) }
++                        // Google expects exactly "SAPISIDHASH <seconds>_<sha1>". The previous
++                        // value carried a "_u" suffix and reused that single hash for the
++                        // SAPISID1PHASH/SAPISID3PHASH variants, which YouTube answers with
++                        // HTTP 401 even though the cookie itself is valid.
++                        append( HttpHeaders.Authorization, "SAPISIDHASH $sapisidHash" )
+                     }
+                 }
+ 
+@@ -139,7 +146,7 @@ internal class InnertubeImpl: Innertube {
+         val context = getContext( Context.WEB_REMIX_DEFAULT, localization, visitorData, useLogin )
+         val body = BrowseBody.builder( context ).builder().build()
+ 
+-        return post( Endpoints.BROWSE, body ).body<BrowseResponseImpl>()
++        return post( Endpoints.BROWSE, body, useLogin = useLogin ).body<BrowseResponseImpl>()
+     }
+ 
+     @Throws(IOException::class)
+@@ -153,7 +160,7 @@ internal class InnertubeImpl: Innertube {
+         val context = getContext( template, localization, visitorData, useLogin )
+         val body = NextBody.builder( context ).builder().build()
+ 
+-        return post( Endpoints.NEXT , body ).body<NextResponseImpl>()
++        return post( Endpoints.NEXT, body, useLogin = useLogin ).body<NextResponseImpl>()
+     }
+ 
+     override fun setProvider( provider: Innertube.KtorProvider ) {
+@@ -188,7 +195,7 @@ internal class InnertubeImpl: Innertube {
+                           ?.musicPlaylistShelfRenderer
+                           ?.contents
+                           ?.mapNotNull( MusicPlaylistShelfRenderer.Content::musicResponsiveListItemRenderer )
+-                          ?.map( InnertubeSongImpl::from )
++                          ?.mapNotNull( InnertubeSongImpl::fromOrNull )
+                           .orEmpty()
+         }
+ 
+@@ -513,4 +520,4 @@ internal class InnertubeImpl: Innertube {
+                 override val visitorData: String? = visitorData
+             }
+         }
+-}
+\ No newline at end of file
++}
+diff --git a/src/main/kotlin/me/knighthat/internal/model/ContinuedPlaylistImpl.kt b/src/main/kotlin/me/knighthat/internal/model/ContinuedPlaylistImpl.kt
+index 9a57174..a1e3598 100644
+--- a/src/main/kotlin/me/knighthat/internal/model/ContinuedPlaylistImpl.kt
++++ b/src/main/kotlin/me/knighthat/internal/model/ContinuedPlaylistImpl.kt
+@@ -25,7 +25,7 @@ internal data class ContinuedPlaylistImpl(
+                     ?.also { continuation = it }
+ 
+                 item.musicResponsiveListItemRenderer
+-                    ?.let( InnertubeSongImpl::from )
++                    ?.let( InnertubeSongImpl::fromOrNull )
+                     ?.also( songs::add )
+             }
+ 
+diff --git a/src/main/kotlin/me/knighthat/internal/model/InnertubeSongImpl.kt b/src/main/kotlin/me/knighthat/internal/model/InnertubeSongImpl.kt
+index b349a42..3f8ef37 100644
+--- a/src/main/kotlin/me/knighthat/internal/model/InnertubeSongImpl.kt
++++ b/src/main/kotlin/me/knighthat/internal/model/InnertubeSongImpl.kt
+@@ -74,7 +74,12 @@ internal data class InnertubeSongImpl(
+             )
+         }
+ 
+-        fun from( renderer: MusicResponsiveListItemRenderer ): InnertubeSong {
++        fun from( renderer: MusicResponsiveListItemRenderer ): InnertubeSong =
++            requireNotNull( fromOrNull(renderer) ) {
++                "MusicResponsiveListItemRenderer doesn't contain a video id"
++            }
++
++        fun fromOrNull( renderer: MusicResponsiveListItemRenderer ): InnertubeSong? {
+             var id: String? = null
+             var title = ""
+             val artists = ArrayList<Runs.Run>()
+@@ -111,9 +116,10 @@ internal data class InnertubeSongImpl(
+                 }
+             }
+ 
++            val videoId = id ?: renderer.playlistItemData?.videoId ?: return null
++
+             return InnertubeSongImpl(
+-                // [id] must not be null under any circumstances
+-                id ?: renderer.playlistItemData!!.videoId!!,
++                videoId,
+                 title,
+                 renderer.thumbnail.toThumbnailList(),
+                 renderer.badges.containsExplicitBadge,
+diff --git a/src/main/kotlin/me/knighthat/internal/util/CookieUtil.kt b/src/main/kotlin/me/knighthat/internal/util/CookieUtil.kt
+index 8d7e326..64dcd90 100644
+--- a/src/main/kotlin/me/knighthat/internal/util/CookieUtil.kt
++++ b/src/main/kotlin/me/knighthat/internal/util/CookieUtil.kt
+@@ -3,22 +3,38 @@ package me.knighthat.internal.util
+ import io.ktor.util.sha1
+ 
+ 
++/**
++ * Cookie names Google accepts as the seed of an authorization hash, in order of preference.
++ *
++ * A session created by a recent sign-in does not always carry the plain `SAPISID`; the
++ * `__Secure-*` variants are then the only usable seed.
++ */
++private val AUTH_COOKIE_NAMES = listOf( "SAPISID", "__Secure-3PAPISID", "__Secure-1PAPISID" )
++
++internal fun parseCookies( cookies: String ): Map<String, String> =
++    cookies.split( ";" )
++           .map( String::trim )
++           .mapNotNull {
++               val parts = it.split( "=", limit = 2 )
++               if( parts.size == 2 ) parts[0] to parts[1] else null
++           }
++           .toMap()
++
++/**
++ * Builds Google's `SAPISIDHASH` credential: `<seconds>_<sha1("<seconds> <cookie> <origin>")>`.
++ *
++ * Returns an empty string when the cookie jar holds none of [AUTH_COOKIE_NAMES], so the caller
++ * sends an anonymous request instead of a credential YouTube is bound to reject.
++ */
+ internal fun getSapisidHash( cookies: String, host: String ): String {
+-    val cookieMap: Map<String, String> =
+-        cookies.split( ";" )
+-               .map( String::trim )
+-               .mapNotNull {
+-                   val parts = it.split("=", limit = 2)
+-                   if (parts.size == 2) parts[0] to parts[1] else null
+-               }
+-               .toMap()
++    val cookieMap = parseCookies( cookies )
++    val seed = AUTH_COOKIE_NAMES.firstNotNullOfOrNull { name ->
++        cookieMap[name]?.takeIf( String::isNotBlank )
++    } ?: return ""
++
+     val currentTime = System.currentTimeMillis() / 1000
+-    val sapisidHash: String
+-    "%d %s %s".format( currentTime, cookieMap["SAPISID"], host )
+-              .toByteArray()
+-              .let( ::sha1 )
+-              .joinToString("") { "%02x".format(it) }
+-              .also { sapisidHash = it }
++    val hash = sha1( "$currentTime $seed $host".toByteArray() )
++                   .joinToString( "" ) { "%02x".format( it ) }
+ 
+-    return "${currentTime}_${sapisidHash}_u"
+-}
+\ No newline at end of file
++    return "${currentTime}_$hash"
++}
+diff --git a/src/test/kotlin/me/knighthat/internal/InnertubeImplAuthenticationTest.kt b/src/test/kotlin/me/knighthat/internal/InnertubeImplAuthenticationTest.kt
+new file mode 100644
+index 0000000..02df496
+--- /dev/null
++++ b/src/test/kotlin/me/knighthat/internal/InnertubeImplAuthenticationTest.kt
+@@ -0,0 +1,132 @@
++package me.knighthat.internal
++
++import io.ktor.client.HttpClient
++import io.ktor.client.engine.mock.MockEngine
++import io.ktor.client.engine.mock.respond
++import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
++import io.ktor.client.request.HttpRequestData
++import io.ktor.http.ContentType
++import io.ktor.http.HttpHeaders
++import io.ktor.http.HttpStatusCode
++import io.ktor.http.headersOf
++import io.ktor.serialization.kotlinx.json.json
++import io.ktor.utils.io.ByteReadChannel
++import kotlinx.coroutines.runBlocking
++import me.knighthat.innertube.Innertube
++import me.knighthat.innertube.JSON
++import me.knighthat.innertube.request.Localization
++import org.junit.jupiter.api.Assertions.assertEquals
++import org.junit.jupiter.api.Assertions.assertNull
++import org.junit.jupiter.api.Assertions.assertTrue
++import org.junit.jupiter.api.Test
++
++class InnertubeImplAuthenticationTest {
++
++    @Test
++    fun authenticatedBrowseForwardsLoginHeaders() = runBlocking {
++        val request = executeBrowse( useLogin = true )
++
++        assertEquals( "/youtubei/v1/browse", request.url.encodedPath )
++        assertLoginHeaders( request )
++    }
++
++    @Test
++    fun anonymousBrowseDoesNotForwardLoginHeaders() = runBlocking {
++        val request = executeBrowse( useLogin = false )
++
++        assertEquals( "/youtubei/v1/browse", request.url.encodedPath )
++        assertNull( request.headers[HttpHeaders.Cookie] )
++        assertNull( request.headers[HttpHeaders.Authorization] )
++        assertNull( request.headers[VISITOR_HEADER] )
++    }
++
++    @Test
++    fun authenticatedNextForwardsLoginHeaders() = runBlocking {
++        lateinit var capturedRequest: HttpRequestData
++        val client = mockClient( "ytm/next/endpoint_response.json" ) { capturedRequest = it }
++        val innertube = InnertubeImpl().apply { setProvider( TestProvider(client) ) }
++
++        try {
++            innertube.ytmNext( Localization.EN_US, useLogin = true ) {
++                videoId( "test-video-id" )
++            }
++        } finally {
++            client.close()
++        }
++
++        assertEquals( "/youtubei/v1/next", capturedRequest.url.encodedPath )
++        assertLoginHeaders( capturedRequest )
++    }
++
++    private suspend fun executeBrowse( useLogin: Boolean ): HttpRequestData {
++        lateinit var capturedRequest: HttpRequestData
++        val client = mockClient( "ytm/browse/endpoint_playlist_response.json" ) {
++            capturedRequest = it
++        }
++        val innertube = InnertubeImpl().apply { setProvider( TestProvider(client) ) }
++
++        try {
++            innertube.ytmBrowse( Localization.EN_US, useLogin = useLogin ) {
++                browseId( "VLtest-playlist-id" )
++            }
++        } finally {
++            client.close()
++        }
++
++        return capturedRequest
++    }
++
++    private fun mockClient(
++        responseResource: String,
++        captureRequest: (HttpRequestData) -> Unit
++    ): HttpClient {
++        val response = requireNotNull(
++            javaClass.classLoader.getResourceAsStream( responseResource )
++        ).bufferedReader().use { it.readText() }
++
++        return HttpClient(
++            MockEngine { request ->
++                captureRequest( request )
++                respond(
++                    content = ByteReadChannel(response),
++                    status = HttpStatusCode.OK,
++                    headers = headersOf( HttpHeaders.ContentType, ContentType.Application.Json.toString() )
++                )
++            }
++        ) {
++            expectSuccess = true
++            install(ContentNegotiation ) {
++                json( JSON )
++            }
++        }
++    }
++
++    private fun assertLoginHeaders( request: HttpRequestData ) {
++        assertEquals( COOKIES, request.headers[HttpHeaders.Cookie] )
++        assertEquals( VISITOR_DATA, request.headers[VISITOR_HEADER] )
++
++        val authorization = requireNotNull( request.headers[HttpHeaders.Authorization] ) {
++            "Authorization header is missing"
++        }
++        assertTrue(
++            AUTHORIZATION_PATTERN.matches(authorization),
++            "Unexpected Authorization header format"
++        )
++    }
++
++    private class TestProvider(
++        override val client: HttpClient
++    ): Innertube.KtorProvider {
++
++        override val cookies = COOKIES
++        override val dataSyncId = "test-sync-id"
++        override val visitorData = VISITOR_DATA
++    }
++
++    private companion object {
++        const val COOKIES = "SAPISID=test-sapisid; SID=test-session"
++        const val VISITOR_DATA = "test-visitor-data"
++        const val VISITOR_HEADER = "X-Goog-Visitor-Id"
++        val AUTHORIZATION_PATTERN = Regex( "SAPISIDHASH \\d+_[0-9a-f]{40}" )
++    }
++}
+diff --git a/src/test/kotlin/me/knighthat/internal/model/ContinuedPlaylistImplTest.kt b/src/test/kotlin/me/knighthat/internal/model/ContinuedPlaylistImplTest.kt
+index 76de3bd..de3d7fe 100644
+--- a/src/test/kotlin/me/knighthat/internal/model/ContinuedPlaylistImplTest.kt
++++ b/src/test/kotlin/me/knighthat/internal/model/ContinuedPlaylistImplTest.kt
+@@ -2,6 +2,8 @@ package me.knighthat.internal.model
+ 
+ import me.knighthat.innertube.decode
+ import me.knighthat.internal.response.MusicPlaylistShelfRendererImpl
++import me.knighthat.internal.response.MusicResponsiveListItemRendererImpl
++import org.junit.jupiter.api.Test
+ import org.junit.jupiter.api.assertNotNull
+ import org.junit.jupiter.api.assertNull
+ import org.junit.jupiter.api.Assertions.assertEquals
+@@ -30,6 +32,30 @@ class ContinuedPlaylistImplTest {
+             )
+     }
+ 
++    @Test
++    fun testUnavailableItemWithoutVideoIdIsSkipped() {
++        val unavailableItem = MusicResponsiveListItemRendererImpl(
++            thumbnail = null,
++            overlay = null,
++            playlistItemData = null,
++            flexColumnDisplayStyle = null,
++            navigationEndpoint = null,
++            itemHeight = null,
++            index = null,
++            customIndexColumn = null
++        )
++        val contents = listOf(
++            MusicPlaylistShelfRendererImpl.ContentImpl(
++                musicResponsiveListItemRenderer = unavailableItem,
++                continuationItemRenderer = null
++            )
++        )
++
++        val continuedPlaylist = ContinuedPlaylistImpl.from( contents )
++
++        assertEquals( 0, continuedPlaylist.songs.size )
++    }
++
+     @ParameterizedTest
+     @MethodSource("musicPlaylistShelfRendererContentProvider")
+     fun testFromMusicPlaylistShelfRendererContentProvider(
+@@ -53,4 +79,4 @@ class ContinuedPlaylistImplTest {
+                        assertEquals( songCount, continuedPlaylist.songs.size )
+                    }
+     }
+-}
+\ No newline at end of file
++}
+-- 
+2.43.0
+

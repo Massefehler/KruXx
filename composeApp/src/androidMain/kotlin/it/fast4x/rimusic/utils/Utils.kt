@@ -132,9 +132,9 @@ val Innertube.SongItem.asSong: Song
         isExplicit = explicit
     )
 
-val Innertube.VideoItem.asMediaItem: MediaItem
-    @UnstableApi
-    get() = MediaItem.Builder()
+@UnstableApi
+private fun Innertube.VideoItem.toMediaItem(requestVideoPlayback: Boolean): MediaItem =
+    MediaItem.Builder()
         .setMediaId(key)
         .setUri(key)
         .setCustomCacheKey(key)
@@ -155,7 +155,11 @@ val Innertube.VideoItem.asMediaItem: MediaItem
                         "artistIds" to authors?.mapNotNull { it.endpoint?.browseId },
                         "isOfficialMusicVideo" to isOfficialMusicVideo,
                         "isUserGeneratedContent" to isUserGeneratedContent,
-                        "isVideo" to true,
+                        "isArtTrack" to isArtTrack,
+                        "musicVideoType" to videoType.name,
+                        "supportsVideoPlayback" to supportsVideoPlayback,
+                        // A direct user action requests video. Queued items remain audio-only.
+                        "isVideo" to (requestVideoPlayback && supportsVideoPlayback),
                         // "artistNames" to if (isOfficialMusicVideo) authors?.filter { it.endpoint != null }?.mapNotNull { it.name } else null,
                         // "artistIds" to if (isOfficialMusicVideo) authors?.mapNotNull { it.endpoint?.browseId } else null,
                     )
@@ -163,6 +167,14 @@ val Innertube.VideoItem.asMediaItem: MediaItem
                 .build()
         )
         .build()
+
+val Innertube.VideoItem.asMediaItem: MediaItem
+    @UnstableApi
+    get() = toMediaItem(requestVideoPlayback = false)
+
+val Innertube.VideoItem.asVideoMediaItem: MediaItem
+    @UnstableApi
+    get() = toMediaItem(requestVideoPlayback = true)
 
 
 val Song.asMediaItem: MediaItem
@@ -224,6 +236,12 @@ val MediaItem.asSong: Song
 
 val MediaItem.isVideo: Boolean
     get() = mediaMetadata.extras?.getBoolean("isVideo") == true
+
+val MediaItem.isArtTrack: Boolean
+    get() = mediaMetadata.extras?.getBoolean("isArtTrack") == true
+
+val MediaItem.supportsVideoPlayback: Boolean
+    get() = mediaMetadata.extras?.getBoolean("supportsVideoPlayback") == true
 
 val MediaItem.isExplicit: Boolean
     get() = mediaMetadata.extras?.getBoolean( EXPLICIT_BUNDLE_TAG ) == true

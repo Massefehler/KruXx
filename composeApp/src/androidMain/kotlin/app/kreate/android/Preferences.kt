@@ -626,6 +626,9 @@ sealed class Preferences<T>(
         val AUDIO_SMART_PAUSE_DURING_CALLS by lazy {
             Boolean( preferences, Key.AUDIO_SMART_PAUSE_DURING_CALLS, "handleAudioFocusEnabled", true )
         }
+        val AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK by lazy {
+            Boolean( preferences, Key.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK, "", false )
+        }
         val AUDIO_SPEED by lazy {
             Boolean( preferences, Key.AUDIO_SPEED, "showPlaybackSpeedButton", false )
         }
@@ -1076,7 +1079,7 @@ sealed class Preferences<T>(
             Boolean( preferences, Key.IS_PIP_ENABLED, "enablePicturInPicture", false )
         }
         val IS_AUTO_PIP_ENABLED by lazy {
-            Boolean( preferences, Key.IS_AUTO_PIP_ENABLED, "enablePicturInPictureAuto", false )
+            Boolean( preferences, Key.IS_AUTO_PIP_ENABLED, "enablePicturInPictureAuto", true )
         }
         val AUTO_DOWNLOAD by lazy {
             Boolean( preferences, Key.AUTO_DOWNLOAD, "autoDownloadSong", false )
@@ -1894,6 +1897,7 @@ sealed class Preferences<T>(
         const val AUDIO_BASS_BOOSTED = "AudioBassBoosted"
         const val AUDIO_BASS_BOOST_LEVEL = "AudioBassBoostLevel"
         const val AUDIO_SMART_PAUSE_DURING_CALLS = "AudioSmartPauseDuringCalls"
+        const val AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK = "AudioSilenceNotificationsDuringPlayback"
         const val AUDIO_SPEED = "AudioSpeed"
         const val AUDIO_SPEED_VALUE = "AudioSpeedValue"
         const val AUDIO_PITCH = "AudioPitch"

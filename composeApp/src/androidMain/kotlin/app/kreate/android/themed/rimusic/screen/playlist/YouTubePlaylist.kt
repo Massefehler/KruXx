@@ -214,7 +214,7 @@ fun YouTubePlaylist(
         }
 
         val thumbnailPainter =
-            ImageFactory.rememberAsyncImagePainter( playlistPage?.thumbnails?.firstOrNull()?.url )
+            ImageFactory.rememberAsyncImagePainter( playlistPage?.thumbnailUrl )
 
         DynamicOrientationLayout(thumbnailPainter) {
             Box( Modifier.fillMaxSize() ) {

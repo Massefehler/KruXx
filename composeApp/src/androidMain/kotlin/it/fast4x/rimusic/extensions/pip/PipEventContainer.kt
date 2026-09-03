@@ -10,6 +10,7 @@ import it.fast4x.rimusic.utils.pinchToToggle
 fun PipEventContainer(
     modifier: Modifier = Modifier,
     enable: Boolean = true,
+    autoEnterIfPossible: Boolean = true,
     onPipOutAction: () -> Unit = {},
     content: @Composable () -> Unit
 ){
@@ -18,22 +19,24 @@ fun PipEventContainer(
     Pip(
         numerator = 1,
         denominator = 1,
-        modifier = modifier
+        modifier = modifier,
+        autoEnterIfPossible = autoEnterIfPossible
     ) {
         Box(
-            modifier = modifier
-                .pinchToToggle(
-                    key = enable,
-                    direction = PinchDirection.Out,
-                    threshold = 1.05f,
-                    onPinch = { onPipOutAction() }
-                )
-                .pinchToToggle(
-                    key = enable,
-                    direction = PinchDirection.In,
-                    threshold = .95f,
-                    onPinch = { pipHandler.enterPictureInPictureMode() }
-                )
+            modifier = if (enable)
+                modifier
+                    .pinchToToggle(
+                        direction = PinchDirection.Out,
+                        threshold = 1.05f,
+                        onPinch = { onPipOutAction() }
+                    )
+                    .pinchToToggle(
+                        direction = PinchDirection.In,
+                        threshold = .95f,
+                        onPinch = { pipHandler.enterPictureInPictureMode() }
+                    )
+            else
+                modifier
 
         ) {
             content()

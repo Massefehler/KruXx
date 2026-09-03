@@ -90,6 +90,7 @@ class HomeLibraryViewModel : ViewModel(), KoinComponent {
                                      browseId = item.id,
                                      isEditable = false,
                                      isYoutubePlaylist = true,
+                                     id = -1L,
                                      isPinned = false,
                                      isMonthly = false
                                  ),

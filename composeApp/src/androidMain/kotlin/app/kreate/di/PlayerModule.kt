@@ -68,6 +68,37 @@ private fun initCache( context: Context, size: Long, cacheDirName: String ): Cac
     return SimpleCache( cacheDir, cacheEvictor, StandaloneDatabaseProvider(context) )
 }
 
+private fun innertubeNetworkDataSourceFactory(
+    context: Context,
+    client: OkHttpClient,
+) = DefaultDataSource.Factory(
+    context,
+    OkHttpDataSource.Factory( client )
+        // Default header only: InnerTubeX hands the resolver client-specific headers
+        // (User-Agent, Referer, Origin) per stream, and DataSpec headers override
+        // defaults. setUserAgent() would instead be *added* on top of them (media3
+        // uses addHeader for it), sending two User-Agent lines to the CDN.
+        .setDefaultRequestProperties( mapOf( "User-Agent" to UserAgents.CHROME_WINDOWS ) )
+)
+
+private fun innertubeDownloadNetworkDataSourceFactory(
+    context: Context,
+    client: OkHttpClient,
+) = innertubeNetworkDataSourceFactory(
+    context,
+    client.newBuilder()
+        .addInterceptor { chain ->
+            chain.proceed( chain.request() ).also { response ->
+                if( response.code == 403 || response.code == 410 || response.code == 416 ) {
+                    // Prefer the original request URL; also cover a rare redirected final URL.
+                    if( !invalidateRejectedDownloadStreamUrl( chain.request().url.toString() ) )
+                        invalidateRejectedDownloadStreamUrl( response.request.url.toString() )
+                }
+            }
+        }
+        .build(),
+)
+
 val playerModule = module {
     //<editor-fold desc="Cache">
     single( CacheType.CACHE ) {
@@ -88,17 +119,9 @@ val playerModule = module {
     }
     //</editor-fold>
 
-    single {
+    single( InnertubeDataSourceType.PLAYBACK ) {
         ResolvingDataSource.Factory(
-            DefaultDataSource.Factory(
-                get(),
-                OkHttpDataSource.Factory(get<OkHttpClient>())
-                    // Default header only: InnerTubeX hands the resolver client-specific headers
-                    // (User-Agent, Referer, Origin) per stream, and DataSpec headers override
-                    // defaults. setUserAgent() would instead be *added* on top of them (media3
-                    // uses addHeader for it), sending two User-Agent lines to the CDN.
-                    .setDefaultRequestProperties( mapOf( "User-Agent" to UserAgents.CHROME_WINDOWS ) )
-            )
+            innertubeNetworkDataSourceFactory( get(), get() )
         ) { dataSpec ->
             if ( dataSpec.uri.isLocalFile() )
                 // If this is a local file, no conversion needed
@@ -106,6 +129,20 @@ val playerModule = module {
                 dataSpec
             else
                 resolveInnertubeMedia( dataSpec )
+        }
+    }
+
+    single( InnertubeDataSourceType.DOWNLOAD ) {
+        ResolvingDataSource.Factory(
+            // Bytes already streamed in the same high-quality itag can be copied from the regular
+            // player cache. The resolver gives incompatible entries a private miss-only key.
+            get<CacheDataSource.Factory>( CacheType.CACHE )
+                .setCacheWriteDataSinkFactory( null )
+                .setUpstreamDataSourceFactory(
+                    innertubeDownloadNetworkDataSourceFactory( get(), get() )
+                )
+        ) { dataSpec ->
+            if( dataSpec.uri.isLocalFile() ) dataSpec else resolveInnertubeDownload( dataSpec )
         }
     }
 
@@ -125,7 +162,9 @@ val playerModule = module {
                     // Next up is regular cache
                     get<CacheDataSource.Factory>(CacheType.CACHE)
                         // The final upstream handles 2 cases, local files and remote files
-                        .setUpstreamDataSourceFactory( get<ResolvingDataSource.Factory>() )
+                        .setUpstreamDataSourceFactory(
+                            get<ResolvingDataSource.Factory>( InnertubeDataSourceType.PLAYBACK )
+                        )
                         // Player is allowed to write chunks into this storage.
                         .setCacheWriteDataSinkFactory(
                             CacheDataSink.Factory()
@@ -168,4 +207,10 @@ enum class CacheType : Qualifier {
     CACHE, DOWNLOAD;
 
     override val value: QualifierValue = toString().lowercase()
+}
+
+enum class InnertubeDataSourceType : Qualifier {
+    PLAYBACK, DOWNLOAD;
+
+    override val value: QualifierValue = "innertube_${toString().lowercase()}"
 }

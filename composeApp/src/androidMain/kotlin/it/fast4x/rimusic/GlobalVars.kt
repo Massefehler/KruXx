@@ -23,7 +23,6 @@ fun showStatsIconInNav() = Preferences.SHOW_STATS_IN_NAVIGATION_BAR.value
 
 fun ytAccountName() = Preferences.YOUTUBE_ACCOUNT_NAME.value
 fun ytAccountThumbnail() = Preferences.YOUTUBE_ACCOUNT_AVATAR.value
-fun isVideoEnabled() = Preferences.PLAYER_ACTION_TOGGLE_VIDEO.value
 
 fun isConnectionMeteredEnabled() = Preferences.IS_CONNECTION_METERED.value
 fun isAutoSyncEnabled() = Preferences.AUTO_SYNC.value

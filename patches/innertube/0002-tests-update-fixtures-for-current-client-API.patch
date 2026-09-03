@@ -1,7 +1,7 @@
 From fcaa410c0d684bac8701f98791e7b14b5f3b87c9 Mon Sep 17 00:00:00 2001
 From: kruxx <massefehler@protonmail.com>
 Date: Wed, 2 Sep 2026 20:57:35 +0200
-Subject: [PATCH 2/2] tests: update fixtures for current client API
+Subject: [PATCH 2/3] tests: update fixtures for current client API
 
 ---
  .../innertube/response/InnertubeImplTest.java | 72 -------------------
@@ -259,9 +259,6 @@ index a020b0f..84caaf4 100644
 -}
 \ No newline at end of file
 +}
-
-base-commit: 9e5f3acd78203037a62a741a063df12234989246
-prerequisite-patch-id: cd61e28b10d463c9291dd45a3dae0e154c8f94ec
 -- 
 2.43.0
 

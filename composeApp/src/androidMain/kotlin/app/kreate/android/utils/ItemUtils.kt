@@ -25,10 +25,10 @@ import app.kreate.android.themed.rimusic.component.playlist.PlaylistItem
 import app.kreate.android.themed.rimusic.component.song.SongItem
 import app.kreate.android.utils.innertube.toMediaItem
 import it.fast4x.innertube.Innertube
-import it.fast4x.rimusic.isVideoEnabled
 import it.fast4x.rimusic.thumbnailShape
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.asMediaItem
+import it.fast4x.rimusic.utils.asVideoMediaItem
 import it.fast4x.rimusic.utils.forcePlay
 import it.fast4x.rimusic.utils.playVideo
 import it.fast4x.rimusic.utils.shimmerEffect
@@ -59,6 +59,7 @@ object ItemUtils {
         innertubeItems: List<Innertube.Item>,
         currentlyPlaying: String?,
         modifier: Modifier = Modifier,
+        useLogin: Boolean = false,
         menu: BottomMenu = LocalBottomMenu.current
     ) {
         val player: StatefulPlayer = koinInject()
@@ -102,7 +103,6 @@ object ItemUtils {
                     )
 
                     is Innertube.VideoItem -> {
-                        println("Innertube homePage VideoItem: ${childItem.info?.name}")
                         SongItem.Render(
                             innertubeVideo = childItem,
                             hapticFeedback = hapticFeedback,
@@ -111,8 +111,8 @@ object ItemUtils {
                             thumbnailSizeDp = SongItem.thumbnailSize(),
                             onClick = {
                                 player.stopRadio()
-                                if ( isVideoEnabled() )
-                                    player.playVideo( childItem.asMediaItem )
+                                if ( childItem.supportsVideoPlayback )
+                                    player.playVideo( childItem.asVideoMediaItem )
                                 else
                                     player.forcePlay( childItem.asMediaItem )
                             },
@@ -138,7 +138,8 @@ object ItemUtils {
                     is Innertube.PlaylistItem -> PlaylistItem.Vertical(
                         innertubePlaylist = childItem,
                         values = playlistItemValues,
-                        navController = navController
+                        navController = navController,
+                        useLogin = useLogin
                     )
                 }
             }

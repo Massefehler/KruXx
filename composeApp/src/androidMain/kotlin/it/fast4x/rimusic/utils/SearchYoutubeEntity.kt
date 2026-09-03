@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.themed.rimusic.component.song.SongItem
@@ -65,8 +64,6 @@ fun SearchYoutubeEntity (
             modifier = Modifier.padding(bottom = 12.dp)
         )
     }
-    val isVideoEnabled by Preferences.PLAYER_ACTION_TOGGLE_VIDEO
-
     Box(
         modifier = Modifier
             .background(colorPalette().background0)
@@ -123,8 +120,8 @@ fun SearchYoutubeEntity (
                             thumbnailSizeDp = DpSize(thumbnailWidthDp, thumbnailHeightDp),
                             onClick = {
                                 player.stopRadio()
-                                if ( isVideoEnabled )
-                                    player.playVideo( video.asMediaItem )
+                                if ( video.supportsVideoPlayback )
+                                    player.playVideo( video.asVideoMediaItem )
                                 else
                                     player.forcePlay( video.asMediaItem )
 

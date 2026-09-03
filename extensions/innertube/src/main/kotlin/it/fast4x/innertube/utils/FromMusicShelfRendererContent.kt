@@ -4,16 +4,45 @@ import it.fast4x.innertube.Innertube
 import it.fast4x.innertube.models.MusicShelfRenderer
 import it.fast4x.innertube.models.NavigationEndpoint
 
+/**
+ * Chooses the richest watch endpoint that belongs to this row.
+ *
+ * YTM sometimes repeats the same video id in several places while only one occurrence carries
+ * musicVideoType. The id match prevents an unrelated secondary link from winning.
+ */
+private val MusicShelfRenderer.Content.bestWatchEndpoint: NavigationEndpoint.Endpoint.Watch?
+    get() {
+        val (mainRuns, otherRuns) = runs
+        val renderer = musicResponsiveListItemRenderer
+        val primaryCandidates = mainRuns.mapNotNull { it.navigationEndpoint?.watchEndpoint } +
+                listOfNotNull(renderer?.navigationEndpoint?.watchEndpoint)
+        val candidates = primaryCandidates +
+                otherRuns.flatten().mapNotNull { it.navigationEndpoint?.watchEndpoint }
+        val targetVideoId = renderer?.playlistItemData?.videoId
+            ?: mainRuns.firstNotNullOfOrNull { it.navigationEndpoint?.watchEndpoint?.videoId }
+            ?: renderer?.navigationEndpoint?.watchEndpoint?.videoId
+            ?: candidates.firstNotNullOfOrNull { it.videoId }
+
+        if (targetVideoId != null) {
+            val matchingCandidates = candidates.filter { it.videoId == targetVideoId }
+
+            return matchingCandidates.firstOrNull { it.type != null }
+                ?: primaryCandidates
+                    .firstOrNull { it.videoId == null && it.type != null }
+                    ?.copy(videoId = targetVideoId)
+                ?: matchingCandidates.firstOrNull()
+                ?: NavigationEndpoint.Endpoint.Watch(videoId = targetVideoId)
+        }
+
+        return candidates.firstOrNull { it.videoId != null && it.type != null }
+            ?: candidates.firstOrNull { it.videoId != null }
+    }
+
 fun Innertube.SongItem.Companion.from(content: MusicShelfRenderer.Content): Innertube.SongItem? {
     val (mainRuns, otherRuns) = content.runs
     val renderer = content.musicResponsiveListItemRenderer
     val titleRun = mainRuns.firstOrNull()
-    val watchEndpoint = mainRuns
-        .firstNotNullOfOrNull { it.navigationEndpoint?.watchEndpoint }
-        ?: renderer?.navigationEndpoint?.watchEndpoint
-        ?: renderer?.playlistItemData?.videoId?.let {
-            NavigationEndpoint.Endpoint.Watch(videoId = it)
-        }
+    val watchEndpoint = content.bestWatchEndpoint
 
     // Possible configurations:
     // "song" • author(s) • album • duration
@@ -57,12 +86,7 @@ fun Innertube.VideoItem.Companion.from(content: MusicShelfRenderer.Content): Inn
     val (mainRuns, otherRuns) = content.runs
     val renderer = content.musicResponsiveListItemRenderer
     val titleRun = mainRuns.firstOrNull()
-    val watchEndpoint = mainRuns
-        .firstNotNullOfOrNull { it.navigationEndpoint?.watchEndpoint }
-        ?: renderer?.navigationEndpoint?.watchEndpoint
-        ?: renderer?.playlistItemData?.videoId?.let {
-            NavigationEndpoint.Endpoint.Watch(videoId = it)
-        }
+    val watchEndpoint = content.bestWatchEndpoint
 
     return runCatching {
         Innertube.VideoItem(

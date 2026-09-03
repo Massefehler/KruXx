@@ -9,5 +9,5 @@
 	url = https://github.com/knighthat/Kizzy
 [submodule "modules/metrolist"]
 	path = modules/metrolist
-	url = https://github.com/knighthat/Metrolist-innertube.git
-	branch = kreate-old
+	url = https://github.com/Massefehler/KruXx-metrolist.git
+	branch = main

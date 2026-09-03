@@ -44,3 +44,5 @@ __pycache__/
 /pics/
 # Manually exported local diagnostics; never publish these.
 /docs/crash-report.txt
+# Superseded splash-animation source frames; retained locally only.
+/icons/animation/old/

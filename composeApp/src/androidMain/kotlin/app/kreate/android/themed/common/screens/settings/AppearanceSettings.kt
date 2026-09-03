@@ -30,6 +30,7 @@ import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.themed.common.component.settings.SettingComponents
 import app.kreate.android.themed.common.component.settings.SettingEntrySearch
+import app.kreate.android.themed.common.component.settings.animatedEntry
 import app.kreate.android.themed.common.component.settings.entry
 import app.kreate.android.themed.common.component.settings.header
 import app.kreate.android.themed.common.screens.settings.player.playerActionBarSection
@@ -74,6 +75,33 @@ fun AppearanceSettings(paddingValues: PaddingValues) {
         ) {
             playerAppearanceSection( search, isLandscapeMode )
             playerActionBarSection( search, isLandscapeMode )
+
+            header( R.string.picture_in_picture )
+            entry(
+                search,
+                R.string.settings_enable_pip,
+                additionalCheck = isAtLeastAndroid7
+            ) {
+                SettingComponents.BooleanEntry(
+                    Preferences.IS_PIP_ENABLED,
+                    R.string.settings_enable_pip,
+                    R.string.settings_enable_pip_info
+                )
+            }
+            animatedEntry(
+                key = "pipChildren",
+                visible = isAtLeastAndroid7 && Preferences.IS_PIP_ENABLED.value,
+                modifier = Modifier.padding(
+                    start = SettingComponents.CHILDREN_PADDING.dp
+                )
+            ) {
+                if( search appearsIn R.string.settings_enable_pip_auto )
+                    SettingComponents.BooleanEntry(
+                        Preferences.IS_AUTO_PIP_ENABLED,
+                        R.string.settings_enable_pip_auto,
+                        R.string.pip_info_from_android_12_pip_can_be_automatically_enabled
+                    )
+            }
 
             header( R.string.notification_player )
             entry( search, R.string.notificationPlayerFirstIcon ) {

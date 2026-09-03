@@ -87,8 +87,11 @@ archive_apk() {
 }
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
-    echo ">> building $FLAVOR release APK (this takes a few minutes) ..."
-    "$ROOT/gradlew" -p "$ROOT" ":composeApp:assemble${FLAVOR_CAP}UniversalProdRelease" --console=plain -q
+    echo ">> building $FLAVOR debug and release APKs from the same source (this takes a few minutes) ..."
+    "$ROOT/gradlew" -p "$ROOT" \
+        ":composeApp:assemble${FLAVOR_CAP}UniversalProdDebug" \
+        ":composeApp:assemble${FLAVOR_CAP}UniversalProdRelease" \
+        --console=plain -q
 fi
 [[ -f "$UNSIGNED" ]] || { echo "error: $UNSIGNED not found - did the build succeed?" >&2; exit 1; }
 
@@ -156,13 +159,15 @@ sha256sum "$SIGNED"
 mkdir -p "$ARCHIVE_DIR"
 archive_apk "$SIGNED" "release" "$VERSION_NAME"
 
-# The documented release workflow builds and tests debug first. Archive that APK as well,
-# but only when it belongs to the exact same version so a stale build is never mislabeled.
-if [[ -f "$DEBUG_APK" ]]; then
+# A normal release run builds both variants together, so the archived debug APK comes from the
+# same source tree. In --skip-build mode its provenance is unknown and it must not be re-archived.
+if [[ "$SKIP_BUILD" -eq 0 && -f "$DEBUG_APK" ]]; then
     DEBUG_VERSION_NAME="$(apk_version_name "$DEBUG_APK")"
     if [[ "$DEBUG_VERSION_NAME" == "$VERSION_NAME" ]]; then
         archive_apk "$DEBUG_APK" "debug" "$VERSION_NAME"
     else
         echo ">> not archiving stale debug APK (found ${DEBUG_VERSION_NAME:-unknown}, expected $VERSION_NAME)" >&2
     fi
+elif [[ "$SKIP_BUILD" -ne 0 ]]; then
+    echo ">> not archiving debug APK in --skip-build mode (source provenance not verified)"
 fi

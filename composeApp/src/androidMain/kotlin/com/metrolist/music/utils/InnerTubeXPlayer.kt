@@ -289,6 +289,24 @@ object InnerTubeXPlayer {
             Result.failure( e )
         }
 
+    /**
+     * Resolve the highest-quality direct audio stream available for an offline download.
+     *
+     * Downloads deliberately ignore both the playback quality preference and Android's metered
+     * network state. Keeping this as a separate entry point also prevents a future playback-policy
+     * change from silently lowering the quality of newly downloaded files.
+     */
+    suspend fun playerResponseForDownload(
+        videoId: String,
+        isExplicit: Boolean? = null,
+    ): Result<PlaybackData> =
+        playerResponseForPlayback(
+            videoId = videoId,
+            audioQuality = AudioQualityFormat.High,
+            isConnectionMetered = false,
+            isExplicit = isExplicit,
+        )
+
     /** Remember that the WEB_REMIX URL of [videoId] was rejected by the CDN (e.g. HTTP 403). */
     fun markWebRemixFailed( videoId: String ) {
         webRemixFailures[videoId] = System.currentTimeMillis()

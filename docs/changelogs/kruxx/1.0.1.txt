@@ -1,0 +1,28 @@
+Grundlage und Datenschutz:
+- Eigenständige KruXx-Versionierung, Paket-ID, Signatur sowie eigener Quellcode- und Release-Kanal
+- Sicherer App-Updater mit Prüfung von SHA-256, Paket-ID, Version und Signatur
+- Einmaliges manuelles Upgrade von 2.2.3-kruxx.x auf die aktuelle 1.x-Linie; spätere Updates direkt in KruXx
+- Kein automatischer Versand und kein Kreate-Dialog für Absturzberichte
+- Stabiler App-Start auch bei leeren oder älteren Release Notes und beim aktivierten Benachrichtigungsschutz
+- Animierter KruXx-Vollbildstart mit zehn Frames, zwei vollständigen Durchläufen in 2,4 Sekunden und sanftem Übergang zur App
+
+Startseite, Bibliothek und Suche:
+- Start auf der Startseite statt im Titel-Reiter
+- Bis zu 18 einheitlich dargestellte Vorschläge; die Wiedergabetaste startet die gesamte Liste
+- „Top Artists“ öffnen ihre Interpretenseite
+- Angemeldete YTM-Wiedergabelisten aus „From your Library“ und der Bibliothek werden über den bereits für Login und Bibliothek bewährten Metrolist-Client vollständig geladen
+- Fehlertolerante Interpreten-Synchronisation ohne Pflicht-Vorschaubild; zusammengeführte Einträge bleiben frei von Dubletten und gemäß Auswahl sortiert
+- Lokale Spracheingabe für die Suche auf unterstützten Android-12+-Geräten ohne Cloud-Fallback oder automatisches Absenden
+- Erweiterte YTM-Suche mit zusätzlichen abspielbaren Video-Treffern sowie Sprach-, Regions- und Konto-Kontext
+
+Wiedergabe und Darstellung:
+- Echte Musikvideos im 16:9-Player; Art Tracks mit Standbild bleiben sparsame Audiowiedergabe
+- Schwebender Player ab Android 7 mit automatischem Öffnen beim Verlassen als eigener Erscheinungsbild-Einstellung
+- Optionaler Schutz vor fremden Benachrichtigungstönen bei Audio- und Videowiedergabe
+- Stereo-Kanaldiagnose, kein App-seitiger Mono-Downmix und korrigierte Audioeffekt-Voreinstellung
+- Neues KruXx-Icon in allen App-Varianten und größerer Header „KruXx – The core of your music“
+
+Downloads:
+- Geordnete Einzel- und Massendownloads mit sichtbarer Warteschlange und bis zu fünf parallelen Übertragungen
+- Downloads verwenden unabhängig von Wiedergabe-Einstellung und Netzart immer die höchste verfügbare kompatible Audioqualität
+- Exakte Dateilänge, begrenzte Range-Abrufe und frische Auflösung abgelehnter Download-URLs verbessern Fortschritt und Wiederholungen

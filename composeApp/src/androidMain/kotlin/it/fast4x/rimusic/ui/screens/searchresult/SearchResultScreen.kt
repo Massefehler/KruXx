@@ -62,6 +62,7 @@ import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.px
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.asMediaItem
+import it.fast4x.rimusic.utils.asVideoMediaItem
 import it.fast4x.rimusic.utils.asSong
 import it.fast4x.rimusic.utils.enqueue
 import it.fast4x.rimusic.utils.forcePlay
@@ -101,7 +102,6 @@ fun SearchResultScreen(
 
     val hapticFeedback = LocalHapticFeedback.current
 
-    val isVideoEnabled by Preferences.PLAYER_ACTION_TOGGLE_VIDEO
     val parentalControlEnabled by Preferences.PARENTAL_CONTROL
     val youtubeLoginEnabled by Preferences.YOUTUBE_LOGIN
     val youtubeCookies by Preferences.YOUTUBE_COOKIES
@@ -530,8 +530,8 @@ fun SearchResultScreen(
                                     },
                                     onClick = {
                                         player.stopRadio()
-                                        if (isVideoEnabled)
-                                            player.playVideo(video.asMediaItem)
+                                        if (video.supportsVideoPlayback)
+                                            player.playVideo(video.asVideoMediaItem)
                                         else
                                             player.forcePlay(video.asMediaItem)
                                     }

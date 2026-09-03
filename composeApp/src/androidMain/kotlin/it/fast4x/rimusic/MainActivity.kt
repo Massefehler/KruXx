@@ -54,6 +54,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -86,6 +87,7 @@ import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.coil3.ImageFactory
 import app.kreate.android.service.player.StatefulPlayer
+import app.kreate.android.service.player.PlaybackNotificationSilencer
 import app.kreate.android.service.updater.UpdatePlugins
 import app.kreate.android.themed.common.component.BottomMenu
 import app.kreate.android.themed.common.component.dialog.CrashReportDialog
@@ -118,6 +120,7 @@ import it.fast4x.rimusic.extensions.pip.PipEventContainer
 import it.fast4x.rimusic.extensions.pip.PipModuleContainer
 import it.fast4x.rimusic.service.MyDownloadHelper
 import it.fast4x.rimusic.service.modern.PlayerServiceModern
+import it.fast4x.rimusic.ui.components.AnimatedStartupSplash
 import it.fast4x.rimusic.ui.components.CustomModalBottomSheet
 import it.fast4x.rimusic.ui.components.LocalMenuState
 import it.fast4x.rimusic.ui.components.themed.CrossfadeContainer
@@ -147,7 +150,9 @@ import it.fast4x.rimusic.utils.loadAppLog
 import it.fast4x.rimusic.utils.playNext
 import it.fast4x.rimusic.utils.preferences
 import it.fast4x.rimusic.utils.resize
+import it.fast4x.rimusic.utils.resumeVideoAsAudio
 import it.fast4x.rimusic.utils.setDefaultPalette
+import it.fast4x.rimusic.utils.supportsVideoPlayback
 import it.fast4x.rimusic.utils.textCopyToClipboard
 import it.fast4x.rimusic.utils.thumbnail
 import kotlinx.coroutines.Dispatchers
@@ -233,7 +238,7 @@ MainActivity :
         monet.updateMonetColors()
 
         monet.invokeOnReady {
-            startApp()
+            startApp(isColdStart = savedInstanceState == null)
         }
 
         if ( Preferences.AUDIO_SHAKE_TO_SKIP.value ) {
@@ -286,7 +291,7 @@ MainActivity :
         ExperimentalFoundationApi::class, ExperimentalAnimationApi::class,
         ExperimentalMaterial3Api::class
     )
-    fun startApp() {
+    fun startApp(isColdStart: Boolean = false) {
         // Used in QuickPics for load data from remote instead of last saved in SharedPreferences
         Preferences.IS_DATA_KEY_LOADED.value = false
 
@@ -335,7 +340,10 @@ MainActivity :
             val isSystemInDarkTheme = isSystemInDarkTheme()
             val navController = rememberNavController()
             var showPlayer by rememberSaveable { mutableStateOf(false) }
-            var switchToAudioPlayer by rememberSaveable { mutableStateOf(false) }
+            var playVideoAsAudio by rememberSaveable { mutableStateOf(false) }
+            var showStartupSplash by rememberSaveable {
+                mutableStateOf(BuildConfig.INDEPENDENT_FORK && isColdStart)
+            }
             var animatedGradient by Preferences.ANIMATED_GRADIENT
             var customColor by Preferences.CUSTOM_COLOR
             val lightTheme = colorPaletteMode == ColorPaletteMode.Light || (colorPaletteMode == ColorPaletteMode.System && (!isSystemInDarkTheme()))
@@ -453,6 +461,11 @@ MainActivity :
 
 
             val player: StatefulPlayer = koinInject()
+            var currentMediaItemForPip by remember(player) {
+                // Media3 deliberately ignores Bundle contents in MediaItem equality. Referential
+                // comparison still observes video/audio variants of the same YouTube id.
+                mutableStateOf(player.currentMediaItem, referentialEqualityPolicy())
+            }
             DisposableEffect(player, !lightTheme) {
                 val listener =
                     SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
@@ -757,36 +770,74 @@ MainActivity :
 
                             val thumbnailRoundness by Preferences.THUMBNAIL_BORDER_RADIUS
 
-                            val isVideo = player.currentMediaItem?.isVideo ?: false
-                            val isVideoEnabled by Preferences.PLAYER_ACTION_TOGGLE_VIDEO
+                            val isVideo = currentMediaItemForPip?.isVideo == true
 
                             val youtubePlayer: @Composable () -> Unit = {
-                                player.currentMediaItem?.mediaId?.let {
+                                currentMediaItemForPip?.let { mediaItem ->
                                     YoutubePlayer(
-                                        ytVideoId = it,
+                                        ytVideoId = mediaItem.mediaId,
                                         lifecycleOwner = LocalLifecycleOwner.current,
-                                        onCurrentSecond = {},
+                                        startSeconds = player.currentPosition.coerceAtLeast(0L).toFloat() / 1000f,
+                                        onCurrentSecond = { second ->
+                                            val currentItem = player.currentMediaItem
+                                            if (currentItem != null &&
+                                                currentItem === mediaItem &&
+                                                currentItem.isVideo
+                                            ) {
+                                                player.seekTo((second * 1000f).toLong())
+                                            }
+                                        },
                                         showPlayer = showPlayer,
                                         onSwitchToAudioPlayer = {
-                                            showPlayer = false
-                                            switchToAudioPlayer = true
+                                            val currentItem = player.currentMediaItem
+                                            if (currentItem != null &&
+                                                currentItem === mediaItem &&
+                                                currentItem.isVideo
+                                            ) {
+                                                playVideoAsAudio = true
+                                                showPlayer = true
+                                                player.resumeVideoAsAudio()
+                                            }
+                                        },
+                                        onPlaybackActiveChanged = { isActive ->
+                                            val currentItem = player.currentMediaItem
+                                            if (currentItem != null &&
+                                                currentItem === mediaItem &&
+                                                currentItem.isVideo
+                                            ) {
+                                                PlaybackNotificationSilencer
+                                                    .setEmbeddedVideoPlaybackActive(isActive)
+                                            }
+                                        },
+                                        onPlaybackError = {
+                                            val currentItem = player.currentMediaItem
+                                            if (currentItem != null &&
+                                                currentItem === mediaItem &&
+                                                currentItem.isVideo
+                                            ) {
+                                                playVideoAsAudio = true
+                                                showPlayer = true
+                                                player.resumeVideoAsAudio()
+                                                Toaster.w(R.string.video_playback_failed_audio_fallback)
+                                            }
                                         }
                                     )
                                 }
                             }
 
                             PipEventContainer(
-                                enable = true,
+                                enable = Preferences.IS_PIP_ENABLED.value &&
+                                        currentMediaItemForPip != null,
+                                autoEnterIfPossible = currentMediaItemForPip != null,
                                 onPipOutAction = {
                                     showPlayer = false
-                                    switchToAudioPlayer = false
+                                    playVideoAsAudio = false
                                 }
                             ) {
                                 CustomModalBottomSheet(
-                                    showSheet = switchToAudioPlayer || showPlayer,
+                                    showSheet = showPlayer && (!isVideo || playVideoAsAudio),
                                     onDismissRequest = {
                                         showPlayer = false
-                                        switchToAudioPlayer = false
                                     },
                                     containerColor = colorPalette().background0,
                                     contentColor = colorPalette().background0,
@@ -806,7 +857,7 @@ MainActivity :
                             }
 
                             CustomModalBottomSheet(
-                                showSheet = isVideo && isVideoEnabled && showPlayer,
+                                showSheet = isVideo && !playVideoAsAudio && showPlayer,
                                 onDismissRequest = { showPlayer = false },
                                 containerColor = colorPalette().background0,
                                 contentColor = colorPalette().background0,
@@ -851,6 +902,7 @@ MainActivity :
                     val player = player ?: return@DisposableEffect onDispose { }
 
                     if (player.currentMediaItem == null) {
+                        playVideoAsAudio = false
                         if (playerState.isVisible) {
                             showPlayer = false
                         }
@@ -865,9 +917,33 @@ MainActivity :
 
                     val listener = object : Player.Listener {
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            val previousItem = currentMediaItemForPip
+                            val continuesSameEmbeddedVideo =
+                                previousItem != null &&
+                                        previousItem.isVideo &&
+                                        mediaItem != null &&
+                                        mediaItem.isVideo &&
+                                        previousItem.mediaId == mediaItem.mediaId
+
+                            // End the state of a replaced embedded player before exposing the next
+                            // item. Its late WebView callbacks are rejected by identity above.
+                            if (!continuesSameEmbeddedVideo)
+                                PlaybackNotificationSilencer.setEmbeddedVideoPlaybackActive(false)
+
+                            val keepPlayerOpenForAudioFallback =
+                                playVideoAsAudio &&
+                                        mediaItem != null &&
+                                        mediaItem.mediaId == previousItem?.mediaId &&
+                                        mediaItem.supportsVideoPlayback &&
+                                        !mediaItem.isVideo
+                            currentMediaItemForPip = mediaItem
+                            playVideoAsAudio = keepPlayerOpenForAudioFallback
+
                             if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null) {
                                 if ( mediaItem.localConfiguration?.tag !== PersistentQueue.Tag )
-                                    showPlayer = !Preferences.PLAYER_KEEP_MINIMIZED.value
+                                    showPlayer = keepPlayerOpenForAudioFallback ||
+                                            mediaItem.isVideo ||
+                                            !Preferences.PLAYER_KEEP_MINIMIZED.value
                             }
 
                             setDynamicPalette(mediaItem?.mediaMetadata?.artworkUri.thumbnail(1200).toString())
@@ -877,9 +953,19 @@ MainActivity :
                     }
 
                     player.addListener(listener)
+                    currentMediaItemForPip = player.currentMediaItem
 
                     onDispose { player.removeListener(listener) }
                 }
+
+                AnimatedStartupSplash(
+                    visible = showStartupSplash,
+                    appName = BuildConfig.APP_NAME,
+                    backgroundColor = appearance.colorPalette.background0,
+                    contentColor = appearance.colorPalette.text,
+                    accentColor = appearance.colorPalette.accent,
+                    onFinished = { showStartupSplash = false },
+                )
 
             }
 
