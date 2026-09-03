@@ -40,6 +40,17 @@ SIGNED="$OUT_DIR/$APP_NAME-release-signed.apk"
 DEBUG_APK="$ROOT/composeApp/build/outputs/apk/${FLAVOR}UniversalProd/debug/$APP_NAME-debug.apk"
 ARCHIVE_DIR="/home/kruxx/Schreibtisch/Android/Kreate-APKs"
 
+command -v git >/dev/null 2>&1 || { echo "error: git is required" >&2; exit 1; }
+command -v unzip >/dev/null 2>&1 || { echo "error: unzip is required" >&2; exit 1; }
+
+# AGP records the checked-out revision in META-INF/version-control-info.textproto. A dirty build
+# would attribute uncommitted source to the wrong revision, so a release requires a clean tree.
+if [[ -n "$(git -C "$ROOT" status --porcelain --untracked-files=all --ignore-submodules=none)" ]]; then
+    echo "error: release source tree is not clean; commit or remove all intended source changes first" >&2
+    exit 1
+fi
+SOURCE_REVISION="$(git -C "$ROOT" rev-parse HEAD)"
+
 [[ -f "$PROPS" ]] || { echo "error: $PROPS not found (create keystore + properties first)" >&2; exit 1; }
 
 prop() { grep -E "^$1=" "$PROPS" | head -1 | cut -d= -f2-; }
@@ -153,7 +164,18 @@ PACKAGE_NAME="$(apk_package_name "$SIGNED")"
     exit 1
 }
 
+EMBEDDED_SOURCE_REVISION="$(
+    unzip -p "$SIGNED" META-INF/version-control-info.textproto 2>/dev/null \
+        | sed -n 's/^[[:space:]]*revision: "\([0-9a-f]\{40\}\)"/\1/p' \
+        | head -1
+)"
+[[ "$EMBEDDED_SOURCE_REVISION" == "$SOURCE_REVISION" ]] || {
+    echo "error: APK source revision does not match the checked-out Git commit" >&2
+    exit 1
+}
+
 echo ">> done: $SIGNED ($(du -h "$SIGNED" | cut -f1), version $VERSION_NAME/$VERSION_CODE)"
+echo ">> source revision: $SOURCE_REVISION"
 sha256sum "$SIGNED"
 
 mkdir -p "$ARCHIVE_DIR"

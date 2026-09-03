@@ -169,20 +169,19 @@ lässt sich die veröffentlichte APK eindeutig ihrem Quellcode zuordnen.
 | Benachrichtigungsschutz | Lifecycle-/Wiederherstellungslogik und Hauptthread-Fix geprüft | kein bekannter Fehler; Fremd-App-Ton nicht separat protokolliert |
 | Stereo | Kein Downmix im Audiopfad; Decoderdiagnose vorhanden | kein bekannter Fehler; Links-/Rechts-Hörtest nicht separat protokolliert |
 
-Die für diese Freigaberunde final erzeugten und lokal archivierten APKs liegen unter
-`/home/kruxx/Schreibtisch/Android/Kreate-APKs/`:
+Die finalen Dateien heißen `KruXx-1.0.1-release.apk` und `KruXx-1.0.1-debug.apk` und werden unter
+`/home/kruxx/Schreibtisch/Android/Kreate-APKs/` archiviert. Ein normaler Lauf von
+`scripts/build-local-release.sh kruxx` erzeugt beide aus demselben Quellbaum, signiert das Release
+mit v1/v2/v3 und prüft Paket, Version, Zertifikat sowie die von AGP in
+`META-INF/version-control-info.textproto` eingebettete Git-Revision.
 
-| Datei | Größe | SHA-256 |
-|---|---:|---|
-| `KruXx-1.0.1-release.apk` | 22.645.733 Byte | `25f945b44a7020436713796216c711b4d06ecf9752abaef0f6b4a97b43dad7ce` |
-| `KruXx-1.0.1-debug.apk` | 56.414.354 Byte | `6bcee8e9f4821ef4303d4a1361167d9ffcb5b811789fa5990cd0935ce37f7d5b` |
-
-Beide APKs stammen aus derselben normalen Ausführung von `scripts/build-local-release.sh kruxx` und
-damit aus demselben Quellbaum. Das Release-APK wurde mit v1/v2/v3 signiert; Paket, Version und der
-erwartete Zertifikatfingerabdruck wurden geprüft. Die erneute Signierung desselben finalen unsigned
-APKs reproduzierte exakt den dokumentierten SHA-256-Wert. Weil das Zielgerät beim abschließenden
-Archivtest nicht mehr per ADB verbunden war, steht nur noch die Installation und der Kaltstart exakt
-dieses archivierten Release-APKs aus.
+Der finale SHA-256-Wert wird bewusst **erst nach dem Build aus dem endgültigen sauberen
+Release-Commit** in der GitHub-Release-Beschreibung und als GitHub-Asset-Digest festgehalten: Die
+eingebettete Git-Revision ändert das APK bei jedem neuen Commit, deshalb könnte ein Hash im selben
+Commit nie sich selbst korrekt beschreiben. Der letzte Kandidat erfüllte sämtliche Metadaten- und
+Signaturprüfungen. Weil das Zielgerät beim abschließenden Archivtest nicht mehr per ADB verbunden war,
+steht nur noch die Installation und der Kaltstart des nach dem finalen Commit erzeugten Release-APKs
+aus.
 
 ## 4. Bekannte Grenzen und Freigabekriterien
 
@@ -198,10 +197,11 @@ dieses archivierten Release-APKs aus.
   Titel öffnet KruXx bewusst kein leeres schwebendes Fenster.
 - Der Benachrichtigungsschutz kann nur Töne über Androids Notification Policy steuern. Er blockiert
   weder sichtbare Pop-ups noch Medien, Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Vor dem öffentlichen `v1.0.1`: das exakt gehashte archivierte Release-APK installieren und kalt
-  starten; anschließend den geprüften Quellstand, beide Submodul-Commits und das passende Tag
-  veröffentlichen. Die nicht separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil
-  der Regressionstest-Matrix, sind aber derzeit keine bekannten Defekte.
+- Vor dem öffentlichen `v1.0.1`: aus dem endgültigen sauberen Commit bauen, das dabei exakt gehashte
+  archivierte Release-APK installieren und kalt starten; anschließend den geprüften Quellstand,
+  beide Submodul-Commits und das passende Tag veröffentlichen. Die nicht separat protokollierten
+  Detailfälle in der Tabelle bleiben Bestandteil der Regressionstest-Matrix, sind aber derzeit keine
+  bekannten Defekte.
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 

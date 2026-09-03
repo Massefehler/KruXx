@@ -181,7 +181,10 @@ Fertige APKs werden von `build-local-release.sh` automatisch nach
 nachweislich zum selben Quellbaum gehörende Debug-APK. `--skip-build` archiviert grundsätzlich keine
 Debug-Datei unbekannter Herkunft. Der Zielpfad ist absichtlich fest und kann nicht per
 Umgebungsvariable umgeleitet werden. Das Skript verweigert andere Produkt-Flavors, damit nicht
-versehentlich ein Kreate-Paket mit dem KruXx-Schlüssel veröffentlicht wird.
+versehentlich ein Kreate-Paket mit dem KruXx-Schlüssel veröffentlicht wird. Zusätzlich verlangt es
+einen vollständig sauberen Git-Stand und gleicht die von AGP im APK eingebettete Git-Revision mit
+`HEAD` ab. So kann kein Release-Artefakt unbemerkt uncommitteten oder veralteten Quellen zugeordnet
+werden.
 
 Erster Build dauert 5–10 min (Downloads), danach 1–4 min. D8 beziehungsweise Lint-Vital können wegen
 der Kombination aus AGP 8.13 und Kotlin-Metadaten 2.4 Diagnosezeilen zur erwarteten Metadatenversion
@@ -833,11 +836,12 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
       `versionCode` und `versionName`; `apksigner verify --print-certs` → erwarteter Fingerabdruck
 - [ ] Im Archiv `/home/kruxx/Schreibtisch/Android/Kreate-APKs/` prüfen, dass das Build-Skript Release und
       passende Debug-APK als `KruXx-<versionName>-release.apk` / `-debug.apk` abgelegt hat (LocalSend)
-- [ ] Größe und SHA-256 der **neu gebauten** Archiv-APKs in `docs/KRUXX-IST-STAND.md` aktualisieren;
-      prüfen, dass keine ältere Datei mit gleichem Versionsnamen dokumentiert oder hochgeladen wird
-- [ ] Annotiertes Tag `v<versionName>` auf exakt dem gebauten Commit; Push ausschließlich zu `origin`
-- [ ] GitHub-Release mit exakt dem archivierten APK-Namen erstellen; API anschließend auf Tag,
-      Assetname, Größe und `sha256:`-Digest prüfen
+- [ ] Annotiertes Tag `v<versionName>` auf exakt dem gebauten Commit; Push ausschließlich zu `origin`.
+      AGP bettet die Git-Revision in das APK ein, daher wird kein selbstbezüglicher Vorab-Hash in
+      diesen Commit geschrieben
+- [ ] GitHub-Release mit exakt dem archivierten APK-Namen erstellen; Größe und SHA-256 aus dem finalen
+      Build in der Release-Beschreibung festhalten und die API anschließend auf Tag, Assetname, Größe
+      und `sha256:`-Digest prüfen. Keine ältere Datei mit demselben Versionsnamen hochladen
 - [ ] Upgrade über die vorherige installierte KruXx-Version testen; Einstellungen → Allgemein →
       „Jetzt überprüfen“ muss das neue Release finden und nach Prüfung Androids Installer öffnen
 
@@ -846,14 +850,13 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 ## 9. Offene Punkte / Ideen
 
 - **Letzter 1.0.1-Freigabegate:** Das Zielgerät war beim abschließenden Archivtest nicht mehr per ADB
-  verbunden. Das exakt in `KRUXX-IST-STAND.md` gehashte Release-APK noch einmal über die bestehende
-  Installation installieren, kalt starten und auf `AndroidRuntime`-Fehler prüfen. Der breite
-  manuelle Nutzertest einschließlich schneller Downloads sowie Konto-Playlist-, App-Start- und
-  Interpretenprüfungen war zuvor ohne Auffälligkeit.
-- Release und Debug wurden im selben normalen Lauf des gehärteten Build-Skripts aus demselben
-  Quellbaum erzeugt; Signatur, Paket, Version und Archiv-Hashes sind dokumentiert. Nach dem letzten
-  Gerätegate den finalen Quellstand committen/taggen beziehungsweise – falls bereits committed –
-  sicherstellen, dass der Build exakt diesem Stand entspricht.
+  verbunden. Aus dem finalen sauberen Commit bauen, das dabei gehashte Release-APK noch einmal über
+  die bestehende Installation installieren, kalt starten und auf `AndroidRuntime`-Fehler prüfen. Der
+  breite manuelle Nutzertest einschließlich schneller Downloads sowie Konto-Playlist-, App-Start-
+  und Interpretenprüfungen war zuvor ohne Auffälligkeit.
+- Release und Debug werden im selben normalen Lauf des gehärteten Build-Skripts aus demselben
+  Quellbaum erzeugt. Signatur, Paket, Version und eingebettete Git-Revision werden automatisch
+  geprüft; den erst danach feststehenden finalen APK-Hash in GitHub-Release und API verifizieren.
 - Die GitHub-API meldete am 03.09.2026 in den bestehenden App- und Innertube-Spiegeln jeweils null
   offene Secret-Scanning-Alarme. Den noch anzulegenden Metrolist-Spiegel direkt nach seinem ersten
   Push kontrollieren. Lokaler Commit-/Pfadscan fand nur den absichtlich synthetischen Auth-Wert eines
