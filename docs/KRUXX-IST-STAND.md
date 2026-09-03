@@ -27,11 +27,10 @@ keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, 
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
 
-Der Stand ist als lokaler 1.0.1-Release-Kandidat vollständig getestet, gelintet, gebaut, signiert und
-archiviert, aber noch **nicht veröffentlicht**. Vor der Veröffentlichung wird exakt das unten
-bezeichnete Release-APK noch einmal installiert und kalt gestartet. Danach werden der freigegebene
-Quellstand samt Submodul-Pins und das dazugehörige Tag `v1.0.1` gemeinsam veröffentlicht. Nur so
-lässt sich die veröffentlichte APK eindeutig ihrem Quellcode zuordnen.
+Der Stand wurde vollständig getestet, gelintet, gebaut, signiert und als `v1.0.1` veröffentlicht.
+Das öffentliche Release-APK wurde vor der Veröffentlichung installiert und kalt gestartet; Tag,
+Submodul-Pins und APK-Digest wurden anschließend noch einmal gegen den veröffentlichten Stand
+abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
 
 ## 2. Aktueller Funktionsumfang
 
@@ -190,6 +189,15 @@ und Dateigröße wurden nach der Veröffentlichung verifiziert.
 
 ## 4. Bekannte Grenzen und Freigabekriterien
 
+- **Für den nächsten Release vorgemerkt:** Auf einem zweiten Gerät erschien nach frischer
+  Installation von `1.0.0` und anschließendem App-Start kein automatischer Hinweis auf das bereits
+  veröffentlichte `1.0.1`. Der Startaufruf und der Standardmodus „Nachfragen“ sind im Quellstand
+  vorhanden; die konkrete Laufzeitursache ist daher noch offen. Der automatische Pfad prüft das
+  Netzwerk nur einmal unmittelbar beim Start, wiederholt eine zu frühe oder fehlgeschlagene Prüfung
+  nicht und meldet Fehler absichtlich nicht in der Oberfläche. Außerdem können das 24-Stunden-
+  Intervall und wiederhergestellte Einstellungen eine Prüfung überspringen. Vor dem nächsten Release
+  muss dieser Pfad robuster werden und praktisch als Upgrade von der vorherigen Version geprüft
+  werden, ohne „Aktualisieren“ anzutippen.
 - YTM, GitHub, Metadaten- und Liedtextdienste sind externe Dienste. Antwortformate, regionale
   Verfügbarkeit, Kontoversuche und CDN-Tempo können sich ohne App-Update ändern.
 - Die Podcast-Autoplaylist „Neue Folgen“ (`RDPN`) ist keine reguläre Musik-Playlist. Ihr

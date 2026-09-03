@@ -842,13 +842,28 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 - [ ] GitHub-Release mit exakt dem archivierten APK-Namen erstellen; Größe und SHA-256 aus dem finalen
       Build in der Release-Beschreibung festhalten und die API anschließend auf Tag, Assetname, Größe
       und `sha256:`-Digest prüfen. Keine ältere Datei mit demselben Versionsnamen hochladen
-- [ ] Upgrade über die vorherige installierte KruXx-Version testen; Einstellungen → Allgemein →
-      „Jetzt überprüfen“ muss das neue Release finden und nach Prüfung Androids Installer öffnen
+- [ ] Upgrade über die vorherige installierte KruXx-Version testen: Im Standardmodus „Nachfragen“
+      muss ein Kaltstart den neuen Release ohne manuelle Aktion erkennen und den Update-Dialog
+      anzeigen. Zusätzlich muss Einstellungen → Allgemein → „Jetzt überprüfen“ das Intervall
+      umgehen, das neue Release finden und nach der Prüfung Androids Installer öffnen
 
 ---
 
 ## 9. Offene Punkte / Ideen
 
+- **Nächster Release – automatische Updateprüfung robust machen:** Ein Praxistest auf einem zweiten
+  Gerät zeigte nach frischer Installation von `1.0.0` keinen automatischen Hinweis auf das bereits
+  veröffentlichte `1.0.1`, obwohl `UpdateHandler` den Startabruf enthält und „Nachfragen“ der
+  Standard ist. Die Ursache ist noch nicht bewiesen. Der ungezwungene Pfad kann derzeit bei einer
+  beim Start noch nicht erkannten Netzwerkverbindung oder bei einem Requestfehler still und ohne
+  erneuten Versuch enden; ein erfolgreicher Abruf sperrt weitere automatische Prüfungen für 24
+  Stunden, und Android kann Einstellungen wiederherstellen. Für die Korrektur: erst bei
+  foreground-bereiter Oberfläche und nutzbarem Netzwerk prüfen, einen begrenzten Retry nach
+  Netzverfügbarkeit vorsehen, parallele/doppelte Dialoge verhindern und das 24-Stunden-Limit nur
+  nachvollziehbar anwenden. Regressionstest: vorheriges Release frisch installieren, Standardmodus
+  unverändert lassen, offline starten und danach verbinden sowie mit bereits verfügbarer Verbindung
+  kalt starten; in beiden Fällen muss das neuere Release ohne Tippen auf „Aktualisieren“ angeboten
+  werden. Die erzwungene manuelle Prüfung bleibt als unabhängiger Rückfall erhalten.
 - **1.0.1-Freigabegate bestanden:** Das aus dem sauberen Release-Commit archivierte APK wurde über
   die bestehende Installation installiert; Paket, Version und erhaltener Datenstand stimmten. Ein
   per ADB bestätigter Kaltstart zeigte die zehn wechselnden Animationsframes, den Übergang zur
