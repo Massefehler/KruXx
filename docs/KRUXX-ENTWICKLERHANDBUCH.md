@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 04.09.2026 · öffentlicher Release KruXx `1.0.1` plus geplanter Arbeitsstand `1.0.2` ·
+Stand: 04.09.2026 · öffentlicher Release KruXx `1.0.1` plus unveröffentlichter Release-Kandidat `1.0.2` ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in

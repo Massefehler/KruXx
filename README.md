@@ -14,7 +14,12 @@ installation/cold-start check of the exact archived APK have passed. The signed 
 submodule pins and matching tag are published in the
 [KruXx 1.0.1 release](https://github.com/Massefehler/KruXx/releases/tag/v1.0.1). The exact
 implementation and verification status is recorded in the
-[KruXx 1.0.1 status report](docs/KRUXX-IST-STAND.md).
+[KruXx status report](docs/KRUXX-IST-STAND.md).
+
+The `main` branch currently contains the unpublished KruXx `1.0.2` release candidate
+(`versionCode 1000002`). Its scope and remaining practical release gates are tracked separately
+from the public `1.0.1` release in the status report; its immutable in-app notes are available in
+[`docs/changelogs/kruxx/1.0.2.txt`](docs/changelogs/kruxx/1.0.2.txt).
 
 ## Install and update
 

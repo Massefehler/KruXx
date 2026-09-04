@@ -13,7 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | `1.0.1` |
 | Öffentlicher Android-Versionscode | `1_000_001` |
-| Nächster Release | `1.0.2` (unveröffentlicht; Build-Version noch nicht umgestellt) |
+| Nächster Release | `1.0.2` (unveröffentlichter Release-Kandidat; Build-Version `1.0.2` / `1_000_002`) |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | API 23 / Android 6.0 |
@@ -33,7 +33,7 @@ Das öffentliche Release-APK wurde vor der Veröffentlichung installiert und kal
 Submodul-Pins und APK-Digest wurden anschließend noch einmal gegen den veröffentlichten Stand
 abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
 
-### Unveröffentlichter Arbeitsstand für v1.0.2
+### Unveröffentlichter Release-Kandidat für v1.0.2
 
 Die folgenden Änderungen sind für `1.0.2` implementiert, gehören aber ausdrücklich
 noch **nicht** zum öffentlichen APK `1.0.1`:

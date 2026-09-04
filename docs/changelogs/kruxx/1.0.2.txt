@@ -1,0 +1,11 @@
+Bibliothek und Android Auto:
+- Lokale und YouTube-Music-Wiedergabelisten werden auf der Startseite und im Bibliotheksreiter vollständig, ohne Dubletten und mit verständlichen Lade- und Leerzuständen angezeigt
+- Android Auto erhält stabile Bibliotheks-IDs, korrektes Paging, zuverlässige Suche und Wiederaufnahme sowie die gewählte Liste als vollständige Wiedergabewarteschlange
+
+Wiedergabe:
+- Online-Titel starten wieder ohne die lange Wartezeit bei Position null
+- Abgelehnte oder abgelaufene Stream-URLs werden sofort frisch aufgelöst; Qualität und Datensparmodus wählen zuverlässig den passenden Stream
+- Explizite Titel können bereits beim ersten Start die erforderliche Auflösungsstrategie verwenden
+
+Updates:
+- Die automatische Updateprüfung reagiert zuverlässig auf Netzrückkehr und neue Vordergrundstarts, wiederholt vorübergehende Fehler begrenzt und verhindert doppelte Prüfungen oder Dialoge
