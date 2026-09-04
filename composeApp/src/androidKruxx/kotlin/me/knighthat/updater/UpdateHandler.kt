@@ -2,12 +2,20 @@ package me.knighthat.updater
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.kreate.android.BuildConfig
 import app.kreate.android.Preferences
+import app.kreate.android.utils.ConnectivityUtils
 import it.fast4x.rimusic.enums.CheckUpdateState
+import it.fast4x.rimusic.utils.isNetworkConnected
 import java.io.File
 
 @Composable
@@ -16,6 +24,10 @@ fun UpdateHandler() {
 
     val context = LocalContext.current
     val updateMode by Preferences.CHECK_UPDATE
+    val networkAvailable by ConnectivityUtils.isAvailable.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val currentUpdateMode = rememberUpdatedState(updateMode)
+    val currentNetworkAvailable = rememberUpdatedState(networkAvailable)
 
     DownloadAndInstallDialog.Render()
     NewUpdatePrompt.Render()
@@ -36,8 +48,39 @@ fun UpdateHandler() {
             ?.forEach(File::delete)
     }
 
-    LaunchedEffect(updateMode) {
-        if(updateMode != CheckUpdateState.DISABLED)
+    // Start only while the UI is foreground-ready. A network callback retriggers a skipped offline
+    // launch, and every later foreground entry gets another chance if no successful check was saved.
+    DisposableEffect(lifecycleOwner, context) {
+        fun checkIfReady() {
+            if(currentUpdateMode.value != CheckUpdateState.DISABLED &&
+                (currentNetworkAvailable.value || isNetworkConnected(context))
+            ) Updater.checkForUpdate(context)
+        }
+
+        val observer = LifecycleEventObserver { _, event ->
+            when(event) {
+                Lifecycle.Event.ON_START -> checkIfReady()
+                Lifecycle.Event.ON_STOP -> Updater.cancelAutomaticCheck()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        if(lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+            checkIfReady()
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            Updater.cancelAutomaticCheck()
+        }
+    }
+
+    LaunchedEffect(updateMode, networkAvailable, lifecycleOwner) {
+        if(updateMode == CheckUpdateState.DISABLED) {
+            Updater.cancelAutomaticCheck()
+        } else if(lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED) &&
+            (networkAvailable || isNetworkConnected(context))
+        ) {
             Updater.checkForUpdate(context)
+        }
     }
 }
