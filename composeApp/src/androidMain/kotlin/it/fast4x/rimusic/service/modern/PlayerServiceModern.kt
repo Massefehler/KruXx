@@ -467,6 +467,7 @@ class PlayerServiceModern:
     @UnstableApi
     override fun onDestroy() {
         embeddedVideoPlaybackJob?.cancel()
+        mediaLibrarySessionCallback.release()
         if( ::playbackNotificationSilencer.isInitialized )
             playbackNotificationSilencer.release()
 
