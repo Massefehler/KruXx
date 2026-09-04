@@ -13,7 +13,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.media3.session.CommandButton
@@ -163,8 +162,8 @@ class ExoPlayerListener(
     }
 
     private fun classifyRecoverable( error: PlaybackException ): Recovery? {
-        val responseCode = findCause<HttpDataSource.InvalidResponseCodeException>( error )?.responseCode
-        if( (responseCode != null && responseCode in STREAM_REJECTION_CODES)
+        val responseCode = error.httpResponseCodeOrNull()
+        if( isRejectedStreamHttpStatus(responseCode)
             || error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
         ) return Recovery.STREAM_REJECTED
 
@@ -205,7 +204,7 @@ class ExoPlayerListener(
 
         when( recovery ) {
             Recovery.STREAM_REJECTED -> {
-                val responseCode = findCause<HttpDataSource.InvalidResponseCodeException>( error )?.responseCode
+                val responseCode = error.httpResponseCodeOrNull()
                 val failedClient = invalidateRejectedStreamOf( mediaId )
                 if( failedClient == "WEB_REMIX" )
                     InnerTubeXPlayer.markWebRemixFailed( mediaId )
@@ -344,8 +343,6 @@ class ExoPlayerListener(
 
     private companion object {
         const val MAX_RECOVERY_ATTEMPTS = 3
-        /** 403: signature/PO token rejected or expired, 410: url gone, 416: range refused */
-        val STREAM_REJECTION_CODES = setOf( 403, 410, 416 )
         /** Extractor choked on the bytes, or CacheDataSource tripped over its own index/files. */
         val CORRUPT_CACHE_ERROR_CODES = setOf(
             PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,

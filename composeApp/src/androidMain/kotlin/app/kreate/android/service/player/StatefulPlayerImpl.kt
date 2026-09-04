@@ -37,6 +37,8 @@ import app.kreate.android.utils.innertube.toMediaItem
 import app.kreate.database.models.PersistentQueue
 import app.kreate.database.models.Song
 import app.kreate.di.PrefType
+import app.kreate.di.clearCachedPlaybackStreamUrls
+import app.kreate.di.clearPlaybackContentHints
 import co.touchlab.kermit.Logger
 import it.fast4x.innertube.models.NavigationEndpoint
 import it.fast4x.rimusic.Database
@@ -487,7 +489,8 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
         player.release()
 
         val preferences: SharedPreferences by inject(PrefType.DEFAULT)
-        preferences.registerOnSharedPreferenceChangeListener( this )
+        preferences.unregisterOnSharedPreferenceChangeListener( this )
+        clearPlaybackContentHints()
     }
 
     /*
@@ -645,6 +648,12 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
 
     override fun onSharedPreferenceChanged( pref: SharedPreferences, key: String? ) {
         when( key ) {
+            Preferences.Key.AUDIO_QUALITY,
+            Preferences.Key.IS_CONNECTION_METERED -> {
+                val cleared = clearCachedPlaybackStreamUrls()
+                logger.d { "Stream selection changed; invalidated $cleared cached playback URLs" }
+            }
+
             Preferences.Key.AUDIO_VOLUME_NORMALIZATION -> {
                 if( ::loudnessEnhancer.isInitialized )
                     loudnessEnhancer.enabled = pref.getBoolean(key, false)

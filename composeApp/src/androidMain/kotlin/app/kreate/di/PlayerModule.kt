@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.ResolvingDataSource
@@ -19,17 +20,20 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
 import app.kreate.android.Preferences
 import app.kreate.android.service.DownloadHelper
 import app.kreate.android.service.player.ErrorHandlingPolicy
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.service.player.StatefulPlayerImpl
 import app.kreate.android.service.player.VolumeObserver
+import app.kreate.android.service.player.isRejectedStreamHttpStatus
 import app.kreate.android.utils.isLocalFile
 import it.fast4x.rimusic.enums.ExoPlayerCacheLocation
 import me.knighthat.impl.DownloadHelperImpl
 import me.knighthat.innertube.UserAgents
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.Qualifier
 import org.koin.core.qualifier.QualifierValue
@@ -42,6 +46,23 @@ const val CHUNK_LENGTH = 512 * 1024L     // 512KB
 
 private const val CACHE_DIRNAME = "exo_cache"
 private const val DOWNLOAD_CACHE_DIRNAME = "exo_downloads"
+
+/**
+ * The app-wide client uses BODY logging in debug builds. OkHttp's logging interceptor buffers a
+ * response body completely before returning it to the caller; doing that to a throttled media
+ * response makes ExoPlayer wait roughly a song's duration before it receives the first byte.
+ *
+ * Keep the shared client's proxy, DNS and all functional interceptors, but never attach an HTTP
+ * logger to the long-lived playback/download transport. Signed CDN urls should not be logged
+ * either.
+ */
+internal fun OkHttpClient.forMediaTransport(): OkHttpClient =
+    newBuilder()
+        .apply {
+            interceptors().removeAll { it is HttpLoggingInterceptor }
+            networkInterceptors().removeAll { it is HttpLoggingInterceptor }
+        }
+        .build()
 
 private fun initCache( context: Context, size: Long, cacheDirName: String ): Cache {
     val cacheEvictor = when( size ) {
@@ -73,7 +94,7 @@ private fun innertubeNetworkDataSourceFactory(
     client: OkHttpClient,
 ) = DefaultDataSource.Factory(
     context,
-    OkHttpDataSource.Factory( client )
+    OkHttpDataSource.Factory( client.forMediaTransport() )
         // Default header only: InnerTubeX hands the resolver client-specific headers
         // (User-Agent, Referer, Origin) per stream, and DataSpec headers override
         // defaults. setUserAgent() would instead be *added* on top of them (media3
@@ -89,7 +110,7 @@ private fun innertubeDownloadNetworkDataSourceFactory(
     client.newBuilder()
         .addInterceptor { chain ->
             chain.proceed( chain.request() ).also { response ->
-                if( response.code == 403 || response.code == 410 || response.code == 416 ) {
+                if( isRejectedStreamHttpStatus(response.code) ) {
                     // Prefer the original request URL; also cover a rare redirected final URL.
                     if( !invalidateRejectedDownloadStreamUrl( chain.request().url.toString() ) )
                         invalidateRejectedDownloadStreamUrl( response.request.url.toString() )
@@ -98,6 +119,19 @@ private fun innertubeDownloadNetworkDataSourceFactory(
         }
         .build(),
 )
+
+/**
+ * Capture metadata that is intentionally absent from DataSpec before Media3 creates the source.
+ * Registration happens synchronously, before the resolving data source can request the stream.
+ */
+private class PlaybackHintMediaSourceFactory(
+    private val delegate: MediaSource.Factory,
+) : MediaSource.Factory by delegate {
+    override fun createMediaSource( mediaItem: MediaItem ): MediaSource {
+        rememberPlaybackContentHint( mediaItem )
+        return delegate.createMediaSource( mediaItem )
+    }
+}
 
 val playerModule = module {
     //<editor-fold desc="Cache">
@@ -153,7 +187,7 @@ val playerModule = module {
     // TODO: Convert this into factory
     single<StatefulPlayer> {
         //<editor-fold desc="DataSource">
-        val dataSource = DefaultMediaSourceFactory(
+        val mediaSourceFactory = DefaultMediaSourceFactory(
             // At the bottom of the stack, it's download cache
             get<CacheDataSource.Factory>(CacheType.DOWNLOAD)
                 // Read-only cache, player doesn't get to write anything in here
@@ -178,7 +212,7 @@ val playerModule = module {
                         )
                 )
         )
-        dataSource.setLoadErrorHandlingPolicy( ErrorHandlingPolicy() )
+        mediaSourceFactory.setLoadErrorHandlingPolicy( ErrorHandlingPolicy() )
         //</editor-fold>
         //<editor-fold desc="Audio handlers">
         val handleAudioFocus by Preferences.AUDIO_SMART_PAUSE_DURING_CALLS
@@ -190,7 +224,7 @@ val playerModule = module {
 
         StatefulPlayerImpl(
             ExoPlayer.Builder( get() )
-                .setMediaSourceFactory( dataSource )
+                .setMediaSourceFactory( PlaybackHintMediaSourceFactory(mediaSourceFactory) )
                 .setHandleAudioBecomingNoisy( true )
                 .setWakeMode( C.WAKE_MODE_NETWORK )
                 .setAudioAttributes( audioAttributes, handleAudioFocus )

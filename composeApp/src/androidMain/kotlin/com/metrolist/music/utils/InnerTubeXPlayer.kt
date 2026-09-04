@@ -239,6 +239,7 @@ object InnerTubeXPlayer {
         videoId: String,
         audioQuality: AudioQualityFormat,
         isConnectionMetered: Boolean,
+        saveDataOnMeteredConnections: Boolean = Preferences.IS_CONNECTION_METERED.value,
         isExplicit: Boolean? = null,
     ): Result<PlaybackData> =
         try {
@@ -265,7 +266,10 @@ object InnerTubeXPlayer {
                     videoId = videoId,
                     hints = hints,
                     excludedClients = excludedClients,
-                    audioQuality = audioQuality.toInnerTubeX( isConnectionMetered ),
+                    audioQuality = audioQuality.toInnerTubeX(
+                        isConnectionMetered = isConnectionMetered,
+                        saveDataOnMeteredConnections = saveDataOnMeteredConnections,
+                    ),
                     clientPlaybackNonce = generateClientPlaybackNonce(),
                 )
             ) { "InnerTubeX returned no playable stream" }
@@ -304,6 +308,7 @@ object InnerTubeXPlayer {
             videoId = videoId,
             audioQuality = AudioQualityFormat.High,
             isConnectionMetered = false,
+            saveDataOnMeteredConnections = false,
             isExplicit = isExplicit,
         )
 
@@ -359,12 +364,15 @@ object InnerTubeXPlayer {
         val extractor: InnerTubeExtractor,
     )
 
-    private fun AudioQualityFormat.toInnerTubeX( isConnectionMetered: Boolean ): InnerTubeXAudioQuality =
+    private fun AudioQualityFormat.toInnerTubeX(
+        isConnectionMetered: Boolean,
+        saveDataOnMeteredConnections: Boolean,
+    ): InnerTubeXAudioQuality =
         when( this ) {
             AudioQualityFormat.High -> InnerTubeXAudioQuality.HIGH
             AudioQualityFormat.Low  -> InnerTubeXAudioQuality.LOW
             AudioQualityFormat.Auto ->
-                if( isConnectionMetered && Preferences.IS_CONNECTION_METERED.value )
+                if( isConnectionMetered && saveDataOnMeteredConnections )
                     InnerTubeXAudioQuality.LOW
                 else
                     InnerTubeXAudioQuality.AUTO

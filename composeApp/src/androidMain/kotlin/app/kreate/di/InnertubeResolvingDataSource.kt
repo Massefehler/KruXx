@@ -7,7 +7,6 @@ import android.net.ConnectivityManager
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.common.C
-import androidx.media3.common.PlaybackException
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.HttpUtil
 import androidx.media3.datasource.cache.Cache
@@ -15,19 +14,14 @@ import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.ContentMetadataMutations
 import app.kreate.android.Preferences
 import app.kreate.android.R
+import app.kreate.android.service.player.isRejectedStreamHttpStatus
 import app.kreate.android.utils.ConnectivityUtils
 import app.kreate.android.utils.innertube.CURRENT_LOCALE
 import app.kreate.database.models.Format
 import co.touchlab.kermit.Logger
-import com.metrolist.innertubex.extraction.StreamResolveException
 import com.metrolist.music.utils.InnerTubeXPlayer
-import io.ktor.util.network.UnresolvedAddressException
 import it.fast4x.rimusic.Database
-import it.fast4x.rimusic.service.LoginRequiredException
-import it.fast4x.rimusic.service.NoInternetException
-import it.fast4x.rimusic.service.TimeoutException
-import it.fast4x.rimusic.service.UnknownException
-import it.fast4x.rimusic.service.UnplayableException
+import it.fast4x.rimusic.enums.AudioQualityFormat
 import it.fast4x.rimusic.utils.isNetworkAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,15 +37,9 @@ import okhttp3.Request
 import org.koin.core.scope.Scope
 import org.koin.java.KoinJavaComponent.get
 import java.io.IOException
-import java.net.ConnectException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
-
-/** Re-resolve a little before the CDN considers the signed URL expired. */
-private const val EXPIRY_MARGIN_MS = 30_000L
 
 /** Cache metadata key: itag of the bytes stored under a song's cache key. */
 private const val METADATA_KEY_ITAG = "kruxx_itag"
@@ -100,9 +88,17 @@ private enum class StreamPurpose( val logLabel: String ) {
     DOWNLOAD( "Download" ),
 }
 
+/** Every input that can alter Auto/High/Low stream selection belongs to the cache identity. */
+private data class PlaybackStreamVariant(
+    val audioQuality: AudioQualityFormat,
+    val isConnectionMetered: Boolean,
+    val saveDataOnMeteredConnections: Boolean,
+)
+
 private data class StreamCacheKey(
     val videoId: String,
     val purpose: StreamPurpose,
+    val playbackVariant: PlaybackStreamVariant? = null,
 )
 
 /**
@@ -200,51 +196,27 @@ private fun upsertSongFormat( videoId: String, data: InnerTubeXPlayer.PlaybackDa
 }
 //</editor-fold>
 //<editor-fold desc="Get response">
-/**
- * Translate extraction failures into Kreate's [PlaybackException] family so the
- * player listener can show a meaningful message (and skip/retry accordingly).
- */
-private fun mapExtractionFailure( error: Throwable ): Throwable {
-    val offline = !ConnectivityUtils.isAvailable.value
-
-    return when( error ) {
-        is PlaybackException -> error
-
-        is StreamResolveException -> when( error.reason ) {
-            StreamResolveException.Reason.NETWORK ->
-                if( offline ) NoInternetException( error ) else UnknownException( error.message, error )
-
-            StreamResolveException.Reason.AGE_RESTRICTED -> LoginRequiredException( error.message, error )
-
-            StreamResolveException.Reason.UNAVAILABLE,
-            StreamResolveException.Reason.NO_PLAYABLE_STREAM,
-            StreamResolveException.Reason.EXPLICIT_UNSUPPORTED,
-            StreamResolveException.Reason.NO_MUSIC_VIDEO -> UnplayableException( error.message, error )
-
-            StreamResolveException.Reason.UNKNOWN -> UnknownException( error.message, error )
-        }
-
-        is UnknownHostException,
-        is UnresolvedAddressException,
-        is ConnectException ->
-            if( offline ) NoInternetException( error ) else UnknownException( error.message, error )
-
-        is SocketTimeoutException -> TimeoutException()
-
-        else -> UnknownException( error.message, error )
-    }
-}
-
 private fun getPlayableStream(
     songId: String,
     purpose: StreamPurpose,
 ): InnerTubeXPlayer.PlaybackData {
     logger.v { "Processing $songId for ${purpose.logLabel.lowercase()}" }
 
-    val cacheKey = StreamCacheKey( songId, purpose )
+    val playbackVariant = if( purpose == StreamPurpose.PLAYBACK ) {
+        val context = get<Context>(Context::class.java)
+        PlaybackStreamVariant(
+            audioQuality = Preferences.AUDIO_QUALITY.value,
+            isConnectionMetered =
+                context.getSystemService<ConnectivityManager>()?.isActiveNetworkMetered ?: false,
+            saveDataOnMeteredConnections = Preferences.IS_CONNECTION_METERED.value,
+        )
+    } else {
+        null
+    }
+    val cacheKey = StreamCacheKey( songId, purpose, playbackVariant )
 
     streamCache[cacheKey]?.let { cached ->
-        if( cached.expiresAtMillis - EXPIRY_MARGIN_MS > System.currentTimeMillis() ) {
+        if( isResolvedStreamFresh(cached.expiresAtMillis, System.currentTimeMillis()) ) {
             logger.d { "${purpose.logLabel} stream of $songId is cached (client ${cached.streamClient})" }
             return cached
         }
@@ -255,20 +227,21 @@ private fun getPlayableStream(
 
     return runBlocking( Dispatchers.IO ) {
         // Explicit songs need a PO token on most clients; the hint lets InnerTubeX prefetch it.
-        val isExplicit = runCatching {
+        // Prefer the originating MediaItem: on first play its asynchronous Room upsert may still
+        // be in flight. Database data remains the fallback for restored and legacy queue entries.
+        val isExplicit = explicitPlaybackHintFor( songId ) ?: runCatching {
             Database.songTable.findById( songId ).first()?.isExplicit
         }.getOrNull()
 
         when( purpose ) {
             StreamPurpose.PLAYBACK -> {
-                val context = get<Context>(Context::class.java)
-                val isConnectionMetered =
-                    context.getSystemService<ConnectivityManager>()?.isActiveNetworkMetered ?: false
+                val variant = requireNotNull( playbackVariant )
 
                 InnerTubeXPlayer.playerResponseForPlayback(
                     videoId = songId,
-                    audioQuality = Preferences.AUDIO_QUALITY.value,
-                    isConnectionMetered = isConnectionMetered,
+                    audioQuality = variant.audioQuality,
+                    isConnectionMetered = variant.isConnectionMetered,
+                    saveDataOnMeteredConnections = variant.saveDataOnMeteredConnections,
                     isExplicit = isExplicit,
                 )
             }
@@ -277,13 +250,26 @@ private fun getPlayableStream(
                 videoId = songId,
                 isExplicit = isExplicit,
             )
-        }.getOrElse { throw mapExtractionFailure( it ) }
+        }.getOrElse {
+            throw mapExtractionFailure(
+                error = it,
+                isOffline = !ConnectivityUtils.isAvailable.value,
+            )
+        }
     }.also { data ->
         logger.i {
             "${purpose.logLabel}: client=${data.streamClient}, itag=${data.itag}, " +
                     "bitrate=${data.bitrate}, videoId=$songId"
         }
 
+        // Keep at most one playback variant per song. A preference or metered-network change
+        // therefore causes a miss and atomically replaces the formerly selected URL.
+        if( purpose == StreamPurpose.PLAYBACK ) {
+            streamCache.forEach { (key, value) ->
+                if( key.videoId == songId && key.purpose == StreamPurpose.PLAYBACK && key != cacheKey )
+                    streamCache.remove( key, value )
+            }
+        }
         streamCache[cacheKey] = data
         if( purpose == StreamPurpose.PLAYBACK )
             upsertSongFormat( songId, data )
@@ -360,7 +346,7 @@ private fun getDownloadContentLength(
         .build()
 
     return client.newCall( request ).execute().use { response ->
-        if( response.code == 403 || response.code == 410 || response.code == 416 ) {
+        if( isRejectedStreamHttpStatus(response.code) ) {
             invalidateRejectedDownloadStream( stream.videoId, stream )
             throw IOException( "Download stream was rejected by the CDN (HTTP ${response.code})" )
         }
@@ -386,7 +372,7 @@ private fun invalidateRejectedDownloadStream(
     songId: String,
     stream: InnerTubeXPlayer.PlaybackData,
 ): Boolean {
-    val cacheKey = StreamCacheKey( songId, StreamPurpose.DOWNLOAD )
+    val cacheKey = StreamCacheKey( songId, StreamPurpose.DOWNLOAD, playbackVariant = null )
     if( !streamCache.remove( cacheKey, stream ) ) return false
 
     if( stream.streamClient == "WEB_REMIX" )
@@ -573,7 +559,7 @@ fun Scope.resolveInnertubeDownload( dataSpec: DataSpec ): DataSpec {
 
     // Store a probed length too, so retries do not repeat the probe.
     if( stream !== initiallyResolvedStream )
-        streamCache[StreamCacheKey( songId, StreamPurpose.DOWNLOAD )] = stream
+        streamCache[StreamCacheKey( songId, StreamPurpose.DOWNLOAD, playbackVariant = null )] = stream
 
     // Persist the final, length-complete high-quality format exactly once per resolved variant.
     upsertSongFormat( songId, stream )
@@ -599,9 +585,20 @@ fun Scope.resolveInnertubeDownload( dataSpec: DataSpec ): DataSpec {
  * @return `true` if song's url was cached, and is deleted, `false` otherwise.
  */
 fun clearCachedStreamUrlOf( songId: String ): Boolean {
-    val playbackRemoved = streamCache.remove( StreamCacheKey( songId, StreamPurpose.PLAYBACK ) ) != null
-    val downloadRemoved = streamCache.remove( StreamCacheKey( songId, StreamPurpose.DOWNLOAD ) ) != null
-    return playbackRemoved || downloadRemoved
+    var removed = false
+    streamCache.forEach { (key, value) ->
+        if( key.videoId == songId && streamCache.remove(key, value) ) removed = true
+    }
+    return removed
+}
+
+/** Drop every signed playback URL after stream-selection preferences change. */
+fun clearCachedPlaybackStreamUrls(): Int {
+    var removed = 0
+    streamCache.forEach { (key, value) ->
+        if( key.purpose == StreamPurpose.PLAYBACK && streamCache.remove(key, value) ) removed++
+    }
+    return removed
 }
 
 /**
@@ -610,7 +607,10 @@ fun clearCachedStreamUrlOf( songId: String ): Boolean {
  * @return name of the InnerTube client that produced the rejected url, or `null` if nothing was cached.
  */
 fun invalidateRejectedStreamOf( songId: String ): String? {
-    val playback = streamCache.remove( StreamCacheKey( songId, StreamPurpose.PLAYBACK ) )
-    val download = streamCache.remove( StreamCacheKey( songId, StreamPurpose.DOWNLOAD ) )
-    return playback?.streamClient ?: download?.streamClient
+    var rejectedClient: String? = null
+    streamCache.forEach { (key, value) ->
+        if( key.videoId == songId && streamCache.remove(key, value) )
+            rejectedClient = rejectedClient ?: value.streamClient
+    }
+    return rejectedClient
 }
