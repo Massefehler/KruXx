@@ -1,6 +1,6 @@
-# KruXx 1.0.1 – aktueller IST-Stand
+# KruXx – aktueller IST-Stand
 
-Stand: 03.09.2026 · maßgeblich für den lokalen Entwicklungsstand
+Stand: 04.09.2026 · maßgeblich für den lokalen Entwicklungsstand
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -11,8 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Version | `1.0.1` |
-| Android-Versionscode | `1_000_001` |
+| Öffentlicher Release | `1.0.1` |
+| Öffentlicher Android-Versionscode | `1_000_001` |
+| Nächster Release | `1.0.2` (unveröffentlicht; Build-Version noch nicht umgestellt) |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | API 23 / Android 6.0 |
@@ -32,6 +33,72 @@ Das öffentliche Release-APK wurde vor der Veröffentlichung installiert und kal
 Submodul-Pins und APK-Digest wurden anschließend noch einmal gegen den veröffentlichten Stand
 abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
 
+### Unveröffentlichter Arbeitsstand für v1.0.2
+
+Die folgenden Änderungen sind für `1.0.2` implementiert, gehören aber ausdrücklich
+noch **nicht** zum öffentlichen APK `1.0.1`:
+
+- Die vorhandene Android-Auto-/MediaLibrary-Anbindung wurde gehärtet. Der Bibliothekswurzelknoten ist
+  korrekt als browsbar markiert; Titel, Interpreten, Alben und Playlists liefern stabile,
+  URI-kodierte IDs.
+  Auch IDs mit reservierten Zeichen und ältere bereits ausgegebene Such-/Titel-IDs bleiben auflösbar.
+- Ein in Android Auto ausgewählter Titel startet nun exakt in der sichtbar gewählten Liste und an der
+  richtigen Position. Browse- und Wiedergabereihenfolge sind für Top-Titel, Favoriten, Cache,
+  Downloads, Gerätetitel sowie eigene Playlists vereinheitlicht; ungültige oder inzwischen veraltete
+  Einträge führen nicht mehr fälschlich zum ersten Titel (Index 0).
+- Media3-Suche blockiert keinen Callback-Thread mehr und hält Ergebnisse getrennt pro Suchanfrage in
+  einem begrenzten Cache. Lokale und YTM-Treffer werden zusammengeführt und dedupliziert; Androids
+  Sprachbefehl über `requestMetadata.searchQuery` wird einschließlich leerer Anfrage unterstützt.
+  Suchtexte werden nicht geloggt.
+- `onGetItem`, modernes Paging und die aktuelle dreiparametrige Wiedergabe-Wiederaufnahme sind
+  umgesetzt. Eine leere persistente Queue verursacht keinen Indexzugriff mehr; Metadatenabfragen zur
+  Wiederaufnahme liefern genau einen Eintrag mit Fortschrittsstatus, echte Wiedergabe die volle Queue.
+- Der Handy-Suchbutton, der eine Activity startet, wird Automotive-Controllern nicht mehr angeboten;
+  die native Android-Auto-Suche bleibt verfügbar. Unbekannte Custom Commands melden einen Fehler und
+  der Coroutine-Scope des Callbacks wird beim Dienstende beendet.
+- Die zuvor gegensätzlichen Playlist-Quellen sind vereinheitlicht: Die YTM-Startsektion „From your
+  Library“ wird um noch nicht enthaltene lokale Datenbanklisten ergänzt. Fehlt diese Kontosektion,
+  erscheint ein eigener lokaler Playlist-Abschnitt. Der Bibliotheksreiter lädt bei aktivierter
+  Konto-Synchronisation jetzt `FEmusic_liked_playlists` vollständig einschließlich Fortsetzungen
+  statt nur die unvollständige Library-Landing-Seite. `VL`-Varianten derselben ID werden dedupliziert;
+  der lokale Datensatz behält Editierbarkeit und Metadaten. Ein fehlgeschlagener Refresh löscht die
+  letzte erfolgreiche Kontoantwort nicht mehr.
+- Anmeldung, Abmeldung und der Schalter „Wiedergabelisten synchronisieren“ lösen im Bibliotheksreiter
+  nun selbstständig denselben abbrechbaren Ladepfad aus wie Pull-to-refresh. Bei null sichtbaren
+  Treffern erklärt die Ansicht, ob Suche/Filter, fehlende Anmeldung, ausgeschaltete Synchronisation,
+  eine fehlgeschlagene Kontoabfrage oder eine wirklich leere Bibliothek ursächlich ist. Die früheren
+  Rohdatenausgaben der YTM-Startsektionen wurden entfernt.
+- Die automatische Updateprüfung startet erst bei sichtbarer Oberfläche und nutzbarem Netzwerk,
+  reagiert auf eine später verfügbare Verbindung und erhält beim nächsten Vordergrundstart erneut
+  eine Chance. Vorübergehende Netz-/Serverfehler werden zweimal mit begrenztem Abstand wiederholt;
+  nur ein erfolgreicher, validierter GitHub-Abruf setzt das 24-Stunden-Intervall. Parallele Prüfungen
+  und doppelte Update-Dialoge werden verhindert, die manuelle Prüfung bleibt unabhängig erzwingbar.
+- Die Wiedergabe-Recovery behandelt abgelehnte signierte URLs mit HTTP 403/410/416 sofort, ohne zuvor
+  dieselbe URL nach Media3s Standardabständen erneut anzufragen. Der Explicit-Hinweis aus dem
+  `MediaItem` steht bereits beim allerersten Auflösen zur Verfügung. Playback-URLs sind nach der
+  tatsächlichen Qualitäts-/Netzrichtlinie getrennt und werden bei Änderungen an Audioqualität oder
+  Datensparen invalidiert; der eigenständige High-Quality-Downloadpfad bleibt davon unberührt.
+  Playback- und Download-CDN-Abrufe verwenden eine vom HTTP-Logger befreite Kopie des gemeinsamen
+  OkHttp-Clients. Proxy, DNS und funktionale Interzeptoren bleiben erhalten; Media3 erhält die ersten
+  Streambytes dadurch sofort, statt im Debug-Build auf den vollständig protokollierten und vom CDN
+  gedrosselten Response zu warten.
+
+Die sechs gezielten JVM-/Robolectric-Tests für ID-Roundtrips, leere und zeichenreiche Suchanfragen,
+Alt-ID-Kompatibilität, ungültige IDs und überlaufsicheres Paging sowie zehn Playlist-Merge-Tests,
+zwei Konto-/Sync-Status-, vier Update-Policy- und neun Playback-Policy-Tests sind bestanden. Die
+vollständige KruXx-App-Suite umfasst in diesem Arbeitsstand 88 Tests ohne Fehler oder übersprungene
+Tests; auch `assembleKruxxUniversalProdDebug` und der vollständige Release-Lint ohne neue Befunde sind
+erfolgreich. Die manuelle Kernabnahme der Playlist-Vereinigung war am 04.09.2026 auf einem Samsung
+SM-S931B mit Android 16 erfolgreich: Nach Anmeldung und aktiviertem Sync waren alle erwarteten
+YTM-Listen sowie eine lokale Testliste sichtbar. Der anschließend aus dem finalen Arbeitsstand
+erzeugte Debug-Build wurde per ADB mit erhaltenen App-Daten installiert, startete ohne Crash oder ANR
+und die Playlist-Darstellung wurde auf demselben Gerät erneut als funktionierend bestätigt. Auf
+demselben Gerät wurde außerdem die allgemeine Startverzögerung jedes Online-Titels reproduziert und
+mit dem bereinigten Medientransport behoben: Ein nicht gepufferter Titel wechselte nach 1,713 Sekunden
+in `PLAYING`, ohne Playback-Fehler oder CDN-HTTP-Logger-Ausgabe. Die praktischen Playlist- und
+Playback-Randfälle sowie Android Auto im Desktop Head Unit und anschließend in einem realen Fahrzeug
+bleiben vor der Freigabe Pflicht.
+
 ## 2. Aktueller Funktionsumfang
 
 ### Eigenständigkeit, Updates und Datenschutz
@@ -43,8 +110,10 @@ abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
 - Eine Installation aus der alten Linie `2.2.3-kruxx.x` benötigt einmalig eine manuelle, korrekt
   signierte 1.x-APK (`1.0.0` oder neuer). Paket und Schlüssel bleiben gleich, daher aktualisiert
   Android ohne Datenlöschung; anschließend steht der KruXx-Updater zur Verfügung.
-- Automatische Prüfungen laufen höchstens einmal in 24 Stunden und lassen sich auf „nachfragen“,
-  automatisch oder aus stellen.
+- Automatische Prüfungen laufen nach einem erfolgreichen Abruf höchstens einmal in 24 Stunden und
+  lassen sich auf „nachfragen“, automatisch oder aus stellen. Sie warten im Vordergrund auf eine
+  nutzbare Verbindung und wiederholen vorübergehende Netz-/Serverfehler begrenzt; manuelle Prüfungen
+  umgehen das Intervall.
 - KruXx sendet keine Telemetrie und keinen Absturzbericht. Ein Crashlog wird nur lokal für einen
   ausdrücklich vom Nutzer ausgelösten Export aufbewahrt; der Kreate-CrashReport-Dialog ist im
   KruXx-Flavor deaktiviert.
@@ -63,11 +132,14 @@ abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
   Die Wiedergabetaste startet die gesamte Vorschlagsliste.
 - „Top Artists“ ist antippbar und öffnet die zugehörige YTM-Interpretenseite.
 - Angemeldete Bereiche der Startseite verwenden die aktuelle YTM-Sitzung.
-- Wiedergabelisten unter „From your Library“ und in der Bibliotheksansicht werden ausdrücklich als
-  YTM-Online-Playlists geöffnet. Angemeldete Seite und Fortsetzungen laufen über denselben
-  Metrolist-Client wie Login und Bibliothek; öffentliche/anonyme Listen bleiben beim bisherigen
-  leichten Browse-Modul. Die Einträge werden nicht irrtümlich wie lokale Datenbank-Playlists
-  behandelt.
+- „From your Library“ enthält die von YTM gelieferte Kontosektion plus alle dort noch fehlenden
+  lokalen Datenbanklisten; ohne Kontosektion erscheint ein eigener lokaler Playlist-Abschnitt. Der
+  Bibliotheksreiter vereinigt umgekehrt bei aktivierter Synchronisation die vollständige, paginierte
+  YTM-/YT-Playlist-Bibliothek mit den lokalen Listen. Gleiche Browse-IDs mit und ohne `VL` werden nur
+  einmal angezeigt, wobei der lokale Datensatz editierbar bleibt. Reine Online-Einträge öffnen die
+  angemeldete YTM-Seite samt Fortsetzungen; öffentliche/anonyme Listen bleiben beim bisherigen
+  leichten Browse-Modul. Login- und Sync-Wechsel laden den Kontoanteil automatisch neu; ein leerer
+  Reiter zeigt die konkrete Ursache statt nur einer leeren Fläche.
 - Die Interpreten-Synchronisation toleriert YTM-Einträge ohne Thumbnail-Liste. Online- und lokale
   Einträge werden anhand der ID zusammengeführt, ohne Dubletten angezeigt und anschließend gemäß der
   gewählten Sortierung geordnet. Bei „Titel / aufsteigend“ ist die Gesamtliste alphabetisch.
@@ -90,6 +162,13 @@ abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
 
 - Audio-Streams werden über InnerTubeX aufgelöst. Abgelaufene oder abgelehnte URLs sowie unvereinbare
   Cache-Formate werden begrenzt neu aufgelöst, ohne einen Song an Position null festzuhalten.
+- HTTP 403/410/416 lösen sofort die frische Auflösung aus. Beim ersten Start eines expliziten Titels
+  kommt dessen Hinweis direkt aus dem `MediaItem`; ein noch laufender Datenbank-Upsert ist nicht mehr
+  relevant. Ein Wechsel von Audioqualität oder Datensparrichtlinie verwirft alte Playback-URLs,
+  während Downloads weiterhin unabhängig in höchster kompatibler Qualität auflösen.
+- Für den eigentlichen CDN-Transport werden `HttpLoggingInterceptor` aus den Application- und
+  Network-Interceptor-Ketten entfernt. Das verhindert im Debug-Build das vollständige Puffern des
+  gedrosselten Responses vor Media3 und schützt zugleich signierte Medien-URLs vor HTTP-Logs.
 - Direkt ausgewählte YTM-Treffer vom Typ offizielles Musikvideo (`OMV`) oder Nutzer-Video (`UGC`)
   öffnen einen eingebetteten 16:9-Player. Art Tracks (`ATV`) mit Standbild und unbekannte Typen bleiben
   in der ressourcenschonenden Audiowiedergabe.
@@ -159,7 +238,7 @@ abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
 | App-Start | Von ADB bestätigter Kaltstart nach Installation; zehn wechselnde Splash-Frames, Übergang zur Startseite, laufender Prozess und kein `AndroidRuntime`-/Crash-Eintrag | auf Gerät bestanden |
 | Breiter Nutzertest | Navigation und zentrale Funktionen auf dem Zielgerät ohne beobachtete Fehler; Downloads ausdrücklich mit sehr hohem Durchsatz bestätigt | auf Gerät bestanden |
 | Reguläre Konto-Playlists | Fünf Listen geöffnet, darunter 4 sowie 52 nutzbare Songs (54 YTM-Einträge einschließlich zwei nicht abspielbarer); Titel und vorhandene Songzeilen sichtbar, kein 401/`UNAUTHENTICATED` | auf Gerät bestanden |
-| „Neue Folgen“ (`RDPN`) | Authentifizierter Browse antwortet, verwendet aber ein Podcast-Multirow-Format außerhalb des Musik-Playlist-Parsers | separater Parserpunkt offen |
+| „Neue Folgen“ (`RDPN`) | Authentifizierter Browse antwortet, verwendet aber ein Podcast-Multirow-Format außerhalb des Musik-Playlist-Parsers | für den künftigen Podcast-Bereich vorgemerkt; kein isolierter 1.0.2-Parserpatch |
 | Interpreten aktualisieren | zweimal Pull-to-refresh, kein rotes Fehlerbanner | auf Gerät bestanden |
 | Interpreten sortieren | neun sichtbare Einträge bei „Titel / aufsteigend“ alphabetisch | auf Gerät bestanden |
 | Suche/Sprache/Video | Parser-, Kontext-, Fallback- und Klassifikations-Unit-Tests | automatisiert bestanden; im allgemeinen Gerätetest keine Auffälligkeit gemeldet |
@@ -189,20 +268,42 @@ und Dateigröße wurden nach der Veröffentlichung verifiziert.
 
 ## 4. Bekannte Grenzen und Freigabekriterien
 
-- **Für den nächsten Release vorgemerkt:** Auf einem zweiten Gerät erschien nach frischer
-  Installation von `1.0.0` und anschließendem App-Start kein automatischer Hinweis auf das bereits
-  veröffentlichte `1.0.1`. Der Startaufruf und der Standardmodus „Nachfragen“ sind im Quellstand
-  vorhanden; die konkrete Laufzeitursache ist daher noch offen. Der automatische Pfad prüft das
-  Netzwerk nur einmal unmittelbar beim Start, wiederholt eine zu frühe oder fehlgeschlagene Prüfung
-  nicht und meldet Fehler absichtlich nicht in der Oberfläche. Außerdem können das 24-Stunden-
-  Intervall und wiederhergestellte Einstellungen eine Prüfung überspringen. Vor dem nächsten Release
-  muss dieser Pfad robuster werden und praktisch als Upgrade von der vorherigen Version geprüft
-  werden, ohne „Aktualisieren“ anzutippen.
+- **Android Auto ist im unveröffentlichten Arbeitsstand technisch überarbeitet, aber noch nicht
+  praktisch freigegeben:** Vor dem nächsten Release müssen Browse-Baum, Auswahlposition und Queue,
+  Sprachsuche (konkret und leer), Media-Buttons sowie Wiederaufnahme im Desktop Head Unit und in einem
+  realen Fahrzeug geprüft werden. Bis dahin ist „perfekte Steuerung“ kein bestätigter Status.
+- **Die gemeldete Playlist-Lücke ist mit dem betroffenen Konto und dem finalen Arbeitsstand praktisch
+  bestätigt behoben:** Auf einem Samsung SM-S931B mit Android 16 lud der Debug-Build nach Anmeldung
+  und aktiviertem Sync alle erwarteten YTM-Listen; eine anschließend angelegte lokale Testliste
+  erschien ebenfalls. Nach Installation des finalen Debug-Artefakts mit Datenerhalt wurden beide
+  Quellen erneut als funktionierend bestätigt. Zehn automatisierte Merge-Tests decken außerdem
+  ID-Dubletten, lokale Priorität, reine Cloud-/Local-Fälle, Songzahlangaben und Sortierung ab. Vor dem
+  Release bleiben insbesondere Filter, automatische Login-/Sync-Wechsel und Fehler-Refresh praktisch
+  offen. Der Kontoschalter
+  „Wiedergabelisten synchronisieren“ bleibt für den YTM-Anteil des Bibliotheksreiters maßgeblich.
+- **Die Wiedergabe-Härtung ist technisch und automatisiert abgeschlossen; der allgemeine Online-
+  Erststart ist auf dem Gerät bestanden:** Neun Policy-Tests sichern die sofortige 403/410/416-
+  Recovery, verschachtelte HTTP-Fehler, Fehlerklassifikation, Ablaufgrenze, Explicit-Hint und die
+  Trennung des Media-Transports vom HTTP-Logger. Ein nicht gepufferter Online-Titel erreichte auf dem
+  Samsung-Testgerät nach 1,713 Sekunden `PLAYING`. Vor der Freigabe bleiben der explizite Erststart,
+  Qualitäts-/Datensparwechsel, Offline-Cache und ein gefilterter Recovery-Loglauf praktisch zu prüfen.
+- **Die automatische Updateprüfung ist technisch gehärtet, aber noch praktisch freizugeben:** Auf
+  einem zweiten Gerät erschien nach frischer Installation von `1.0.0` und anschließendem App-Start
+  kein automatischer Hinweis auf das bereits
+  veröffentlichte `1.0.1`. Der unveröffentlichte Stand behebt die dabei erkannten Schwächen:
+  foreground- und netzgebundener Start, erneuter Versuch nach Netzrückkehr beziehungsweise neuem
+  Vordergrundstart, zwei begrenzte Retries für vorübergehende Fehler, keine doppelten Dialoge und ein
+  24-Stunden-Zeitstempel erst nach erfolgreicher Antwortprüfung. Vor dem nächsten Release bleibt der
+  echte Upgrade-Test von der vorherigen signierten Version Pflicht – einmal online beim Kaltstart und
+  einmal offline gestartet mit anschließend hergestellter Verbindung, jeweils ohne „Jetzt
+  überprüfen“ anzutippen. Debug-Builds deaktivieren den Self-Updater und können diesen Nachweis nicht
+  ersetzen.
 - YTM, GitHub, Metadaten- und Liedtextdienste sind externe Dienste. Antwortformate, regionale
   Verfügbarkeit, Kontoversuche und CDN-Tempo können sich ohne App-Update ändern.
 - Die Podcast-Autoplaylist „Neue Folgen“ (`RDPN`) ist keine reguläre Musik-Playlist. Ihr
-  Multirow-Antwortformat wird vom derzeitigen Playlist-Parser noch nicht abgebildet; dieser offene
-  Sonderfall ist unabhängig von der jetzt geprüften Konto-Authentifizierung.
+  Multirow-Antwortformat wird vom derzeitigen Playlist-Parser nicht abgebildet. Sie soll nicht als
+  Einzelfall in den Musik-Playlistpfad gedrückt, sondern später Bestandteil eines eigenständigen
+  Podcast-Bereichs mit Episodenstatus und Wiederaufnahme werden.
 - Die Spracheingabe fehlt auf Android 11 und älter sowie auf Geräten ohne lokalen Erkenner/Sprachmodell.
 - Ein erkannter OMV-/UGC-Typ garantiert keine Einbettung; Rechteinhaber, Region, Altersschutz oder
   WebView können Video verhindern. Dann ist Audio der beabsichtigte Rückfall.
