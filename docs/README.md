@@ -1,6 +1,6 @@
 # KruXx-Dokumentation
 
-Stand: 04.09.2026 · öffentlicher Release `1.0.1` plus unveröffentlichter Kandidat `1.0.2`
+Stand: 04.09.2026 · öffentlicher Release `1.0.2`
 
 Diese Übersicht legt fest, welche Dokumente den aktuellen KruXx-Stand beschreiben und welche Dateien
 bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
@@ -9,7 +9,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 
 | Dokument | Zweck |
 |---|---|
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-Status von KruXx 1.0.1 und davon getrennter Release-Kandidat 1.0.2 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx 1.0.2 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`../README.md`](../README.md) | Öffentliche Projektübersicht, Installation, Kernfunktionen und Einstieg in den Build |
 | [`../NOTICE.md`](../NOTICE.md) | Herkunft, Lizenzen, Abgrenzung und Danksagungen |

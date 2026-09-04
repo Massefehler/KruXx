@@ -8,17 +8,13 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-The current stable release is KruXx `1.0.1` (`versionCode 1000001`, Android 6.0+).
-Its unit tests, full release lint, signed release build, broad on-device acceptance test and the
-installation/cold-start check of the exact archived APK have passed. The signed APK, source,
-submodule pins and matching tag are published in the
-[KruXx 1.0.1 release](https://github.com/Massefehler/KruXx/releases/tag/v1.0.1). The exact
-implementation and verification status is recorded in the
-[KruXx status report](docs/KRUXX-IST-STAND.md).
-
-The `main` branch currently contains the unpublished KruXx `1.0.2` release candidate
-(`versionCode 1000002`). Its scope and remaining practical release gates are tracked separately
-from the public `1.0.1` release in the status report; its immutable in-app notes are available in
+The current stable release is KruXx `1.0.2` (`versionCode 1000002`, Android 6.0+).
+Its 146 unit tests, full release lint, signed release build and in-place upgrade/cold-start check of
+the exact archived APK have passed. The signed APK, source, submodule pins and matching tag are
+published in the
+[KruXx 1.0.2 release](https://github.com/Massefehler/KruXx/releases/tag/v1.0.2). The exact
+implementation, verification status and remaining extended device checks are recorded in the
+[KruXx status report](docs/KRUXX-IST-STAND.md); the immutable in-app notes are available in
 [`docs/changelogs/kruxx/1.0.2.txt`](docs/changelogs/kruxx/1.0.2.txt).
 
 ## Install and update

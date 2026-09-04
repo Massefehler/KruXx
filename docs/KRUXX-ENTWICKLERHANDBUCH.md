@@ -1,14 +1,14 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 04.09.2026 · öffentlicher Release KruXx `1.0.1` plus unveröffentlichter Release-Kandidat `1.0.2` ·
+Stand: 04.09.2026 · öffentlicher Release KruXx `1.0.2` ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx 1.0.1 ist derzeit ein lokal vollständig getesteter, gelinteter,
+[`README.md`](README.md). KruXx 1.0.2 ist derzeit ein lokal vollständig getesteter, gelinteter,
 signierter und einschließlich des exakt archivierten APKs auf Gerät geprüfter öffentlicher Release.
 Der freigegebene Quellstand, beide Submodul-Pins, Tag und APK sind unter
-<https://github.com/Massefehler/KruXx/releases/tag/v1.0.1> veröffentlicht.
+<https://github.com/Massefehler/KruXx/releases/tag/v1.0.2> veröffentlicht.
 
 KruXx ist ein eigenständiger, öffentlicher Fork von
 [Kreate](https://github.com/knighthat/Kreate) (RiMusic/ViMusic-Linie). Quellcode und Releases liegen
@@ -798,9 +798,9 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
 | Track ist nachweislich auf YTM, fehlt aber unter „Titel“ | YTM sortiert ihn nur als Video/UGC ein; Region/Konto/Restriktion weicht ab; Parser kannte den Endpunkt nicht | Seit 2.2.3-kruxx.5 werden Titel+Videos zusammengeführt, App-Sprache/-Region und Login genutzt sowie weitere Endpunktformen erkannt. Bleibt er weg: YTM-URL/`videoId` mit beiden Kontomodi prüfen |
 | „Vorschläge“ zeigt nur einen anders großen Titel und dauerhaft einen gestrichelten Kreis | Nur der Seed war vorhanden; die alte Darstellung reservierte keine normalen Song-Zeilen oder der Radio-Aufruf scheiterte | Seit 1.0.1: Seed + deduplizierte Radio-/Related-Ergebnisse, bis zu 18 Titel in 1–3 normalen Reihen; Loader nur bei höchstens einem Ergebnis. Bei erneutem Auftreten Log-Tag `HomeQuickPicks` und `Innertube.radio()` prüfen (§4.5) |
 | „Top Artists“ reagiert nicht auf Tippen | Rangzeile hatte keine Navigation | Seit 1.0.1 navigiert die ganze Zeile über `NavRoutes.YT_ARTIST`; bei erneutem Auftreten Artist-ID und überlagernde Modifier prüfen (§4.5) |
-| Android Auto zeigt eine leere Bibliothek, startet einen anderen Titel oder nur einen einzelnen Titel statt der gewählten Liste | Root/Leaf war nicht browsbar beziehungsweise Media-ID, Suchergebnis und Wiedergabe-Queue wurden unterschiedlich interpretiert | Ab dem unveröffentlichten Stand vom 04.09.2026 zentralisieren `MediaLibraryId` und `loadSongsForParent` ID-Auflösung, Reihenfolge und Startindex (§4.7). Im DHU Parent-/Leaf-ID und `onSetMediaItems` prüfen; Suchtexte oder Kontodaten nicht loggen |
-| Automatischer Updatehinweis erscheint nicht | Debug-Build (Self-Updater absichtlich aus), Modus deaktiviert, noch kein validiertes Netz oder erfolgreicher Abruf liegt weniger als 24 Stunden zurück | Mit signiertem Release-Kandidaten prüfen. Der unveröffentlichte Stand wartet im Vordergrund auf Netz, reagiert auf Netzrückkehr, wiederholt transiente Fehler begrenzt und speichert das Intervall erst nach erfolgreicher Validierung. Bleibt der Hinweis aus: Modus, `last_successful_check` und Log-Tag `KruXxUpdater` prüfen, keine URL-/Kontogeheimnisse kopieren (§3.1, §7.3 Nr. 20) |
-| „From your Library“ zeigt nur YTM-/YT-Listen, im Reiter „Wiedergabelisten“ fehlen dagegen alle Konto-Listen | Die Startseite zeigte eine reine YTM-Home-Sektion; der Reiter kombinierte Room mit einem einmaligen, für diesen Zweck falschen `FEmusic_library_landing`-Abruf | Ab dem unveröffentlichten Stand vom 04.09.2026 ergänzt Home fehlende lokale Listen und der Reiter lädt `FEmusic_liked_playlists` samt Continuations. `VL`-IDs werden dedupliziert; Login-/Sync-Wechsel lösen automatisch neu aus. Der eingeblendete Leertext unterscheidet Anmeldung, Sync-Schalter und Abruffehler (§4.5) |
+| Android Auto zeigt eine leere Bibliothek, startet einen anderen Titel oder nur einen einzelnen Titel statt der gewählten Liste | Root/Leaf war nicht browsbar beziehungsweise Media-ID, Suchergebnis und Wiedergabe-Queue wurden unterschiedlich interpretiert | Seit 1.0.2 zentralisieren `MediaLibraryId` und `loadSongsForParent` ID-Auflösung, Reihenfolge und Startindex (§4.7). Im DHU Parent-/Leaf-ID und `onSetMediaItems` prüfen; Suchtexte oder Kontodaten nicht loggen |
+| Automatischer Updatehinweis erscheint nicht | Debug-Build (Self-Updater absichtlich aus), Modus deaktiviert, noch kein validiertes Netz oder erfolgreicher Abruf liegt weniger als 24 Stunden zurück | Mit signiertem Release-Build prüfen. Seit 1.0.2 wartet KruXx im Vordergrund auf Netz, reagiert auf Netzrückkehr, wiederholt transiente Fehler begrenzt und speichert das Intervall erst nach erfolgreicher Validierung. Bleibt der Hinweis aus: Modus, `last_successful_check` und Log-Tag `KruXxUpdater` prüfen, keine URL-/Kontogeheimnisse kopieren (§3.1, §7.3 Nr. 20) |
+| „From your Library“ zeigt nur YTM-/YT-Listen, im Reiter „Wiedergabelisten“ fehlen dagegen alle Konto-Listen | Die Startseite zeigte eine reine YTM-Home-Sektion; der Reiter kombinierte Room mit einem einmaligen, für diesen Zweck falschen `FEmusic_library_landing`-Abruf | Seit 1.0.2 ergänzt Home fehlende lokale Listen und der Reiter lädt `FEmusic_liked_playlists` samt Continuations. `VL`-IDs werden dedupliziert; Login-/Sync-Wechsel lösen automatisch neu aus. Der eingeblendete Leertext unterscheidet Anmeldung, Sync-Schalter und Abruffehler (§4.5) |
 | Von mehreren YTM-Playlists lädt nur eine; die übrigen öffnen leer oder melden HTTP 401 | Synchronisierte Konto-Playlist wurde als lokale DB-ID behandelt oder der angemeldete Abruf lief fälschlich über `me.knighthat.innertube`. Enthaltene Videos/`mp4` verhindern nicht das Laden der Playlistseite | Seit 1.0.1: Online-ID `-1`, `isYoutubePlaylist=true`; angemeldete Seite samt Continuation über Metrolists `YouTube.playlist()`, anonyme Listen über `me.knighthat.innertube`. Bleibt eine einzelne Liste leer: dieselbe Playlist im YTM-Konto prüfen und normalisierte Browse-ID/Session untersuchen (§4.5) |
 | Interpreten sind sichtbar, Pull-to-refresh zeigt trotzdem das rote Banner „Synchronisation … fehlgeschlagen“ | Ein YTM-Eintrag ohne `thumbnail.thumbnails` ließ die gesamte neue Antwort beim Deserialisieren scheitern; sichtbar blieb die lokale/alte Liste | Seit 1.0.1 wird die Thumbnail-Liste optional als leer behandelt. Das Banner darf nur bei echtem Browse-/Parserfehler kommen; Log-Tag `HomeArtists` prüfen (§4.5) |
 | Interpreten sind nach Aktualisierung nicht mehr alphabetisch | Online- und lokal bereits sortierte Listen wurden erst danach aneinandergehängt | Seit 1.0.1 wird nach dem Merge global sortiert und dedupliziert. In der Oberfläche „Titel / aufsteigend“ wählen; `DATE_ADDED` und `RANDOM` sind bewusst nicht alphabetisch (§4.5) |
@@ -995,22 +995,22 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 
 ## 9. Offene Punkte / Ideen
 
-- **1.0.2 – Android Auto praktisch freigeben:** Browse-/Queue-/Such-/Resumption-Logik ist
+- **Nachtest zu 1.0.2 – Android Auto praktisch abnehmen:** Browse-/Queue-/Such-/Resumption-Logik ist
   im Arbeitsstand vom 04.09.2026 überarbeitet, durch sechs gezielte ID-/Paging-Tests abgesichert und
   zusammen mit allen 88 KruXx-App-Tests sowie dem Debug-APK erfolgreich gebaut. Offen bleibt die
   vollständige Matrix aus §7.3 im Desktop Head Unit und danach in einem realen Fahrzeug. Erst wenn
   Auswahlposition, Vor/Zurück, Sprachsuche, Custom Controls, Wiederverbinden und leere persistente
   Queue dort fehlerfrei sind, darf die Steuerung als freigegeben gelten.
-- **1.0.2 – automatische Updateprüfung praktisch freigeben:** Ein Praxistest auf einem
+- **Nachtest zu 1.0.2 – automatische Updateprüfung praktisch abnehmen:** Ein Praxistest auf einem
   zweiten Gerät zeigte nach frischer Installation von `1.0.0` keinen automatischen Hinweis auf das bereits
-  veröffentlichte `1.0.1`. Der unveröffentlichte Pfad ist inzwischen foreground-/netzgebunden,
+  veröffentlichte `1.0.1`. Seit 1.0.2 ist der Pfad foreground-/netzgebunden,
   reagiert auf Netzrückkehr und neue Vordergrundstarts, wiederholt transiente Fehler zweimal,
   dedupliziert Job/Dialog und setzt das 24-Stunden-Intervall erst nach erfolgreicher
   Releasevalidierung. Vier Policy-Tests sichern Intervallgrenze, korrigierte Systemzeit, Retrybudget
-  und HTTP-Klassifikation. Offen bleibt der echte Upgrade-Test vom vorherigen Release zum Kandidaten
+  und HTTP-Klassifikation. Offen bleibt der echte Erkennungstest vom vorherigen Release zu 1.0.2
   aus §7.3 Nr. 20. Er muss Online-Kaltstart, Offline→Online, Vordergrundwechsel, manuellen Bypass und
   den vollständigen verifizierten Installationspfad abdecken.
-- **1.0.2 – Wiedergabe-Härtung praktisch abnehmen:** Die technische Umsetzung ist abgeschlossen:
+- **Nachtest zu 1.0.2 – Wiedergabe-Härtung breiter abnehmen:** Die technische Umsetzung ist abgeschlossen:
   HTTP 403/410/416 umgehen die Wiederholung derselben signierten URL, der Explicit-Hint steht schon
   beim ersten Auflösen bereit und Änderungen an Qualität/Datensparen invalidieren den Playback-URL-
   Cache. Der Medientransport entfernt HTTP-Logger, ohne funktionale Interzeptoren zu verlieren. Neun
@@ -1019,9 +1019,9 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
   beobachtete Stillstand bei Position null ist auf einem Samsung SM-S931B mit Android 16 reproduziert
   und behoben; ein nicht gepufferter Online-Titel startete im finalen Debug-Build nach 1,713 Sekunden.
   Offen bleibt die breitere Geräte-Matrix aus §7.3 Nr. 17–18.
-- **1.0.2 – Playlist-Randfälle abnehmen:** Der gemeldete Kernfehler ist auf dem Zielgerät behoben.
+- **Nachtest zu 1.0.2 – Playlist-Randfälle abnehmen:** Der gemeldete Kernfehler ist auf dem Zielgerät behoben.
   Zehn Merge-Tests sichern unter anderem VL-/Nicht-VL-Dubletten, lokale Metadatenpriorität, reine
-  Cloud-/Local-Fälle, lokalisierte Songzahlen und Sortierung. Vor Freigabe bleiben Filter,
+  Cloud-/Local-Fälle, lokalisierte Songzahlen und Sortierung. Als Nachtests bleiben Filter,
   Login-/Sync-Wechsel und ein fehlgeschlagener Refresh mit Erhalt der letzten erfolgreichen
   Kontoantwort praktisch zu prüfen.
 - **Nach 1.0.2 – eigenständiger Podcast-Bereich statt `RDPN`-Einzelfix:** KruXx besitzt bereits

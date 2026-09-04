@@ -11,9 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | `1.0.1` |
-| Öffentlicher Android-Versionscode | `1_000_001` |
-| Nächster Release | `1.0.2` (unveröffentlichter Release-Kandidat; Build-Version `1.0.2` / `1_000_002`) |
+| Öffentlicher Release | `1.0.2` |
+| Öffentlicher Android-Versionscode | `1_000_002` |
+| Nächster Release | noch nicht festgelegt |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | API 23 / Android 6.0 |
@@ -28,15 +28,15 @@ keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, 
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
 
-Der Stand wurde vollständig getestet, gelintet, gebaut, signiert und als `v1.0.1` veröffentlicht.
-Das öffentliche Release-APK wurde vor der Veröffentlichung installiert und kalt gestartet; Tag,
-Submodul-Pins und APK-Digest wurden anschließend noch einmal gegen den veröffentlichten Stand
-abgeglichen. Dadurch bleibt die APK eindeutig ihrem Quellcode zugeordnet.
+Der Stand wurde vollständig automatisiert getestet, gelintet, gebaut, signiert und als `v1.0.2`
+veröffentlicht. Das exakt archivierte Release-APK wurde als Upgrade über `1.0.1` installiert und
+gestartet; die App-Daten blieben erhalten. Tag, Submodul-Pins, APK-Größe und APK-Digest wurden
+anschließend noch einmal gegen den veröffentlichten Stand abgeglichen. Dadurch bleibt die APK
+eindeutig ihrem Quellcode zugeordnet.
 
-### Unveröffentlichter Release-Kandidat für v1.0.2
+### In v1.0.2 veröffentlichte Änderungen
 
-Die folgenden Änderungen sind für `1.0.2` implementiert, gehören aber ausdrücklich
-noch **nicht** zum öffentlichen APK `1.0.1`:
+Die folgenden Änderungen gehören zum öffentlichen APK `1.0.2`:
 
 - Die vorhandene Android-Auto-/MediaLibrary-Anbindung wurde gehärtet. Der Bibliothekswurzelknoten ist
   korrekt als browsbar markiert; Titel, Interpreten, Alben und Playlists liefern stabile,
@@ -86,7 +86,7 @@ noch **nicht** zum öffentlichen APK `1.0.1`:
 Die sechs gezielten JVM-/Robolectric-Tests für ID-Roundtrips, leere und zeichenreiche Suchanfragen,
 Alt-ID-Kompatibilität, ungültige IDs und überlaufsicheres Paging sowie zehn Playlist-Merge-Tests,
 zwei Konto-/Sync-Status-, vier Update-Policy- und neun Playback-Policy-Tests sind bestanden. Die
-vollständige KruXx-App-Suite umfasst in diesem Arbeitsstand 88 Tests ohne Fehler oder übersprungene
+vollständige KruXx-App-Suite umfasst 88 Tests ohne Fehler oder übersprungene
 Tests; auch `assembleKruxxUniversalProdDebug` und der vollständige Release-Lint ohne neue Befunde sind
 erfolgreich. Die manuelle Kernabnahme der Playlist-Vereinigung war am 04.09.2026 auf einem Samsung
 SM-S931B mit Android 16 erfolgreich: Nach Anmeldung und aktiviertem Sync waren alle erwarteten
@@ -97,7 +97,7 @@ demselben Gerät wurde außerdem die allgemeine Startverzögerung jedes Online-T
 mit dem bereinigten Medientransport behoben: Ein nicht gepufferter Titel wechselte nach 1,713 Sekunden
 in `PLAYING`, ohne Playback-Fehler oder CDN-HTTP-Logger-Ausgabe. Die praktischen Playlist- und
 Playback-Randfälle sowie Android Auto im Desktop Head Unit und anschließend in einem realen Fahrzeug
-bleiben vor der Freigabe Pflicht.
+bleiben als ausdrücklich dokumentierte Nachtests offen.
 
 ## 2. Aktueller Funktionsumfang
 
@@ -225,17 +225,17 @@ bleiben vor der Freigabe Pflicht.
 - Das Icon muss nach jeder Änderung des Quellbilds erneut generiert und anschließend in einer neu
   gebauten APK auf Gerät, Launcher, Benachrichtigung und Android TV geprüft werden.
 
-## 3. Prüfstand vom 03.09.2026
+## 3. Prüfstand vom 04.09.2026
 
 | Bereich | Nachweis | Status |
 |---|---|---|
-| KruXx-App-Unit-Tests | 57 Tests, 0 Fehler, 0 übersprungen | bestanden |
+| KruXx-App-Unit-Tests | 88 Tests, 0 Fehler, 0 übersprungen | bestanden |
 | `modules/innertube` | 58 Tests einschließlich aktueller Charts-Antwort und Auth-Header-Weitergabe für Browse/Next, 0 Fehler | bestanden |
 | `modules/metrolist` | Root-Integration kompiliert; das Modul besitzt in diesem Stand keine eigenen Tests (`NO-SOURCE`) | bestanden |
 | Release-Lint | vollständiges `lintKruxxUniversalProdRelease`; keine neuen Befunde gegenüber der versionierten Baseline | bestanden |
-| Release-APK | Paket `de.kruxx.music`, Version `1.0.1`/`1000001`, erwartete Signatur | geprüft |
-| Update-Installation | Exakt archiviertes Release-APK über bestehende KruXx-Installation per ADB, App-Daten erhalten | bestanden |
-| App-Start | Von ADB bestätigter Kaltstart nach Installation; zehn wechselnde Splash-Frames, Übergang zur Startseite, laufender Prozess und kein `AndroidRuntime`-/Crash-Eintrag | auf Gerät bestanden |
+| Release-APK | Paket `de.kruxx.music`, Version `1.0.2`/`1000002`, erwartete Signatur und Quellrevision `d679b4ccf8c75024032835437bbcd1af70e97c9f` | geprüft |
+| Update-Installation | Exakt archiviertes 1.0.2-Release-APK per ADB über 1.0.1 installiert, App-Daten erhalten | bestanden |
+| App-Start | Von ADB bestätigter Start nach Installation; laufender Vordergrundprozess und kein neuer Crash-/ANR-Eintrag | auf Gerät bestanden |
 | Breiter Nutzertest | Navigation und zentrale Funktionen auf dem Zielgerät ohne beobachtete Fehler; Downloads ausdrücklich mit sehr hohem Durchsatz bestätigt | auf Gerät bestanden |
 | Reguläre Konto-Playlists | Fünf Listen geöffnet, darunter 4 sowie 52 nutzbare Songs (54 YTM-Einträge einschließlich zwei nicht abspielbarer); Titel und vorhandene Songzeilen sichtbar, kein 401/`UNAUTHENTICATED` | auf Gerät bestanden |
 | „Neue Folgen“ (`RDPN`) | Authentifizierter Browse antwortet, verwendet aber ein Podcast-Multirow-Format außerhalb des Musik-Playlist-Parsers | für den künftigen Podcast-Bereich vorgemerkt; kein isolierter 1.0.2-Parserpatch |
@@ -247,7 +247,7 @@ bleiben vor der Freigabe Pflicht.
 | Benachrichtigungsschutz | Lifecycle-/Wiederherstellungslogik und Hauptthread-Fix geprüft | kein bekannter Fehler; Fremd-App-Ton nicht separat protokolliert |
 | Stereo | Kein Downmix im Audiopfad; Decoderdiagnose vorhanden | kein bekannter Fehler; Links-/Rechts-Hörtest nicht separat protokolliert |
 
-Die finalen Dateien heißen `KruXx-1.0.1-release.apk` und `KruXx-1.0.1-debug.apk` und werden unter
+Die finalen Dateien heißen `KruXx-1.0.2-release.apk` und `KruXx-1.0.2-debug.apk` und werden unter
 `/home/kruxx/Schreibtisch/Android/Kreate-APKs/` archiviert. Ein normaler Lauf von
 `scripts/build-local-release.sh kruxx` erzeugt beide aus demselben Quellbaum, signiert das Release
 mit v1/v2/v3 und prüft Paket, Version, Zertifikat sowie die von AGP in
@@ -256,20 +256,21 @@ mit v1/v2/v3 und prüft Paket, Version, Zertifikat sowie die von AGP in
 Der finale SHA-256-Wert wird bewusst **erst nach dem Build aus dem endgültigen sauberen
 Release-Commit** in der GitHub-Release-Beschreibung und als GitHub-Asset-Digest festgehalten: Die
 eingebettete Git-Revision ändert das APK bei jedem neuen Commit, deshalb könnte ein Hash im selben
-Commit nie sich selbst korrekt beschreiben. Der Release-Kandidat erfüllte sämtliche Metadaten- und
-Signaturprüfungen. Das exakt archivierte Release-APK wurde anschließend per ADB als Update
-installiert und kalt gestartet; App-Daten blieben erhalten, die Splash-Animation wechselte sichtbar
-durch ihre Frames, die Startseite erschien und der Crash-Logfilter blieb leer.
+Commit nie sich selbst korrekt beschreiben. Der für 1.0.2 gebaute Release-Kandidat erfüllte sämtliche
+Metadaten- und Signaturprüfungen. Das exakt archivierte Release-APK wurde anschließend per ADB als
+Update über 1.0.1 installiert und gestartet; App-Daten blieben erhalten, `MainActivity` lief im
+Vordergrund und der neue Crash-/ANR-Logfilter blieb leer.
 
-Der öffentliche [GitHub-Release v1.0.1](https://github.com/Massefehler/KruXx/releases/tag/v1.0.1)
-zeigt auf den geprüften Commit `c3f478dae45bb0cd69c66d0c53cd7ff3fd32e9dd`. Sein einziges
-APK-Asset ist bytegleich mit dem lokal getesteten Archiv; GitHub-Asset-Digest, erneuter Download
-und Dateigröße wurden nach der Veröffentlichung verifiziert.
+Der öffentliche [GitHub-Release v1.0.2](https://github.com/Massefehler/KruXx/releases/tag/v1.0.2)
+zeigt auf den geprüften Commit `d679b4ccf8c75024032835437bbcd1af70e97c9f`. Sein einziges
+APK-Asset ist bytegleich mit dem lokal getesteten Archiv; GitHub-Asset-Digest
+`sha256:ed142f16c17f14c815f8882163fed7119eb3aab233e87655e59e4feb5a0f231d`, erneuter Download
+und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifiziert.
 
 ## 4. Bekannte Grenzen und Freigabekriterien
 
-- **Android Auto ist im unveröffentlichten Arbeitsstand technisch überarbeitet, aber noch nicht
-  praktisch freigegeben:** Vor dem nächsten Release müssen Browse-Baum, Auswahlposition und Queue,
+- **Android Auto ist seit 1.0.2 technisch überarbeitet, aber noch nicht vollständig praktisch
+  abgenommen:** Als Nachtest müssen Browse-Baum, Auswahlposition und Queue,
   Sprachsuche (konkret und leer), Media-Buttons sowie Wiederaufnahme im Desktop Head Unit und in einem
   realen Fahrzeug geprüft werden. Bis dahin ist „perfekte Steuerung“ kein bestätigter Status.
 - **Die gemeldete Playlist-Lücke ist mit dem betroffenen Konto und dem finalen Arbeitsstand praktisch
@@ -277,24 +278,25 @@ und Dateigröße wurden nach der Veröffentlichung verifiziert.
   und aktiviertem Sync alle erwarteten YTM-Listen; eine anschließend angelegte lokale Testliste
   erschien ebenfalls. Nach Installation des finalen Debug-Artefakts mit Datenerhalt wurden beide
   Quellen erneut als funktionierend bestätigt. Zehn automatisierte Merge-Tests decken außerdem
-  ID-Dubletten, lokale Priorität, reine Cloud-/Local-Fälle, Songzahlangaben und Sortierung ab. Vor dem
-  Release bleiben insbesondere Filter, automatische Login-/Sync-Wechsel und Fehler-Refresh praktisch
-  offen. Der Kontoschalter
+  ID-Dubletten, lokale Priorität, reine Cloud-/Local-Fälle, Songzahlangaben und Sortierung ab. Als
+  Nachtests bleiben insbesondere Filter, automatische Login-/Sync-Wechsel und Fehler-Refresh offen.
+  Der Kontoschalter
   „Wiedergabelisten synchronisieren“ bleibt für den YTM-Anteil des Bibliotheksreiters maßgeblich.
 - **Die Wiedergabe-Härtung ist technisch und automatisiert abgeschlossen; der allgemeine Online-
   Erststart ist auf dem Gerät bestanden:** Neun Policy-Tests sichern die sofortige 403/410/416-
   Recovery, verschachtelte HTTP-Fehler, Fehlerklassifikation, Ablaufgrenze, Explicit-Hint und die
   Trennung des Media-Transports vom HTTP-Logger. Ein nicht gepufferter Online-Titel erreichte auf dem
-  Samsung-Testgerät nach 1,713 Sekunden `PLAYING`. Vor der Freigabe bleiben der explizite Erststart,
-  Qualitäts-/Datensparwechsel, Offline-Cache und ein gefilterter Recovery-Loglauf praktisch zu prüfen.
+  Samsung-Testgerät nach 1,713 Sekunden `PLAYING`. In der erweiterten Gerätematrix bleiben der
+  explizite Erststart, Qualitäts-/Datensparwechsel, Offline-Cache und ein gefilterter
+  Recovery-Loglauf praktisch zu prüfen.
 - **Die automatische Updateprüfung ist technisch gehärtet, aber noch praktisch freizugeben:** Auf
   einem zweiten Gerät erschien nach frischer Installation von `1.0.0` und anschließendem App-Start
   kein automatischer Hinweis auf das bereits
-  veröffentlichte `1.0.1`. Der unveröffentlichte Stand behebt die dabei erkannten Schwächen:
+  veröffentlichte `1.0.1`. Version 1.0.2 behebt die dabei erkannten Schwächen:
   foreground- und netzgebundener Start, erneuter Versuch nach Netzrückkehr beziehungsweise neuem
   Vordergrundstart, zwei begrenzte Retries für vorübergehende Fehler, keine doppelten Dialoge und ein
-  24-Stunden-Zeitstempel erst nach erfolgreicher Antwortprüfung. Vor dem nächsten Release bleibt der
-  echte Upgrade-Test von der vorherigen signierten Version Pflicht – einmal online beim Kaltstart und
+  24-Stunden-Zeitstempel erst nach erfolgreicher Antwortprüfung. Nach Veröffentlichung bleibt der
+  echte Erkennungstest von der vorherigen signierten Version offen – einmal online beim Kaltstart und
   einmal offline gestartet mit anschließend hergestellter Verbindung, jeweils ohne „Jetzt
   überprüfen“ anzutippen. Debug-Builds deaktivieren den Self-Updater und können diesen Nachweis nicht
   ersetzen.
@@ -311,7 +313,7 @@ und Dateigröße wurden nach der Veröffentlichung verifiziert.
   Titel öffnet KruXx bewusst kein leeres schwebendes Fenster.
 - Der Benachrichtigungsschutz kann nur Töne über Androids Notification Policy steuern. Er blockiert
   weder sichtbare Pop-ups noch Medien, Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Für den öffentlichen `v1.0.1` wurden geprüfter Quellstand, beide Submodul-Commits und das passende
+- Für den öffentlichen `v1.0.2` wurden geprüfter Quellstand, beide Submodul-Commits und das passende
   Tag veröffentlicht und exakt das lokal geprüfte Archiv-APK an den GitHub-Release gehängt. Die
   nicht separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil der
   Regressionstest-Matrix, sind aber derzeit keine bekannten Defekte.
