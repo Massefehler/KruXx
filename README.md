@@ -8,20 +8,15 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-The current stable release is KruXx `1.0.2` (`versionCode 1000002`, Android 6.0+).
-Its 146 unit tests, full release lint, signed release build and in-place upgrade/cold-start check of
-the exact archived APK have passed. The signed APK, source, submodule pins and matching tag are
-published in the
-[KruXx 1.0.2 release](https://github.com/Massefehler/KruXx/releases/tag/v1.0.2). The exact
+The current stable release is KruXx `1.1.0` (`versionCode 1000003`, Android 6.0+), titled
+**KruXx Glass Update**. Its 146 unit tests, full release lint, signed release build and in-place
+upgrade/cold-start check of the exact archived APK have passed. The signed APK, source, submodule
+pins and matching tag are published in the
+[KruXx 1.1.0 release](https://github.com/Massefehler/KruXx/releases/tag/v1.1.0). The exact
 implementation, verification status and remaining extended device checks are recorded in the
 [KruXx status report](docs/KRUXX-IST-STAND.md); the immutable in-app notes are available in
-[`docs/changelogs/kruxx/1.0.2.txt`](docs/changelogs/kruxx/1.0.2.txt).
-
-The next local release candidate is KruXx `1.1.0` (`versionCode 1000003`), titled
-**KruXx Glass Update**. It is a visual feature update with new branding and targeted reliability
-fixes; the planned dedicated podcast section remains outside this release. Its automated tests,
-release lint, Debug build and unsigned Release build pass locally. Until a signed artifact from the
-clean release commit is verified and published, `1.0.2` remains the latest stable download.
+[`docs/changelogs/kruxx/1.1.0.txt`](docs/changelogs/kruxx/1.1.0.txt). The planned dedicated podcast
+section remains outside this release and is tracked as a separate future feature.
 
 ## Install and update
 
@@ -46,7 +41,7 @@ crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
 
-### Next release candidate: 1.1.0 — Glass Update
+### New in 1.1.0 — Glass Update
 
 - A distinct graphite backdrop with restrained blue and red light accents and reusable glass-style
   surfaces throughout home, library tabs, players, settings, details, dialogs, menus and sheets.
@@ -57,8 +52,11 @@ crash report is uploaded automatically or offered to the Kreate project.
 - A home refresh fix and restored optional suppression of notification sounds and heads-up pop-ups
   during active playback.
 
-### Included in the current stable release
+### Additional KruXx features
 
+- On a fresh installation, the full-screen player shows the complete cover separately over its
+  cover-derived blurred background. Updates preserve an existing cover-display choice; the stable
+  and debug packages keep these preferences independently.
 - Quick Picks is the default start page. Its suggestions can show up to 18 deduplicated results
   assembled from the seed, radio and related items in consistently sized rows, and Top Artists now
   open their artist pages.
@@ -79,8 +77,8 @@ crash report is uploaded automatically or offered to the Kreate project.
   always request the best currently available compatible YTM audio quality, independently of the
   playback quality or network type.
 - Current InnerTubeX playback integration, expired-stream recovery and cache-format protection.
-- Optional suppression of other apps' notification sounds only during active playback, while media,
-  alarms, calls and visible pop-ups remain allowed.
+- Optional suppression of other apps' notification sounds and heads-up pop-ups only during active
+  playback, while notification entries remain available and media, alarms and calls remain audible.
 - No app-side mono downmix; decoder-channel diagnostics in “Stats for Nerds” help distinguish a mono
   source from later Android/device processing.
 - KruXx branding across launcher, themed, notification and TV assets, plus the larger

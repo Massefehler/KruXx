@@ -11,9 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | `1.0.2` |
-| Öffentlicher Android-Versionscode | `1_000_002` |
-| Nächster Release | `1.1.0` / `1_000_003`, lokaler Kandidat „Glass Update“; Podcast-Bereich ausdrücklich später |
+| Öffentlicher Release | `1.1.0` „Glass Update“ |
+| Öffentlicher Android-Versionscode | `1_000_003` |
+| Nächster Release | noch nicht versioniert; eigenständiger Podcast-Bereich als separates späteres Vorhaben |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | API 23 / Android 6.0 |
@@ -28,8 +28,8 @@ keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, 
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
 
-Der Stand wurde vollständig automatisiert getestet, gelintet, gebaut, signiert und als `v1.0.2`
-veröffentlicht. Das exakt archivierte Release-APK wurde als Upgrade über `1.0.1` installiert und
+Der Stand wurde vollständig automatisiert getestet, gelintet, gebaut, signiert und als `v1.1.0`
+veröffentlicht. Das exakt archivierte Release-APK wurde als Upgrade über `1.0.2` installiert und
 gestartet; die App-Daten blieben erhalten. Tag, Submodul-Pins, APK-Größe und APK-Digest wurden
 anschließend noch einmal gegen den veröffentlichten Stand abgeglichen. Dadurch bleibt die APK
 eindeutig ihrem Quellcode zugeordnet.
@@ -99,14 +99,13 @@ in `PLAYING`, ohne Playback-Fehler oder CDN-HTTP-Logger-Ausgabe. Die praktischen
 Playback-Randfälle sowie Android Auto im Desktop Head Unit und anschließend in einem realen Fahrzeug
 bleiben als ausdrücklich dokumentierte Nachtests offen.
 
-### Für v1.1.0 „Glass Update“ vorgesehene Änderungen
+### In v1.1.0 „Glass Update“ veröffentlichte Änderungen
 
-Der aktuelle lokale Arbeitsbaum ist als KruXx `1.1.0` mit Android-Versionscode `1_000_003`
-versioniert. Der englische, in die APK zu übernehmende Changelog liegt unter
-[`changelogs/kruxx/1.1.0.txt`](changelogs/kruxx/1.1.0.txt). Solange Release-Gate, reproduzierbarer
-Release-Commit und Veröffentlichung fehlen, bleibt `1.0.2` der öffentliche Stable-Release.
+KruXx `1.1.0` mit Android-Versionscode `1_000_003` ist als stabiler „Glass Update“-Release
+veröffentlicht. Der englische, unveränderlich in die APK übernommene Changelog liegt unter
+[`changelogs/kruxx/1.1.0.txt`](changelogs/kruxx/1.1.0.txt).
 
-Der Kandidat umfasst:
+Der Release umfasst:
 
 - „KruXx Glass“ als eigenständige visuelle Schicht für Startseite, Bibliotheksreiter, Vollbild- und
   Mini-Player, Einstellungen, Detailseiten, Dialoge, Menüs und Sheets;
@@ -197,6 +196,13 @@ separates späteres Funktionsvorhaben.
   in der ressourcenschonenden Audiowiedergabe.
 - Video-zu-Audio-Wechsel und der automatische Audio-Rückfall bei nicht einbettbaren Videos behalten
   die Position bei. Warteschlange, „Als Nächstes“ und Kontextmenüs starten niemals ungefragt Video.
+- Bei neuen App-Daten zeigt der Vollbild-Player standardmäßig das vollständige Cover als eigene
+  Vordergrundfläche vor einem coverbasierten, unscharfen Hintergrund. Technisch wird dies durch
+  `PLAYER_SHOW_THUMBNAIL=true`, `PLAYER_BACKGROUND=BlurredCoverColor` und
+  `PLAYER_BACKGROUND_BLUR=true`.
+- Ein Update setzt diese Darstellung nicht zwangsweise zurück, sondern erhält die bisherige
+  Nutzerauswahl. „Cover im Player anzeigen“ und ein Doppeltipp auf den Player-Hintergrund können das
+  separate Cover ein- oder ausblenden; Stable- und Debug-Paket besitzen getrennte Einstellungen.
 - Unter **Einstellungen → Darstellung** kann „Schwebenden Player erlauben“ aktiviert werden.
   Die Unteroption „Beim Verlassen automatisch öffnen“ ist standardmäßig an. PiP arbeitet ab Android 7,
   benötigt einen aktuellen Media-Eintrag und unterliegt zusätzlich den PiP-/Fensterregeln des Geräts.
@@ -256,7 +262,7 @@ separates späteres Funktionsvorhaben.
 
 ## 3. Prüfstand vom 04.09.2026
 
-### Lokaler Release-Kandidat 1.1.0
+### Öffentlicher Release 1.1.0
 
 | Bereich | Nachweis | Status |
 |---|---|---|
@@ -265,14 +271,21 @@ separates späteres Funktionsvorhaben.
 | `modules/innertube` | 58 Tests, 0 Fehler, 0 übersprungen | bestanden |
 | `modules/metrolist` | Root-Integration kompiliert; das Modul besitzt keine eigenen Tests (`NO-SOURCE`) | bestanden |
 | Release-Lint | vollständiges `lintKruxxUniversalProdRelease`; nach Korrektur der neuen Ressourcen keine neuen Befunde gegenüber der versionierten Baseline | bestanden |
-| Kandidaten-Builds | Debug- und Release-Variante gebaut; ZIP-Integrität und Paketmetadaten beider APKs geprüft. Der direkte Release-Build ist erwartungsgemäß noch unsigniert | bestanden, nicht final |
-| Geräteinstallation | `de.kruxx.music.debug` per ADB mit Datenerhalt auf `1.1.0`/`1000003` aktualisiert; bestätigter Kaltstart in 1.238 ms, laufender Prozess und kein Fatal-/ANR-Treffer im prozessgefilterten Startlog | auf Gerät bestanden |
-| Finale Release-Provenienz | Signiertes Archiv-APK, Signatur-/Upgradeprüfung, endgültiger Digest, Release-Commit, Tag und Veröffentlichung | ausstehend bis zum sauberen Release-Commit |
+| Release-Artefakte | Debug- und signierte Release-Variante aus demselben sauberen Commit gebaut; ZIP-Integrität, Paketmetadaten, KruXx-Zertifikat und Signaturschemata v1/v2/v3 geprüft | bestanden |
+| Debug-Geräteinstallation | `de.kruxx.music.debug` per ADB mit Datenerhalt auf `1.1.0`/`1000003` aktualisiert; bestätigter Kaltstart in 1.238 ms, laufender Prozess und kein Fatal-/ANR-Treffer im prozessgefilterten Startlog | auf Gerät bestanden |
+| Signierte Update-Installation | Exakt archiviertes Release-APK über die stabile App 1.0.2 installiert; ursprünglicher Installationszeitpunkt erhalten, `1.1.0`/`1000003`, Kaltstart in 489 ms und kein Fatal-/ANR-Treffer | auf Gerät bestanden |
+| Release-Provenienz | Signiertes APK mit Quellrevision `39398cc4684c91a7737da36af85f34232606f52d`; annotierter Tag `v1.1.0`, öffentlicher Latest-Release, erneut heruntergeladener Asset bytegleich | veröffentlicht und geprüft |
+| Vollbild-Player-Basisdarstellung | Quellvorgaben und getrennte Debug-Frischinstallation zeigen vollständiges Cover vor unscharfem Coverhintergrund. In der aktualisierten stabilen Installation wurde ein gespeicherter „Cover aus“-Zustand als Ursache erkannt; nach dem Wiedereinschalten blieb das Cover beim Verkleinern und erneuten Öffnen erhalten | Sollzustand bestätigt; keine Artefaktabweichung |
 
-Die jetzt erzeugten APKs dienen der Kandidatenprüfung. Sie werden nicht als finales Release
-archiviert: Der unsaubere Arbeitsbaum kann in der von AGP eingebetteten Git-Revision nur den letzten
-Commit, nicht die noch uncommitteten Änderungen, ausweisen. Das gehärtete Release-Skript darf daher
-erst nach dem Freigabe-Commit aus einem sauberen Baum signieren und archivieren.
+Die finalen Dateien `KruXx-1.1.0-release.apk` und `KruXx-1.1.0-debug.apk` liegen im lokalen
+Archivverzeichnis `/home/kruxx/Schreibtisch/Android/Kreate-APKs/`. Das Release-APK ist 22.883.301
+Bytes groß und besitzt SHA-256
+`8c1f57bf4bb2f4e41b12fc0ceb024594a1784ef0843ef8b6831ccbdbd13aa741`.
+
+Der öffentliche [GitHub-Release v1.1.0](https://github.com/Massefehler/KruXx/releases/tag/v1.1.0)
+zeigt über den annotierten Tag auf den geprüften Release-Commit. Sein einziges APK-Asset ist
+bytegleich mit dem lokal installierten Archiv; GitHub-Asset-Digest, erneuter Download und Bytegröße
+wurden nach der Veröffentlichung verifiziert.
 
 ### Öffentlicher Release 1.0.2
 
@@ -329,8 +342,8 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   Quellen erneut als funktionierend bestätigt. Zehn automatisierte Merge-Tests decken außerdem
   ID-Dubletten, lokale Priorität, reine Cloud-/Local-Fälle, Songzahlangaben und Sortierung ab. Als
   Nachtests bleiben insbesondere Filter, automatische Login-/Sync-Wechsel und Fehler-Refresh offen.
-  Der Kontoschalter
-  „Wiedergabelisten synchronisieren“ bleibt für den YTM-Anteil des Bibliotheksreiters maßgeblich.
+  Der Kontoschalter „Wiedergabelisten synchronisieren“ bleibt für den YTM-Anteil des
+  Bibliotheksreiters maßgeblich.
 - **Die Wiedergabe-Härtung ist technisch und automatisiert abgeschlossen; der allgemeine Online-
   Erststart ist auf dem Gerät bestanden:** Neun Policy-Tests sichern die sofortige 403/410/416-
   Recovery, verschachtelte HTTP-Fehler, Fehlerklassifikation, Ablaufgrenze, Explicit-Hint und die
@@ -355,7 +368,7 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   Multirow-Antwortformat wird vom derzeitigen Playlist-Parser nicht abgebildet. Sie soll nicht als
   Einzelfall in den Musik-Playlistpfad gedrückt, sondern später Bestandteil eines eigenständigen
   Podcast-Bereichs mit Episodenstatus und Wiederaufnahme werden.
-- Der lokale Release-Kandidat `1.1.0` enthält die beiden Umsetzungsstufen des
+- Der öffentliche Release `1.1.0` enthält die beiden Umsetzungsstufen des
   [„KruXx Glass“-Redesigns](Design.md):
   zentrale KruXx-Designbausteine, Graphit-Hintergrund mit rot-blauer Lichtaura, halbtransparenter
   Header, schwebende untere Navigation, Mini-Player und leichte Karten der Startansicht. Auch die
@@ -400,10 +413,15 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   „Allgemein“, „UI“, „Darstellung“, „Daten“ und „Sonstiges“ einschließlich ihres angehefteten
   Scrollzustands geprüft. Ein kurzer Startseiten-Scrolltest ergab 5 von 675
   als ruckelig bewertete Frames (0,74 %), ein 95. Perzentil von 14 ms und keine verpassten
-  VSync-Ereignisse. Der Release-Kandidat verwendet auf allen Versionen den performanten
+  VSync-Ereignisse. KruXx 1.1.0 verwendet auf allen Versionen den performanten
   Transparenz-/Farbverlauf-/Kontur-Fallback ohne Blur pro Listenelement; nur der Vollbild-Player
-  verwendet weiterhin seine vorhandene echte Cover-Unschärfe. Als erweiterte Nachtests vor und nach
-  der Veröffentlichung bleiben Hellmodus, große Systemschrift, API 23 bis 30, breitere
+  verwendet weiterhin seine vorhandene echte Cover-Unschärfe. Bei neuen App-Daten ist dabei das
+  vollständige Cover vor dem unscharfen Coverhintergrund sichtbar. Ein Update erhält eine zuvor
+  abweichend gespeicherte Auswahl; das nach Veröffentlichung gemeldete fehlende separate Cover war
+  auf dem Zielgerät genau ein solcher Zustand und kein Unterschied zwischen Quellstand und GitHub-APK.
+  Nach dem Wiedereinschalten blieb die Basisdarstellung beim Verkleinern und erneuten Öffnen erhalten.
+  Als erweiterte Nachtests nach der Veröffentlichung bleiben Hellmodus, große Systemschrift,
+  API 23 bis 30, breitere
   Performanceprüfung sowie echter Backdrop-Blur für weitere geeignete ruhende Oberflächen offen.
   Die zu großen Vorschlagskarten, die überhöhten und überlappenden „Top Artists“-Zeilen sowie das
   Durchscheinen der Startseiten-Kopfzeile hinter dem Vollbild-Player wurden auf dem Zielgerät
@@ -436,7 +454,7 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
 - Der Benachrichtigungsschutz kann nur Android-Benachrichtigungstöne und Heads-up-Pop-ups über die
   Notification Policy steuern. Er blockiert weder Einträge im Benachrichtigungsbereich noch Medien,
   Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Für den öffentlichen `v1.0.2` wurden geprüfter Quellstand, beide Submodul-Commits und das passende
+- Für den öffentlichen `v1.1.0` wurden geprüfter Quellstand, beide Submodul-Commits und das passende
   Tag veröffentlicht und exakt das lokal geprüfte Archiv-APK an den GitHub-Release gehängt. Die
   nicht separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil der
   Regressionstest-Matrix, sind aber derzeit keine bekannten Defekte.

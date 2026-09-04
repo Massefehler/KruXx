@@ -1,7 +1,7 @@
 # KruXx Glass – Designkonzept
 
-Stand: 04.09.2026 · zwei Umsetzungsstufen implementiert · lokaler Release-Kandidat `1.1.0` ·
-Veröffentlichung ausstehend
+Stand: 04.09.2026 · zwei Umsetzungsstufen implementiert · veröffentlicht als KruXx `1.1.0`
+„Glass Update“
 
 ## Ziel und Abgrenzung
 
@@ -16,8 +16,8 @@ Verhalten unverändert:
 - Android-Auto-Schnittstelle und MediaLibrary-Verhalten
 
 Eine Designänderung darf daher keine neue fachliche Logik in UI-Komponenten verlagern und keine
-bestehenden Bedienabläufe verändern. Der umgesetzte Umfang ist dem lokalen Release-Kandidaten
-`1.1.0` „Glass Update“ zugeordnet; veröffentlicht wird er erst nach bestandenem Release-Gate.
+bestehenden Bedienabläufe verändern. Der umgesetzte Umfang wurde nach bestandenem Release-Gate als
+KruXx `1.1.0` „Glass Update“ veröffentlicht.
 
 ## Visuelle Richtung
 
@@ -79,12 +79,11 @@ Die zweite Etappe überträgt die gemeinsame Designsprache auf:
 5. Gezielte Layoutkorrekturen an zu breiten Vorschlagskarten und sich überlagernden
    Interpretenkacheln.
 
-Beide Etappen bilden den visuellen Umfang des lokalen Release-Kandidaten `1.1.0`. Der öffentliche
-Release bleibt bis zur abschließenden technischen Freigabe ausstehend.
+Beide Etappen bilden den visuellen Umfang des öffentlichen Releases `1.1.0`.
 
 ## Aktueller Implementierungsstand
 
-Die beiden Umsetzungsstufen sind im lokalen Release-Kandidaten `1.1.0` umgesetzt. Die neue
+Die beiden Umsetzungsstufen sind im öffentlichen Release `1.1.0` umgesetzt. Die neue
 Designschicht wird
 nur für den unabhängigen KruXx-Build aktiviert; der gemeinsame Kreate-/GitHub-Build behält seine
 bisherige Darstellung.
@@ -108,6 +107,10 @@ Bereits umgesetzt sind:
 - die vorhandene echte Cover-Unschärfe im Vollbild-Player mit einer gemeinsamen gläsernen
   Steuerungsfläche und gläserner Aktionsleiste; eine eigene undurchsichtige Unterlage des
   Vollbild-Sheets verhindert dabei, dass Header und Bedienelemente der Startseite durchscheinen;
+- die verbindliche Basisdarstellung des Vollbild-Players bei einer Frischinstallation: Das
+  vollständige Cover bleibt als eigene Vordergrundfläche sichtbar, während eine davon abgeleitete,
+  unscharfe Coverdarstellung den Hintergrund füllt. Ein Update bewahrt eine bereits gewählte
+  Coverdarstellung; Stable- und Debug-Paket speichern diese Auswahl getrennt;
 - das Drei-Punkte-Trackmenü des Vollbild-Players mit einer nur dort verwendeten, sehr schwachen
   zusätzlichen Basis (Alpha 0,08) unter dem Glasverlauf; Listen-, Raster- und Playlist-Unteransicht
   decken das Cover damit einen Hauch stärker, ohne andere Menüs oder den Glascharakter zu verändern;
@@ -128,12 +131,13 @@ Bereits umgesetzt sind:
   Abstand für „Top Artists“, damit sich die Zeilen nicht mehr überlagern;
 - ein performanter Transparenz-/Verlauf-/Kontur-Fallback ohne Blur pro Listenelement.
 
-Der als `1.1.0`/`1000003` versionierte KruXx-Kandidat besteht 88 App- und 58 Innertube-Tests ohne
+Der als `1.1.0`/`1000003` veröffentlichte KruXx-Stand besteht 88 App- und 58 Innertube-Tests ohne
 Fehler oder übersprungene Tests; das Metrolist-Modul besitzt keine eigene Testsuite (`NO-SOURCE`).
 Der vollständige Release-Lint meldet keine neuen Befunde. Debug- und Release-Variante bauen, ihre
 APK-Metadaten und ZIP-Integrität sind geprüft, und die englischen Release Notes liegen bytegleich in
-Changelog, generierter Ressource und Release-APK. Der direkte Release-Build bleibt bis zum sauberen
-Release-Commit bewusst unsigniert und ist kein veröffentlichbares Archiv.
+Changelog, generierter Ressource und Release-APK. Das signierte Archiv entstand aus dem sauberen
+Release-Commit `39398cc4684c91a7737da36af85f34232606f52d`; Paket, Version, KruXx-Zertifikat,
+Signaturschemata v1/v2/v3 und eingebettete Quellrevision sind verifiziert.
 
 Auf dem
 Samsung-Testgerät SM-S931B mit Android 16 wurden Installation, Start und Tabwechsel geprüft; in den
@@ -161,6 +165,14 @@ Die anschließend leicht erhöhte Deckung des Drei-Punkte-Trackmenüs wurde nach
 ADB-Verbindung mit der neu installierten KruXx-Debug-APK auf dem Samsung-Gerät geprüft und in der
 gemeinsamen Sichtabnahme bestätigt.
 
+Nach der Veröffentlichung wurde auf derselben Hardware in der stabilen App ein fehlendes separates
+Cover untersucht. Ursache war kein Unterschied des Release-Artefakts, sondern die dort bereits
+gespeicherte, auch per Doppeltipp auf den Player-Hintergrund umschaltbare Coveroption. Nach dem
+Wiedereinschalten blieb das vollständige Cover auch nach Verkleinern und erneutem Öffnen des Players
+sichtbar. Der Quellstand von `1.1.0` setzt für neue App-Daten weiterhin vollständiges Cover,
+coverbasierten unscharfen Hintergrund und aktive Hintergrundunschärfe als Standard. Bestehende
+App-Daten werden bei einem Update absichtlich nicht auf diese Werte zurückgesetzt.
+
 Die anschließend zentral korrigierten Einstellungs-Abschnittsköpfe wurden mit einer neu installierten
 Debug-APK in den Reitern „Allgemein“, „UI“, „Darstellung“, „Daten“ und „Sonstiges“ geprüft.
 Vollständig gerundete ein- und zweizeilige Köpfe, Textausrichtung und der angeheftete Zustand beim
@@ -177,6 +189,12 @@ Der abschließend versionierte `1.1.0`-Debug-Build wurde per ADB mit Datenerhalt
 bestätigte einen Kaltstart, Paketversion `1.1.0`/`1000003` und einen laufenden App-Prozess; im auf
 diesen neuen Prozess begrenzten Startlog trat kein Fatal- oder ANR-Eintrag auf.
 
+Das exakt archivierte signierte Release-APK wurde anschließend als Update über die stabile
+Installation `1.0.2` installiert. Android behielt deren ursprünglichen Installationszeitpunkt bei,
+meldete `1.1.0`/`1000003` und bestätigte einen Kaltstart in 489 ms ohne Fatal-/ANR-Treffer. Der
+öffentliche GitHub-Asset ist bytegleich mit diesem Archiv: 22.883.301 Bytes und
+SHA-256 `8c1f57bf4bb2f4e41b12fc0ceb024594a1784ef0843ef8b6831ccbdbd13aa741`.
+
 Ein kurzer, nach einem Statistik-Reset gemessener Startseiten-Scrolltest mit mehreren Auf- und
 Abwärtsbewegungen ergab 675 gerenderte Frames, davon 5 vom System als ruckelig bewertet (0,74 %),
 ein 95. Perzentil von 14 ms und keine verpassten VSync-Ereignisse. Das ist ein positiver Erstnachweis
@@ -184,7 +202,7 @@ auf diesem Gerät, ersetzt aber keine breitere Performance- und Geräteprüfung.
 
 Die gemeinsame Sichtabnahme auf dem Samsung-Zielgerät ist erfolgt. Als erweiterte Nachtests bleiben
 Hellmodus, große Systemschrift, API 23 bis 30 und eine breitere Geräte-/Performanceprüfung offen.
-Der Release-Kandidat verwendet außerhalb der vorhandenen echten
+Der veröffentlichte Stand verwendet außerhalb der vorhandenen echten
 Cover-Unschärfe des Vollbild-Players deshalb auf allen Versionen den sicheren Glas-Fallback aus
 Transparenz, Verlauf, Kontur und Schatten. Echter Backdrop-Blur auf weiteren geeigneten ruhenden
 Oberflächen bleibt eine spätere, gesondert zu prüfende Verfeinerung.
@@ -216,4 +234,6 @@ vollständig in die Leiste passen.
 - Konsistenter Fallback ab Android 6 und echter Blur nur auf unterstützten Geräten.
 - Lesbare Darstellung in Hell- und Dunkelmodus sowie mit großer Systemschrift.
 - Bestehende Appearance-Einstellungen bleiben bedienbar und führen nicht zu unlesbaren Flächen.
+- Eine Frischinstallation zeigt im Vollbild-Player das vollständige Cover vor dem unscharfen
+  Coverhintergrund; ein Update darf eine bewusst abweichende Nutzereinstellung nicht überschreiben.
 - Gemeinsame Designbausteine statt voneinander abweichender Einzellösungen pro Screen.
