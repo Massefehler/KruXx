@@ -55,6 +55,12 @@
     <string name="voice_search_language_unavailable">Für die aktuelle Sprache ist kein lokales Sprachmodell verfügbar</string>
     <string name="voice_search_error">Lokale Spracherkennung fehlgeschlagen</string>
     <string name="no_results_found">Keine Ergebnisse gefunden. Bitte versuche eine andere Suchanfrage oder Kategorie</string>
+    <string name="playlist_empty">Noch keine Wiedergabelisten vorhanden. Erstelle eine über die Plus-Schaltfläche oder ziehe zum Aktualisieren nach unten.</string>
+    <string name="playlist_empty_filter">Keine Wiedergabeliste entspricht diesem Filter.</string>
+    <string name="playlist_empty_logged_out">Melde dich bei YouTube Music an, um deine Konto-Wiedergabelisten zu laden.</string>
+    <string name="playlist_empty_sync_disabled">Die Wiedergabelisten-Synchronisierung ist ausgeschaltet. Aktiviere sie in den Kontoeinstellungen, um YouTube-Music-Wiedergabelisten zu laden.</string>
+    <string name="playlist_empty_sync_error">Die YouTube-Music-Wiedergabelisten konnten nicht geladen werden. Prüfe die Verbindung und ziehe zum Wiederholen nach unten.</string>
+    <string name="playlist_empty_youtube">Für dieses Konto wurden keine YouTube-Music-Wiedergabelisten gefunden.</string>
     <string name="videos">Videos</string>
     <string name="video_type_official_music_video">Offizielles Musikvideo</string>
     <string name="video_type_user_generated">Nutzer-Video</string>

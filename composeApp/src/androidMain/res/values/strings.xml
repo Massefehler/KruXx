@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="done">Done</string>
     <string name="hidesong">Do you really want to hide this song? Its playback time and cache will be wiped. This action is irreversible.</string>
     <string name="new_playlist">New playlist</string>
@@ -55,6 +55,12 @@
     <string name="voice_search_language_unavailable">No local speech model is available for the current language</string>
     <string name="voice_search_error">On-device speech recognition failed</string>
     <string name="no_results_found">No results found. Please try a different query or category</string>
+    <string name="playlist_empty" tools:ignore="MissingTranslation">No playlists yet. Create one with the plus button or pull down to refresh.</string>
+    <string name="playlist_empty_filter" tools:ignore="MissingTranslation">No playlists match this filter.</string>
+    <string name="playlist_empty_logged_out" tools:ignore="MissingTranslation">Log in to YouTube Music to load your account playlists.</string>
+    <string name="playlist_empty_sync_disabled" tools:ignore="MissingTranslation">Playlist sync is off. Enable it in the account settings to load YouTube Music playlists.</string>
+    <string name="playlist_empty_sync_error" tools:ignore="MissingTranslation">YouTube Music playlists could not be loaded. Check your connection and pull down to retry.</string>
+    <string name="playlist_empty_youtube" tools:ignore="MissingTranslation">No YouTube Music playlists were found for this account.</string>
     <string name="videos">Videos</string>
     <string name="video_type_official_music_video">Official music video</string>
     <string name="video_type_user_generated">User video</string>

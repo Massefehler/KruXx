@@ -1,6 +1,7 @@
 package it.fast4x.rimusic.ui.screens.home
 
 import android.annotation.SuppressLint
+import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -41,6 +43,7 @@ import app.kreate.android.themed.rimusic.component.playlist.PlaylistItem
 import app.kreate.android.themed.rimusic.component.tab.ItemSize
 import app.kreate.android.themed.rimusic.component.tab.Sort
 import app.kreate.android.viewmodel.home.HomeLibraryViewModel
+import app.kreate.android.viewmodel.home.PlaylistSyncStatus
 import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavigationBarPosition
@@ -56,11 +59,29 @@ import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.CheckMonthlyPlaylist
+import it.fast4x.rimusic.utils.center
+import it.fast4x.rimusic.utils.secondary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import me.knighthat.component.playlist.NewPlaylistDialog
 import me.knighthat.component.tab.ImportSongsFromCSV
 import me.knighthat.component.tab.SongShuffler
 import org.koin.compose.viewmodel.koinViewModel
+
+@StringRes
+private fun playlistEmptyMessage(
+    syncStatus: PlaylistSyncStatus,
+    playlistType: PlaylistsType,
+    hasSearchQuery: Boolean
+): Int = when {
+    hasSearchQuery -> R.string.no_results_found
+    playlistType == PlaylistsType.MonthlyPlaylist ||
+            playlistType == PlaylistsType.PinnedPlaylist -> R.string.playlist_empty_filter
+    syncStatus == PlaylistSyncStatus.LOGGED_OUT -> R.string.playlist_empty_logged_out
+    syncStatus == PlaylistSyncStatus.DISABLED -> R.string.playlist_empty_sync_disabled
+    syncStatus == PlaylistSyncStatus.ERROR -> R.string.playlist_empty_sync_error
+    playlistType == PlaylistsType.YTPlaylist -> R.string.playlist_empty_youtube
+    else -> R.string.playlist_empty
+}
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,6 +107,8 @@ fun HomeLibrary(
     var playlistType by Preferences.HOME_LIBRARY_TYPE
 
     val items by viewModel.playlists.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val syncStatus by viewModel.syncStatus.collectAsStateWithLifecycle()
 
     val search = remember { Search(lazyGridState) }
 
@@ -160,7 +183,6 @@ fun HomeLibrary(
         PlaylistItem.Values.from( appearance )
     }
 
-    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = viewModel::onRefresh
@@ -206,6 +228,28 @@ fun HomeLibrary(
                             onValueUpdate = { playlistType = it },
                             modifier = Modifier.padding(start = 12.dp, end = 12.dp)
                         )
+                    }
+
+                    if( itemsOnDisplay.isEmpty() && !isRefreshing ) {
+                        item(
+                            key = "empty-playlists",
+                            contentType = 1,
+                            span = { GridItemSpan(maxLineSpan) }
+                        ) {
+                            BasicText(
+                                text = stringResource(
+                                    playlistEmptyMessage(
+                                        syncStatus = syncStatus,
+                                        playlistType = playlistType,
+                                        hasSearchQuery = search.isNotBlank()
+                                    )
+                                ),
+                                style = appearance.typography.xs.secondary.center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp, vertical = 32.dp)
+                            )
+                        }
                     }
 
                     items(

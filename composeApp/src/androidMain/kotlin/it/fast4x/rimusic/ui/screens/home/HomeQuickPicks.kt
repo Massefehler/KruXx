@@ -137,6 +137,20 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 
+private val accountPlaylistSectionBrowseIds = setOf(
+    "FEmusic_liked_playlists",
+    "FEmusic_library_landing"
+)
+
+private fun HomePage.Section.isAccountPlaylistSection(): Boolean {
+    val browseId = endpoint?.browseId ?: return false
+    val content = items.filterNotNull()
+
+    return browseId in accountPlaylistSectionBrowseIds &&
+            content.isNotEmpty() &&
+            content.all { it is Innertube.PlaylistItem }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @ExperimentalTextApi
 @SuppressLint("SuspiciousIndentation")
@@ -736,14 +750,14 @@ fun HomeQuickPicks(
                         }
                     }
 
-                val monthlyPlaylists by remember {
+                val databasePlaylists by remember {
                     Database.playlistTable
                             .allAsPreview()
                             .distinctUntilChanged()
-                            .map { list ->
-                                list.filter { it.playlist.isMonthly }
-                            }
                 }.collectAsState( emptyList(), Dispatchers.IO )
+                val monthlyPlaylists = remember( databasePlaylists ) {
+                    databasePlaylists.filter { it.playlist.isMonthly }
+                }
 
                 if (showMonthlyPlaylistInQuickPicks)
                     monthlyPlaylists.let { playlists ->
@@ -981,12 +995,36 @@ fun HomeQuickPicks(
 
                 }
 
+                val hasAccountPlaylistSection = homePageInit
+                    ?.sections
+                    ?.any( HomePage.Section::isAccountPlaylistSection ) == true
+                val canPlaceStandaloneLocalSection =
+                    homePageInit != null || homePageResult != null || !isYouTubeLoggedIn()
+
+                if( databasePlaylists.isNotEmpty() &&
+                    !hasAccountPlaylistSection &&
+                    canPlaceStandaloneLocalSection
+                ) {
+                    BasicText(
+                        text = stringResource( R.string.playlists ),
+                        style = typography().l.semiBold.color( colorPalette().text ),
+                        modifier = Modifier.padding( horizontal = 16.dp ).padding( vertical = 4.dp )
+                    )
+
+                    val currentMediaItem by player.currentMediaItemState.collectAsState()
+                    ItemUtils.LazyRowItem(
+                        navController = navController,
+                        innertubeItems = emptyList(),
+                        currentlyPlaying = currentMediaItem?.mediaId,
+                        localPlaylists = databasePlaylists
+                    )
+                }
+
                 homePageInit?.let { page ->
 
                     page.sections.forEach {
-                        if (it.items.isEmpty() || it.items.firstOrNull()?.key == null) return@forEach
-                        println("homePage() in HomeYouTubeMusic sections: ${it.title} ${it.items.size}")
-                        println("homePage() in HomeYouTubeMusic sections items: ${it.items}")
+                        val sectionItems = it.items.fastFilterNotNull()
+                        if (sectionItems.isEmpty()) return@forEach
 
                         BasicText(
                             text = it.title,
@@ -997,9 +1035,13 @@ fun HomeQuickPicks(
                         val currentMediaItem by player.currentMediaItemState.collectAsState()
                         ItemUtils.LazyRowItem(
                             navController = navController,
-                            innertubeItems = it.items.fastFilterNotNull(),
+                            innertubeItems = sectionItems,
                             currentlyPlaying = currentMediaItem?.mediaId,
-                            useLogin = true
+                            useLogin = true,
+                            localPlaylists = if( it.isAccountPlaylistSection() )
+                                databasePlaylists
+                            else
+                                emptyList()
                         )
                     }
                 } ?: if (!isYouTubeLoggedIn()) BasicText(

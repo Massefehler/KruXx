@@ -24,6 +24,7 @@ import app.kreate.android.themed.rimusic.component.artist.ArtistItem
 import app.kreate.android.themed.rimusic.component.playlist.PlaylistItem
 import app.kreate.android.themed.rimusic.component.song.SongItem
 import app.kreate.android.utils.innertube.toMediaItem
+import app.kreate.database.models.PlaylistPreview
 import it.fast4x.innertube.Innertube
 import it.fast4x.rimusic.thumbnailShape
 import it.fast4x.rimusic.ui.styling.LocalAppearance
@@ -32,6 +33,7 @@ import it.fast4x.rimusic.utils.asVideoMediaItem
 import it.fast4x.rimusic.utils.forcePlay
 import it.fast4x.rimusic.utils.playVideo
 import it.fast4x.rimusic.utils.shimmerEffect
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import me.knighthat.innertube.model.InnertubeAlbum
 import me.knighthat.innertube.model.InnertubeArtist
 import me.knighthat.innertube.model.InnertubeItem
@@ -52,6 +54,7 @@ object ItemUtils {
         Box( modifier.size( sizeDp ).clip(thumbnailShape() ).shimmerEffect() )
 
     @JvmName("OldInnertubeLazyRowItem")
+    @OptIn(ExperimentalCoroutinesApi::class)
     @UnstableApi
     @Composable
     fun LazyRowItem(
@@ -60,6 +63,7 @@ object ItemUtils {
         currentlyPlaying: String?,
         modifier: Modifier = Modifier,
         useLogin: Boolean = false,
+        localPlaylists: List<PlaylistPreview> = emptyList(),
         menu: BottomMenu = LocalBottomMenu.current
     ) {
         val player: StatefulPlayer = koinInject()
@@ -76,6 +80,14 @@ object ItemUtils {
         }
         val playlistItemValues = remember( appearance ) {
             PlaylistItem.Values.from( appearance )
+        }
+        val missingLocalPlaylists = remember( innertubeItems, localPlaylists ) {
+            localPlaylistsMissingFrom(
+                remoteBrowseIds = innertubeItems
+                    .filterIsInstance<Innertube.PlaylistItem>()
+                    .map( Innertube.PlaylistItem::key ),
+                local = localPlaylists
+            )
         }
 
         LazyRow(
@@ -142,6 +154,22 @@ object ItemUtils {
                         useLogin = useLogin
                     )
                 }
+            }
+
+            items(
+                items = missingLocalPlaylists,
+                key = { "local-playlist-${it.playlist.id}" }
+            ) { preview ->
+                PlaylistItem.Vertical(
+                    playlist = preview.playlist,
+                    values = playlistItemValues,
+                    navController = navController,
+                    songCount = preview.songCount,
+                    thumbnailUrl = preview.thumbnailUrl,
+                    onLongClick = {
+                        menu.show( MenuPage.LocalPlaylist(preview), true )
+                    }
+                )
             }
         }
     }
