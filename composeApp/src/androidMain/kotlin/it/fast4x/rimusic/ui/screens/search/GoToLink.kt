@@ -46,6 +46,7 @@ import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
 import it.fast4x.rimusic.ui.components.themed.InputTextField
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.forcePlay
 import it.fast4x.rimusic.utils.semiBold
@@ -88,7 +89,7 @@ fun GoToLink(
 
     Box(
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             //.fillMaxSize()
             .fillMaxHeight()
             .fillMaxWidth(

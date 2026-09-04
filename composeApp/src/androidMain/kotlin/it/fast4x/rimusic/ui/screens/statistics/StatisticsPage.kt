@@ -65,6 +65,7 @@ import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
 import it.fast4x.rimusic.ui.components.themed.NonQueuedMediaItemMenu
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.shimmer
 import it.fast4x.rimusic.utils.UpdateYoutubeAlbum
 import it.fast4x.rimusic.utils.UpdateYoutubeArtist
@@ -168,7 +169,7 @@ fun StatisticsPage(
 
     Box(
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             //.fillMaxSize()
             .fillMaxHeight()
             .fillMaxWidth(
@@ -197,7 +198,7 @@ fun StatisticsPage(
                     if(statisticsCategory == StatisticsCategory.Songs) 200.dp else PlaylistItem.thumbnailSize().width
                 ),
                 modifier = Modifier
-                    .background(colorPalette().background0)
+                    .background(kruxxContentColor(colorPalette().background0))
                     .fillMaxSize()
             ) {
 

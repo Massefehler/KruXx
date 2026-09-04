@@ -1,14 +1,12 @@
 package app.kreate.android.themed.common.component.dialog
 
 import androidx.annotation.CallSuper
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -21,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxDialogSurface
 import it.fast4x.rimusic.utils.bold
 import it.fast4x.rimusic.utils.isLandscape
 import me.knighthat.innertube.Localized
@@ -140,10 +139,7 @@ abstract class Dialog {
                                        maxWidth = screenWidthDp * maxWidth,
                                        maxHeight = screenHeightDp * maxHeight
                                    )
-                                   .background(
-                                       color = colorPalette.background1,
-                                       shape = RoundedCornerShape( 8.dp )
-                                   )
+                                   .kruxxDialogSurface(colorPalette.background1)
                                    .padding( vertical = VERTICAL_PADDING.dp )
             ) {
                 DialogHeader()

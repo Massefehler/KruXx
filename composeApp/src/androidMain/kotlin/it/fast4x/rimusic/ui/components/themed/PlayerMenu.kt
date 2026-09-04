@@ -25,6 +25,7 @@ import it.fast4x.rimusic.enums.MenuStyle
 import it.fast4x.rimusic.service.MyDownloadHelper
 import it.fast4x.rimusic.ui.components.LocalMenuState
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
+import it.fast4x.rimusic.ui.styling.KruxxGlass
 import it.fast4x.rimusic.utils.addSongToYtPlaylist
 import it.fast4x.rimusic.utils.addToYtLikedSong
 import it.fast4x.rimusic.utils.addToYtPlaylist
@@ -113,7 +114,8 @@ fun PlayerMenu(
             },
              */
             onHideFromDatabase = { isHiding = true },
-            onClosePlayer = onClosePlayer
+            onClosePlayer = onClosePlayer,
+            glassBackdropAlpha = KruxxGlass.playerMenuBackdropAlpha
         )
     } else {
         BaseMediaItemMenu(
@@ -144,7 +146,8 @@ fun PlayerMenu(
                 }
             },
             onClosePlayer = onClosePlayer,
-            onMatchingSong = onMatchingSong
+            onMatchingSong = onMatchingSong,
+            glassBackdropAlpha = KruxxGlass.playerMenuBackdropAlpha
         )
     }
 

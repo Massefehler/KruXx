@@ -77,6 +77,8 @@ import it.fast4x.rimusic.ui.components.themed.InputTextDialog
 import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxGlassCard
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.addToYtPlaylist
@@ -196,7 +198,7 @@ fun HomeAlbums(
     ) {
         Box(
             modifier = Modifier
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(colorPalette().background0))
                 .fillMaxHeight()
                 .fillMaxWidth(
                     if( NavigationBarPosition.Right.isCurrent() )
@@ -290,7 +292,9 @@ fun HomeAlbums(
                     state = lazyGridState,
                     columns = GridCells.Adaptive( itemSize.size.dp ),
                     //contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
-                    modifier = Modifier.background( colorPalette().background0 )
+                    modifier = Modifier.background(
+                        kruxxContentColor(colorPalette().background0)
+                    )
                                        .fillMaxSize(),
                     contentPadding = PaddingValues( bottom = Dimensions.bottomSpacer ),
                     verticalArrangement = Arrangement.spacedBy(AlbumItem.ROW_SPACING.dp )
@@ -362,6 +366,7 @@ fun HomeAlbums(
                             album = album,
                             values = albumItemValues,
                             navController = navController,
+                            modifier = Modifier.kruxxGlassCard(),
                             sizeDp = sizeDp,
                             onLongClick = {
                                 menuState.display {
@@ -444,4 +449,3 @@ fun HomeAlbums(
         }
     }
 }
-

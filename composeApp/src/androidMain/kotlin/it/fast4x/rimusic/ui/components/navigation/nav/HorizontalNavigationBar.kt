@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -40,6 +41,9 @@ import it.fast4x.rimusic.showStatsIconInNav
 import it.fast4x.rimusic.ui.components.themed.Button
 import it.fast4x.rimusic.ui.components.themed.TextIconButton
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 
 // Shown when "Navigation bar position" is set to "top" or "bottom"
 class HorizontalNavigationBar(
@@ -95,7 +99,17 @@ class HorizontalNavigationBar(
         buttons { index, text, iconId ->
 
             val color by transition.animateColor(label = "") {
-                if (it == index) colorPalette().text else colorPalette().textDisabled
+                when {
+                    it == index && isKruxxGlassEnabled -> KruxxGlass.electricBlue
+                    it == index -> colorPalette().text
+                    else -> colorPalette().textDisabled
+                }
+            }
+            val itemBackground by transition.animateColor(label = "navigationItemBackground") {
+                if (it == index && isKruxxGlassEnabled)
+                    KruxxGlass.electricBlue.copy(alpha = 0.16f)
+                else
+                    Color.Transparent
             }
 
             val button: Button =
@@ -105,7 +119,8 @@ class HorizontalNavigationBar(
                     TextIconButton( text, iconId, color, 0.dp, Dimensions.navigationRailIconOffset * 3 )
 
             val contentModifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(if (isKruxxGlassEnabled) 14.dp else 12.dp))
+                .background(itemBackground)
                 .clickable(onClick = { onTabChanged(index) })
 
             addButton( button, contentModifier )
@@ -158,11 +173,13 @@ class HorizontalNavigationBar(
             ) {
 
                 val scrollState = rememberScrollState()
-                val roundedCornerShape =
-                    if ( NavigationBarPosition.Bottom.isCurrent() )
-                        RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                    else
-                        RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                val roundedCornerShape = if (isKruxxGlassEnabled) {
+                    KruxxGlass.navigationShape
+                } else if ( NavigationBarPosition.Bottom.isCurrent() ) {
+                    RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                } else {
+                    RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)
+                }
 
                 // Settings button only visible when
                 // UI is not RiMusic and current location isn't home screen
@@ -170,10 +187,21 @@ class HorizontalNavigationBar(
                     BackButton().Draw()
 
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(roundedCornerShape)
-                        .background(colorPalette().background1)
+                    modifier = if (isKruxxGlassEnabled) {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp)
+                            .kruxxGlassSurface(
+                                fallbackColor = colorPalette().background1,
+                                shape = roundedCornerShape,
+                                strong = true
+                            )
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(roundedCornerShape)
+                            .background(colorPalette().background1)
+                    }
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

@@ -40,6 +40,7 @@ import it.fast4x.rimusic.ui.styling.ColorPalette
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.Typography
+import it.fast4x.rimusic.ui.styling.kruxxCardSurface
 import me.knighthat.innertube.model.InnertubeSongDetails
 
 
@@ -124,7 +125,7 @@ private fun LazyItemScope.Description(
         verticalArrangement = Arrangement.spacedBy( 20.dp ),
         modifier = modifier.fillMaxWidth( .9f )
                            .animateItem()
-                           .background( colorPalette.background1, shape )
+                           .kruxxCardSurface( colorPalette.background1, shape )
                            .padding( 10.dp )
     ) {
         BasicText(
@@ -171,7 +172,7 @@ fun SongDetailsScreen(
                     Modifier.fillMaxWidth( .9f )
                             .aspectRatio( 16f / 9 )
                             .animateItem()
-                            .background( colorPalette.background1, shape )
+                            .kruxxCardSurface( colorPalette.background1, shape )
                 ) {
                     viewModel.songBasicInfo?.thumbnails?.firstOrNull()?.url?.also {
                         Thumbnail( it, shape )

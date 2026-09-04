@@ -85,6 +85,7 @@ import it.fast4x.rimusic.ui.components.themed.IconButton
 import it.fast4x.rimusic.ui.components.themed.PlaylistsMenu
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asSong
 import it.fast4x.rimusic.utils.enqueue
@@ -234,7 +235,9 @@ fun Queue(
                     .asPaddingValues(),
                 modifier = Modifier.weight( 1f )
                                    .background(
-                                       colorPalette().background0.copy( alpha = backgroundAlpha )
+                                       kruxxContentColor(
+                                           colorPalette().background0.copy( alpha = backgroundAlpha )
+                                       )
                                    )
 
             ) {
@@ -350,13 +353,17 @@ fun Queue(
             // Search box
             Box(
                 modifier = Modifier.fillMaxWidth()
-                                   .background( colorPalette().background1 ),
+                                   .background(
+                                       kruxxContentColor(colorPalette().background1)
+                                   ),
             ) { search.SearchBar() }
 
             Box(
                 modifier = Modifier.fillMaxWidth()
                                    .clickable { onDismiss( repeat.type ) }
-                                   .background (colorPalette().background1 )
+                                   .background(
+                                       kruxxContentColor(colorPalette().background1)
+                                   )
                                    .height( 60.dp ) //bottom bar queue
             ) {
                 if( !isLandscape ) {

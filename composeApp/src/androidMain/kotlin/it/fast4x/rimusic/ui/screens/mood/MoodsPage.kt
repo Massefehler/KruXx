@@ -44,6 +44,7 @@ import it.fast4x.rimusic.ui.components.themed.HeaderPlaceholder
 import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
 import it.fast4x.rimusic.ui.screens.home.MoodGridItemColored
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.center
 import it.fast4x.rimusic.utils.secondary
 import it.fast4x.rimusic.utils.shimmerEffect
@@ -72,7 +73,7 @@ fun MoodsPage(
 
     Column (
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             //.fillMaxSize()
             .fillMaxHeight()
             .fillMaxWidth(
@@ -99,7 +100,7 @@ fun MoodsPage(
                     state = moodAngGenresLazyGridState,
                     columns = GridCells.Adaptive(Dimensions.thumbnails.album + 24.dp),
                     modifier = Modifier
-                        .background(colorPalette().background0)
+                        .background(kruxxContentColor(colorPalette().background0))
                         .fillMaxSize()
                 ) {
                     item(

@@ -1,7 +1,6 @@
 package it.fast4x.rimusic.ui.components.navigation.header
 
 import android.content.pm.PackageManager
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,7 +39,7 @@ private fun HamburgerMenu(
 
     val menu = DropdownMenu(
         expanded = expanded,
-        modifier = Modifier.background( colorPalette().background0.copy(0.90f) ),
+        containerColor = colorPalette().background0,
         onDismissRequest = onDismissRequest
     )
     // History button

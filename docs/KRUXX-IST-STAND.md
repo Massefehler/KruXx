@@ -13,7 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | `1.0.2` |
 | Öffentlicher Android-Versionscode | `1_000_002` |
-| Nächster Release | noch nicht festgelegt |
+| Nächster Release | `1.1.0` / `1_000_003`, lokaler Kandidat „Glass Update“; Podcast-Bereich ausdrücklich später |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | API 23 / Android 6.0 |
@@ -99,6 +99,29 @@ in `PLAYING`, ohne Playback-Fehler oder CDN-HTTP-Logger-Ausgabe. Die praktischen
 Playback-Randfälle sowie Android Auto im Desktop Head Unit und anschließend in einem realen Fahrzeug
 bleiben als ausdrücklich dokumentierte Nachtests offen.
 
+### Für v1.1.0 „Glass Update“ vorgesehene Änderungen
+
+Der aktuelle lokale Arbeitsbaum ist als KruXx `1.1.0` mit Android-Versionscode `1_000_003`
+versioniert. Der englische, in die APK zu übernehmende Changelog liegt unter
+[`changelogs/kruxx/1.1.0.txt`](changelogs/kruxx/1.1.0.txt). Solange Release-Gate, reproduzierbarer
+Release-Commit und Veröffentlichung fehlen, bleibt `1.0.2` der öffentliche Stable-Release.
+
+Der Kandidat umfasst:
+
+- „KruXx Glass“ als eigenständige visuelle Schicht für Startseite, Bibliotheksreiter, Vollbild- und
+  Mini-Player, Einstellungen, Detailseiten, Dialoge, Menüs und Sheets;
+- kompaktere Vorschlagskarten und Downloadbedienung, korrigierte „Top Artists“-Geometrie sowie
+  sauber getrennte Ebenen von Vollbild-Player, Queue und Trackmenü;
+- vollständig gerundete und ausgerichtete Einstellungsköpfe sowie platzsparende deutsche
+  Navigationsbezeichnungen „Darstellung“ und „Playlists“;
+- das neue, durchgängig erzeugte App-Icon und die freigestellte zehnteilige Startanimation mit
+  kontinuierlichen 120-ms-Überblendungen auf dem KruXx-Hintergrund;
+- die Korrektur des irreführenden Fehlerbanners beim Startseiten-Refresh und den wiederhergestellten
+  optionalen Schutz vor Benachrichtigungstönen und Heads-up-Pop-ups während aktiver Wiedergabe.
+
+Der geplante eigenständige Podcast-Bereich ist ausdrücklich **nicht** Teil von `1.1.0`; er bleibt ein
+separates späteres Funktionsvorhaben.
+
 ## 2. Aktueller Funktionsumfang
 
 ### Eigenständigkeit, Updates und Datenschutz
@@ -174,7 +197,7 @@ bleiben als ausdrücklich dokumentierte Nachtests offen.
   in der ressourcenschonenden Audiowiedergabe.
 - Video-zu-Audio-Wechsel und der automatische Audio-Rückfall bei nicht einbettbaren Videos behalten
   die Position bei. Warteschlange, „Als Nächstes“ und Kontextmenüs starten niemals ungefragt Video.
-- Unter **Einstellungen → Erscheinungsbild** kann „Schwebenden Player erlauben“ aktiviert werden.
+- Unter **Einstellungen → Darstellung** kann „Schwebenden Player erlauben“ aktiviert werden.
   Die Unteroption „Beim Verlassen automatisch öffnen“ ist standardmäßig an. PiP arbeitet ab Android 7,
   benötigt einen aktuellen Media-Eintrag und unterliegt zusätzlich den PiP-/Fensterregeln des Geräts.
 - „Miniaturansicht/Thumbnail im Player“ und Androids schwebender Player sind getrennte Funktionen:
@@ -192,9 +215,13 @@ bleiben als ausdrücklich dokumentierte Nachtests offen.
 - Optional kann unter **Einstellungen → Wiedergabe** die Stummschaltung fremder
   Benachrichtigungstöne aktiviert werden. Sie benötigt den einmalig vom Nutzer vergebenen
   „Nicht stören“-Zugriff und gilt nur während tatsächlich laufender Audio- oder Videowiedergabe.
-- Sichtbare Pop-ups, Medien, Wecker und Anrufe bleiben erlaubt. Pause, Stopp, Dienstende, nächster
-  App-Start und lokaler Crash-Wiederanlauf stellen den vorherigen Zustand wieder her; ein bereits vor
-  KruXx aktiver „Nicht stören“-Modus wird nicht abgeschaltet.
+- Heads-up-Pop-ups und Benachrichtigungstöne anderer Apps werden dabei unterdrückt; die Einträge
+  bleiben im Benachrichtigungsbereich sichtbar. Medien, Wecker und Anrufe bleiben hörbar. Pause,
+  Stopp, Dienstende, nächster App-Start und lokaler Crash-Wiederanlauf stellen den vorherigen Zustand
+  wieder her; ein bereits vor KruXx aktiver „Nicht stören“-Modus wird nicht abgeschaltet.
+- Release- und Debug-Paket sind für Android zwei eigenständige Apps. Schalterzustand und besonderer
+  „Nicht stören“-Zugriff werden deshalb nicht von `de.kruxx.music` auf
+  `de.kruxx.music.debug` oder umgekehrt übertragen.
 
 ### Downloads
 
@@ -218,14 +245,36 @@ bleiben als ausdrücklich dokumentierte Nachtests offen.
 
 - Nur bei einem kalten App-Start liegt ein animierter KruXx-Vollbildscreen über der bereits
   komponierenden Oberfläche. Zehn Frames à 120 ms laufen in 2,4 Sekunden exakt zweimal durch;
-  anschließend folgt eine kurze 420-ms-Ausblendung.
-- Das aktuelle Quellbild `icons/KruXx_App_Icon.png` wurde über die KruXx-Icon-Pipeline in adaptive,
+  anschließend folgt eine kurze 420-ms-Ausblendung. Die freigestellten RGBA-Quellen werden als
+  transparente 600²-WebPs ausgeliefert: Frame 1 steht sofort, jeder spätere Wechsel löst beide
+  Bilder über die vollständigen 120 ms linear und damit ohne Haltepunkt ineinander auf.
+- Das freigestellte Quellbild `icons/KruXx_App_Icon.png` wurde über die KruXx-Icon-Pipeline in adaptive,
   runde und klassische Launcher-Icons, Themed Icon, Benachrichtigungssymbol, TV-Banner sowie
   Cover-Platzhalter überführt.
 - Das Icon muss nach jeder Änderung des Quellbilds erneut generiert und anschließend in einer neu
   gebauten APK auf Gerät, Launcher, Benachrichtigung und Android TV geprüft werden.
 
 ## 3. Prüfstand vom 04.09.2026
+
+### Lokaler Release-Kandidat 1.1.0
+
+| Bereich | Nachweis | Status |
+|---|---|---|
+| Version und Release Notes | Paketversion `1.1.0`/`1000003`; englischer Quell-Changelog, generierte Ressource und optimierte Raw-Ressource im Release-APK bytegleich | bestanden |
+| KruXx-App-Unit-Tests | 88 Tests, 0 Fehler, 0 übersprungen | bestanden |
+| `modules/innertube` | 58 Tests, 0 Fehler, 0 übersprungen | bestanden |
+| `modules/metrolist` | Root-Integration kompiliert; das Modul besitzt keine eigenen Tests (`NO-SOURCE`) | bestanden |
+| Release-Lint | vollständiges `lintKruxxUniversalProdRelease`; nach Korrektur der neuen Ressourcen keine neuen Befunde gegenüber der versionierten Baseline | bestanden |
+| Kandidaten-Builds | Debug- und Release-Variante gebaut; ZIP-Integrität und Paketmetadaten beider APKs geprüft. Der direkte Release-Build ist erwartungsgemäß noch unsigniert | bestanden, nicht final |
+| Geräteinstallation | `de.kruxx.music.debug` per ADB mit Datenerhalt auf `1.1.0`/`1000003` aktualisiert; bestätigter Kaltstart in 1.238 ms, laufender Prozess und kein Fatal-/ANR-Treffer im prozessgefilterten Startlog | auf Gerät bestanden |
+| Finale Release-Provenienz | Signiertes Archiv-APK, Signatur-/Upgradeprüfung, endgültiger Digest, Release-Commit, Tag und Veröffentlichung | ausstehend bis zum sauberen Release-Commit |
+
+Die jetzt erzeugten APKs dienen der Kandidatenprüfung. Sie werden nicht als finales Release
+archiviert: Der unsaubere Arbeitsbaum kann in der von AGP eingebetteten Git-Revision nur den letzten
+Commit, nicht die noch uncommitteten Änderungen, ausweisen. Das gehärtete Release-Skript darf daher
+erst nach dem Freigabe-Commit aus einem sauberen Baum signieren und archivieren.
+
+### Öffentlicher Release 1.0.2
 
 | Bereich | Nachweis | Status |
 |---|---|---|
@@ -306,13 +355,87 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   Multirow-Antwortformat wird vom derzeitigen Playlist-Parser nicht abgebildet. Sie soll nicht als
   Einzelfall in den Musik-Playlistpfad gedrückt, sondern später Bestandteil eines eigenständigen
   Podcast-Bereichs mit Episodenstatus und Wiederaufnahme werden.
+- Der lokale Release-Kandidat `1.1.0` enthält die beiden Umsetzungsstufen des
+  [„KruXx Glass“-Redesigns](Design.md):
+  zentrale KruXx-Designbausteine, Graphit-Hintergrund mit rot-blauer Lichtaura, halbtransparenter
+  Header, schwebende untere Navigation, Mini-Player und leichte Karten der Startansicht. Auch die
+  Kaltstartanimation verwendet jetzt diesen gemeinsamen Hintergrund. Sämtliche Logo-Quellen und
+  Runtime-Frames sind echt freigestellt; durchgehende 120-ms-Überblendungen sowie eine ruhigere
+  Skalierungs- und Leuchtbewegung verbinden die zehn Zustände ohne schwarze Außenflächen. Zusätzlich
+  nutzen nun die Steuerung und Aktionsleiste des Vollbild-Players, Einstellungen und ihre
+  Unterseiten, die zentralen Dialoge, Dropdowns, Menüs und Bottom-Sheets sowie die gemeinsamen
+  Gerüste geöffneter Rubriken dieselbe Designsprache. Auch das Queue-/Playlist-Sheet des
+  Vollbild-Players lässt seine Glasfläche nicht mehr durch getrennte interne Listen-, Such- oder
+  Fußleistenflächen verschwinden. Eine deckende Basis unter der gemeinsamen Glasgestaltung
+  verhindert zugleich, dass der Vollbild-Player durch die Queue hindurchscheint.
+  Das Drei-Punkte-Trackmenü des Vollbild-Players nutzt unabhängig davon eine nur leicht deckendere
+  Glasbasis (Alpha 0,08); die Anpassung gilt gezielt für Listen-, Raster- und Playlist-Unteransicht
+  dieses Menüs und verändert keine anderen Dropdowns oder Sheets. Die vier unteren
+  Bibliotheks-Reiter „Titel“, „Interpreten“,
+  „Alben“ und „Playlists“ besitzen nun einheitliche gläserne Werkzeugleisten und Suchfelder,
+  transparente Filterchips und leichte Inhaltskarten. Die deutsche Hauptreiter-Beschriftung
+  „Playlists“ hält alle vorhandenen Reiter vollständig sichtbar und schafft Breitenreserve für den
+  geplanten Podcast-Reiter. Die bereits horizontal scrollbar ausgelegte Navigation soll erst bei
+  tatsächlich gemessenem Überlauf seitliche `<<`-/`>>`-Hinweise erhalten: jeweils nur dort, wo
+  weitere Reiter verborgen sind, beide zwischen den Scrollgrenzen und keinen, solange sämtliche
+  Reiter passen. Diese Kennzeichnung ist vorgemerkt und derzeit bewusst nicht aktiv. Der
+  Vorschlags-Downloadbutton beansprucht
+  nicht mehr die Titelzeile. Vorschläge und „Top Artists“ sind im Hochformat auf rund 65 Prozent der
+  Inhaltsbreite und damit auf das Maß von „Forgotten favorites“ abgestimmt; „Top Artists“ berechnet
+  seine zweizeilige Höhe aus dem tatsächlich dargestellten Song-Thumbnail samt Innen- und
+  Zeilenabstand. Das Vollbild-Player-Sheet besitzt eine undurchsichtige Unterlage, sodass die
+  Startseiten-Kopfzeile nicht hinter seinen Bedienelementen durchscheint. Die Schicht
+  ist auf den unabhängigen KruXx-Build begrenzt; Navigation, Screen-Zuschnitt, Datenfluss,
+  ViewModels, Wiedergabe, Bibliothekslogik und Android Auto bleiben strukturell und funktional
+  unverändert. Sämtliche gemeinsamen Abschnittsköpfe der Einstellungsreiter und -Untermenüs sind
+  nun an allen vier Ecken mit 14 dp gerundet; Überschrift und optionaler Untertitel stehen vertikal
+  zentriert und fluchten mit den Einstellungseinträgen. Die KruXx-Debug-APK sowie der gemeinsame
+  Kreate-/GitHub-Build wurden erfolgreich gebaut; die aktuelle KruXx-Debug-Suite bestand 88 von 88
+  Unit-Tests. Auf dem Samsung-Zielgerät
+  SM-S931B mit Android 16 bestanden Installation, Start, Tabwechsel, beide Playlist-Reiter mit
+  jeweils 11 sichtbaren lokalen beziehungsweise YT-/YTM-Listen sowie Online-Wiedergabe und
+  Pause/Fortsetzen über Mini- und Vollbild-Player ohne Crash. Vollbild-Player, Einstellungsseite und
+  -Unterseite, Auswahldialog, Kopfzeilen-Dropdown, geöffnete Albumseite und Titel-Bottom-Sheet
+  bestanden den aktuellen Gerätecheck. Die korrigierten Abschnittsköpfe wurden zusätzlich in
+  „Allgemein“, „UI“, „Darstellung“, „Daten“ und „Sonstiges“ einschließlich ihres angehefteten
+  Scrollzustands geprüft. Ein kurzer Startseiten-Scrolltest ergab 5 von 675
+  als ruckelig bewertete Frames (0,74 %), ein 95. Perzentil von 14 ms und keine verpassten
+  VSync-Ereignisse. Der Release-Kandidat verwendet auf allen Versionen den performanten
+  Transparenz-/Farbverlauf-/Kontur-Fallback ohne Blur pro Listenelement; nur der Vollbild-Player
+  verwendet weiterhin seine vorhandene echte Cover-Unschärfe. Als erweiterte Nachtests vor und nach
+  der Veröffentlichung bleiben Hellmodus, große Systemschrift, API 23 bis 30, breitere
+  Performanceprüfung sowie echter Backdrop-Blur für weitere geeignete ruhende Oberflächen offen.
+  Die zu großen Vorschlagskarten, die überhöhten und überlappenden „Top Artists“-Zeilen sowie das
+  Durchscheinen der Startseiten-Kopfzeile hinter dem Vollbild-Player wurden auf dem Zielgerät
+  reproduziert. Die Korrekturen kompilieren und sind automatisiert geprüft; „Top Artists“ und die
+  Abgrenzung des Vollbild-Players wurden mit der neu gebauten APK direkt nachgeprüft. Im
+  abschließenden Sichttest wurde auch die korrigierte Breite der Vorschlagskarten bestätigt.
+  Queue-Sheet einschließlich
+  Suche, Mini-Player und Werkzeugleiste sowie die ergänzten Flächen aller vier unteren
+  Bibliotheks-Reiter wurden dagegen auf dem Samsung SM-S931B direkt geprüft. Elf YT-/YTM-Playlists
+  waren sichtbar; Wiedergabe sowie Öffnen, Durchsuchen und Schließen der Queue funktionierten ohne
+  Absturz oder ANR. Nach der Korrektur war der darunterliegende Vollbild-Player in der geöffneten
+  Queue nicht mehr sichtbar.
+  Die Hintergrundintegration der Startdarstellung wurde zuvor bei echten Kaltstarts mit frühem und
+  spätem Animations-Screenshot geprüft. Die am 04.09.2026 ersetzte, echt freigestellte
+  Frame-Serie und das neue App-Icon sind als Quell- und Runtime-Ressourcen auf Alpha, Abmessungen und
+  Reihenfolge geprüft; die Debug-APK baut erfolgreich und enthält alle zehn transparenten WebPs.
+  Nach wiederhergestellter ADB-Verbindung wurde die aktuelle Debug-APK erneut installiert und
+  geöffnet; der sichtbare Gesamtstand einschließlich der leicht erhöhten Deckung des
+  Drei-Punkte-Trackmenüs wurde auf dem Zielgerät bestätigt.
+  Pull-to-refresh auf der Startseite wurde mit dem danach korrigierten Debug-Build zweimal direkt
+  auf demselben Zielgerät ausgeführt. Die Vorschläge wurden neu aufgebaut, ohne das zuvor sichtbare
+  rote Banner „Error occurs! Please submit report …“. Der Preference-Hintergrundthreadfehler und die
+  irreführende Protokollierung regulärer Effekt-Abbrüche traten nicht mehr auf; Prozess, Crash-/ANR-
+  und AndroidRuntime-Prüfung blieben unauffällig.
 - Die Spracheingabe fehlt auf Android 11 und älter sowie auf Geräten ohne lokalen Erkenner/Sprachmodell.
 - Ein erkannter OMV-/UGC-Typ garantiert keine Einbettung; Rechteinhaber, Region, Altersschutz oder
   WebView können Video verhindern. Dann ist Audio der beabsichtigte Rückfall.
 - PiP kann vom Android-/Hersteller-System global deaktiviert oder eingeschränkt sein. Ohne aktiven
   Titel öffnet KruXx bewusst kein leeres schwebendes Fenster.
-- Der Benachrichtigungsschutz kann nur Töne über Androids Notification Policy steuern. Er blockiert
-  weder sichtbare Pop-ups noch Medien, Wecker oder Anrufe und umgeht keine Gerätevorgaben.
+- Der Benachrichtigungsschutz kann nur Android-Benachrichtigungstöne und Heads-up-Pop-ups über die
+  Notification Policy steuern. Er blockiert weder Einträge im Benachrichtigungsbereich noch Medien,
+  Wecker oder Anrufe und umgeht keine Gerätevorgaben.
 - Für den öffentlichen `v1.0.2` wurden geprüfter Quellstand, beide Submodul-Commits und das passende
   Tag veröffentlicht und exakt das lokal geprüfte Archiv-APK an den GitHub-Release gehängt. Die
   nicht separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil der

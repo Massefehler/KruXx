@@ -312,12 +312,21 @@ class PlaybackNotificationSilencer( context: Context ) {
                 NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA or
                 NotificationManager.Policy.PRIORITY_CATEGORY_SYSTEM
         }
+        val suppressedVisualEffects = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ->
+                NotificationManager.Policy.SUPPRESSED_EFFECT_PEEK
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> {
+                @Suppress("DEPRECATION")
+                NotificationManager.Policy.SUPPRESSED_EFFECT_SCREEN_ON
+            }
+            else -> 0
+        }
 
         return createPolicy(
             categories = categories,
             callSenders = NotificationManager.Policy.PRIORITY_SENDERS_ANY,
             messageSenders = NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-            visualEffects = 0,
+            visualEffects = suppressedVisualEffects,
             conversationSenders = CONVERSATION_SENDERS_NONE
         )
     }

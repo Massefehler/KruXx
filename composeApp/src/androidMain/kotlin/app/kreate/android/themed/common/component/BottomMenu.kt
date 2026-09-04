@@ -79,6 +79,9 @@ import it.fast4x.rimusic.enums.MenuStyle
 import it.fast4x.rimusic.ui.components.navigation.header.TabToolBar
 import it.fast4x.rimusic.ui.components.themed.IconButton
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 import it.fast4x.rimusic.ui.styling.favoritesIcon
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asSong
@@ -149,11 +152,23 @@ class BottomMenu {
 
         ModalBottomSheet(
             onDismissRequest = ::hide,
-            modifier = modifier,
-            containerColor = colorPalette.background0,
+            modifier = if (isKruxxGlassEnabled) {
+                modifier.kruxxGlassSurface(
+                    fallbackColor = colorPalette.background0,
+                    shape = KruxxGlass.menuShape,
+                    strong = true
+                )
+            } else {
+                modifier
+            },
+            shape = if (isKruxxGlassEnabled) KruxxGlass.menuShape else BottomSheetDefaults.ExpandedShape,
+            containerColor = if (isKruxxGlassEnabled) Color.Transparent else colorPalette.background0,
+            tonalElevation = if (isKruxxGlassEnabled) 0.dp else BottomSheetDefaults.Elevation,
             dragHandle = {
                 Box(
-                    Modifier.background( colorPalette.background1 )
+                    Modifier.background(
+                        if (isKruxxGlassEnabled) Color.Transparent else colorPalette.background1
+                    )
                 ) {
                     BottomSheetDefaults.DragHandle(
                         Modifier.align( Alignment.TopCenter )

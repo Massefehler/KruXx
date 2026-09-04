@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 04.09.2026 · öffentlicher Release KruXx `1.0.2` ·
+Stand: 04.09.2026 · öffentlicher Release KruXx `1.0.2` · lokaler Release-Kandidat `1.1.0` ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -66,8 +66,8 @@ Wichtige Pfade:
 | `modules/kizzy` | Submodul: Discord-RPC |
 | `scripts/strings-modifier` | Submodul: Dev-Skript, nicht Teil des Builds |
 | `extensions/` | Kreates eigene Module; `extensions/innertube` („oldtube“, Gradle-Modul `:oldtube`) liefert die sichtbare YTM-Suche und Suchvorschläge, daneben kugou/lrclib/discord |
-| `icons/KruXx_App_Icon.png` | Quellbild des KruXx-Icons (1254², rotes „K“ mit blauer Audiowelle auf schwarzer Kachel) |
-| `icons/animation/` | Zehn hochauflösende Quellframes des KruXx-Startscreens; der Unterordner `old/` enthält verworfene lokale Vorstufen und ist bewusst gitignored |
+| `icons/KruXx_App_Icon.png` | Freigestelltes RGBA-Quellbild des KruXx-Icons (1254², rotes „K“ mit blauer Audiowelle auf dunkler Metallkachel) |
+| `icons/animation/` | Zehn hochauflösende, freigestellte RGBA-Quellframes des KruXx-Startscreens; der Unterordner `old/` enthält verworfene lokale Vorstufen und ist bewusst gitignored |
 | `scripts/build-local-release.sh` | Release bauen **und** signieren |
 | `scripts/make-kruxx-icon.py` | Alle Icon-Ressourcen aus dem Quellbild erzeugen |
 | `patches/innertube/` | Sicherung und nachvollziehbarer Diff der KruXx-Änderung im Submodul (§2.3) |
@@ -114,7 +114,7 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | `me/knighthat/utils/Repository.kt` | Repository-Links werden je Flavor aus `BuildConfig.REPO_OWNER`/`REPO_NAME` gebildet; KruXx verweist nur auf `Massefehler/KruXx` |
 | `composeApp/src/androidKruxx/kotlin/…/updater` | Eigener Updater: stabile GitHub-Releases, SemVer-Vergleich, exakter Assetname, HTTPS-/Repo-Bindung, SHA-256-, Paket-, Versions- und Signaturprüfung. Automatische Prüfungen laufen foreground- und netzgebunden, reagieren auf Netzrückkehr, wiederholen nur vorübergehende Fehler begrenzt und setzen das 24-Stunden-Intervall erst nach erfolgreicher Antwortprüfung; parallele Jobs und doppelte Dialoge werden verhindert |
 | `composeApp/src/androidKruxx/res/…` | generierte Icon-Ressourcen (siehe §5) |
-| `StartupSplash.kt`, `MainActivity.kt`, `androidKruxx/res/drawable-nodpi/kruxx_startup_frame_*.webp` | KruXx zeigt nur beim kalten Activity-Start einen blockierenden Vollbild-Overlay mit zehn vorab decodierten Frames. Ein Frame dauert 120 ms; 2,4 Sekunden ergeben exakt zwei Durchläufe, anschließend blendet der Overlay 420 ms aus. Die App komponiert darunter bereits weiter |
+| `StartupSplash.kt`, `MainActivity.kt`, `KruxxGlass.kt`, `androidKruxx/res/drawable-nodpi/kruxx_startup_frame_*.webp` | KruXx zeigt nur beim kalten Activity-Start einen blockierenden Vollbild-Overlay mit zehn vorab decodierten Frames. Ein Frame dauert 120 ms; 2,4 Sekunden ergeben exakt zwei Durchläufe, anschließend blendet der Overlay 420 ms aus. Die App komponiert darunter bereits weiter. Der Overlay zeichnet über eine explizit mit den aktuellen Palettenfarben versorgte `kruxxAppBackground`-Variante denselben Graphit-/Aura-Hintergrund wie die App, da er außerhalb des `LocalAppearance`-Providers liegt. Die 600²-WebP-Frames besitzen echte Transparenz statt schwarzer Außenflächen. Frame 1 erscheint beim Start unmittelbar; alle folgenden Wechsel blenden ausgehendes und eingehendes Bild über die vollständigen 120 ms linear ineinander. Eine gedämpfte Skalierungs-/Leuchtbewegung bleibt erhalten |
 | `Preferences.kt`, `MainApplication.kt` | KruXx-Standardseite ist `HomeScreenTabs.QuickPics` („Startseite“). Eine einmalige Migration setzt auch den bisher gespeicherten Standard `Songs` („Titel“) um; spätere manuelle Änderungen bleiben erhalten |
 | `CrashReportDialog.kt`, `AppNavigation.kt` | Für KruXx wird der CrashReport-Dialog samt Link zum Kreate-Issue-Tracker nicht aktiviert. Der `CrashHandler` schreibt weiterhin ausschließlich ein lokales Log für die eigene Diagnose |
 | `ChangelogsDialog.kt`, `ChangelogParser.kt` | Parser akzeptiert Kreates Format sowie ältere KruXx-Notizen (`•` und Folgezeilen); bei null Abschnitten wird kein Pager gerendert, damit fehlerhafte Release-Notes den App-Start nicht mehr abstürzen lassen |
@@ -122,13 +122,13 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | `src/kruxx/AndroidManifest.xml` | KruXx-spezifische Package-Visibility-Abfrage für Spracheingabe sowie Installationsberechtigung und eng begrenzter `FileProvider` für verifizierte Update-APKs |
 | `SearchResultScreen.kt`, `SearchResultProvider.kt` | Such-Cache berücksichtigt Sprache/Region und Konto/Anonym-Modus. Der Reiter „Titel“ führt die YTM-Filter **Titel und Videos parallel** aus, hängt abspielbare Video-/UGC-Treffer hinter die originale Titelrangfolge und entfernt Dubletten per `videoId`; der separate Video-Reiter bleibt unverändert nutzbar |
 | `extensions/innertube/...` | YTM-Suchfilter und Parser aktualisiert; `playlistItemData.videoId` dient als zusätzlicher Endpunkt-Fallback. Suche und Vorschläge verwenden App-Sprache + eingestellte Region sowie – wenn aktiv – die angemeldete Sitzung; eine ungültige Sitzung fällt auf eine anonyme Anfrage zurück |
-| `HomeQuickPicks.kt`, `ItemUtils.kt` | „Vorschläge“ lädt zur aktuellen Empfehlung eine deduplizierte Radio-Liste mit bis zu 18 Titeln und stellt sie abhängig von der Menge in ein bis drei gleich großen Reihen dar; der Play-Button startet die gesamte Liste. „Top Artists“ navigiert beim Tippen zur YTM-Interpretenseite. Die angemeldete Home-Sektion „From your Library“ reicht `useLogin=true` weiter und hängt alle dort fehlenden lokalen DB-Playlists an; fehlt die YTM-Sektion, erscheint ein eigenständiger lokaler Abschnitt. YTM-Home-Antworten werden nicht als Rohdaten ausgegeben |
+| `HomeQuickPicks.kt`, `ItemUtils.kt` | „Vorschläge“ lädt zur aktuellen Empfehlung eine deduplizierte Radio-Liste mit bis zu 18 Titeln und stellt sie abhängig von der Menge in ein bis drei gleich großen Reihen dar; der Play-Button startet die gesamte Liste. „Top Artists“ navigiert beim Tippen zur YTM-Interpretenseite. Die angemeldete Home-Sektion „From your Library“ reicht `useLogin=true` weiter und hängt alle dort fehlenden lokalen DB-Playlists an; fehlt die YTM-Sektion, erscheint ein eigenständiger lokaler Abschnitt. Pull-to-refresh belässt Compose- und Preference-Schreibzugriffe im Main-Kontext; erwartete Effekt-Abbrüche werden nicht als Ladefehler protokolliert. YTM-Home-Antworten werden nicht als Rohdaten ausgegeben |
 | `HomeLibraryViewModel.kt`, `PlaylistCollections.kt`, `HomeLibrary.kt`, `PlaylistItem.kt`, `YouTubePlaylistViewModel.kt` | Der Bibliotheksreiter lädt bei aktivierter Konto-Synchronisation die vollständige Seite `FEmusic_liked_playlists` samt Continuations, vereinigt sie mit Room und dedupliziert normalisierte Browse-IDs. Lokale Datensätze gewinnen beim Merge und bleiben editierbar; reine Konto-Playlists erhalten `id=-1` und werden zur angemeldeten YTM-Seite geroutet. Login-/Sync-Wechsel laden automatisch neu, Fehlversuche behalten die letzte erfolgreiche Antwort und erklärende Leerzustände unterscheiden Konto-, Sync-, Filter- und Netzfälle. Angemeldete erste Seite und Fortsetzungen laufen über Metrolists `YouTube.playlist()`-Pfad; öffentliche/anonyme Listen bleiben beim leichten `me.knighthat.innertube`-Browse |
 | `Thumbnails.kt`, `HomeArtistsViewModel.kt` | Fehlende `thumbnail.thumbnails`-Arrays werden als leere Liste deserialisiert. Online- und lokale Interpreten werden per ID zusammengeführt, Metadaten erhalten, Dubletten entfernt und **nach** dem Merge erneut nach der gewählten Titel-Sortierung geordnet |
 | `AppTitle.kt`, `scripts/make-kruxx-icon.py` | Der KruXx-Header verwendet die einzeilige Wortmarke „KruXx – The core of your music“; „KruXx“ ist fett und größer, der Zusatz kleiner und regulär gesetzt. Im KruXx-Flavor belegt sie 205 × 42 dp |
 | `DownloadHelperImpl.kt`, `DownloadAllDialog.kt`, `DownloadState.kt`, `InnertubeResolvingDataSource.kt`, `PlayerModule.kt` | Einzel- und Massendownloads laufen über denselben dedizierten Resolver: stets InnerTubeX `HIGH`, exakte Dateilänge und begrenzter HTTP-Range-Abruf. Anfragen werden dedupliziert/geordnet an `DownloadService` übergeben; KruXx lädt bis zu fünf Titel parallel, hält den Rest sichtbar in `STATE_QUEUED` und begrenzt Liedtext-Nebenabrufe auf einen. Wartende/laufende Downloads lassen sich per Tipp abbrechen |
 | `PlayerModule.kt`, `StatefulPlayerImpl.kt`, `StatsForNerds.kt` | Kein Channel-Mapping/Downmix: ExoPlayers Standard-Audiopfad bleibt erhalten. Hall ist bei Preset „Keiner“ wirklich deaktiviert; die Decoder-Kanalzahl wird zur Mono-/Stereo-Diagnose angezeigt |
-| `PlaybackNotificationSilencer.kt`, `PlayerServiceModern.kt`, `PlayerSettings.kt`, `AndroidManifest.xml` | Optionale, standardmäßig ausgeschaltete Stummschaltung fremder Benachrichtigungstöne exakt während nativer ExoPlayer- oder eingebetteter Videowiedergabe. Nach einmaligem „Nicht stören“-Zugriff bleiben Medien, Wecker, Anrufe und sichtbare Pop-ups erlaubt; Pause/Stop/Dienstende/App-Neustart/Crash stellen den Zustand wieder her. Sämtliche dabei ausgelösten Media3-Player-Zugriffe laufen über `Dispatchers.Main.immediate`, da ein Zugriff vom IO-Thread den Wiedergabedienst beim App-Start beendet hatte |
+| `PlaybackNotificationSilencer.kt`, `PlayerServiceModern.kt`, `PlayerSettings.kt`, `AndroidManifest.xml` | Optionale, standardmäßig ausgeschaltete Stummschaltung fremder Benachrichtigungstöne und Unterdrückung von Heads-up-Pop-ups exakt während nativer ExoPlayer- oder eingebetteter Videowiedergabe. Nach einmaligem „Nicht stören“-Zugriff bleiben Benachrichtigungseinträge sichtbar sowie Medien, Wecker und Anrufe hörbar; Pause/Stop/Dienstende/App-Neustart/Crash stellen den Zustand wieder her. Sämtliche dabei ausgelösten Media3-Player-Zugriffe laufen über `Dispatchers.Main.immediate`, da ein Zugriff vom IO-Thread den Wiedergabedienst beim App-Start beendet hatte |
 | `VideoItem`, `FromMusicShelfRendererContent.kt`, `ChartsPageComplete.kt`, `Utils.kt`, `YoutubePlayer.kt`, `MainActivity.kt` | YTM-Videotreffer werden semantisch getrennt: `OMV`/`UGC` dürfen nach direktem Tipp den eingebetteten YouTube-Player öffnen; `ATV` (Art Track/Standbild) und unbekannte Typen bleiben Audio. Warteschlange und Menüs fordern nie ungefragt Video an. Audio-/Videowechsel behalten die Position; Embed-Fehler fallen auf Audio zurück |
 | `AppearanceSettings.kt`, `PictureInPicture.kt`, `MainActivity.kt`, `Preferences.kt` | Android-PiP heißt in der Oberfläche „Schwebender Player“ und liegt unter Erscheinungsbild. Es ist ab Android 7 verfügbar, wird nur mit aktuellem MediaItem aktiviert, hält Parameter/Aktionen/Quellrechteck synchron und unterstützt das automatische Verlassen auf Android 7–11 explizit sowie ab Android 12 über `setAutoEnterEnabled`; die Auto-Unteroption ist standardmäßig an |
 
@@ -364,10 +364,15 @@ Wichtige Konstanten/Stellen:
   Android 15+ schaltet `PlaybackNotificationSilencer` nur KruXx’ implizite DND-Regel. Auf Android
   6–14 wird der vorherige globale Filter samt Policy synchron gesichert; ein schon aktiver DND-Modus
   wird nie überschrieben. Wiederherstellung erfolgt bei Pause/Stop, Dienstende, nächstem App-Start und
-  im lokalen Crash-Handler. Pop-ups bleiben durch `suppressedVisualEffects = 0` sichtbar; erlaubt sind
-  Calls sowie – ab Android 9 explizit – Alarme, Medien und Systemtöne. Der Dienst verbindet dafür
+  im lokalen Crash-Handler. `SUPPRESSED_EFFECT_PEEK` unterdrückt Heads-up-Pop-ups, lässt die Einträge
+  aber im Benachrichtigungsbereich sichtbar; erlaubt sind Calls sowie – ab Android 9 explizit –
+  Alarme, Medien und Systemtöne. Der Dienst verbindet dafür
   `ExoPlayer.isPlaying` mit dem tatsächlichen `PLAYING`-/`PAUSED`-Zustand des eingebetteten
   Videoplayers; ein pausiertes Video hält die Stummschaltung also nicht unnötig aktiv.
+  Debug (`de.kruxx.music.debug`) und Release (`de.kruxx.music`) sind aus Android-Sicht getrennte
+  Apps; weder der Schalterzustand noch der besondere „Nicht stören“-Zugriff werden zwischen ihnen
+  übernommen. Bei einem Variantentest müssen beide Voraussetzungen daher für das gerade laufende
+  Paket kontrolliert werden.
 - **Media3-Hauptthread-Invariante:** `StatefulPlayer`/Media3 erzwingt Zugriffe auf dem
   Application-Looper. Der Service behält seinen IO-Scope für Datenbank/Netz, sammelt Player-nahe
   Flows aber über `playerCoroutineScope` mit `Dispatchers.Main.immediate`; auch
@@ -537,6 +542,15 @@ angewendet und je nach Ergebniszahl ein bis drei `LazyHorizontalGrid`-Reihen mit
 Der kleine Play-Button startet den ersten Eintrag und hängt den Rest als zusammenhängende Queue an;
 das Antippen eines einzelnen Vorschlags behält das bisherige Radio-Verhalten.
 
+**Aktualisieren:** `HomeQuickPicks.refresh()` setzt Anzeigezustände und
+`Preferences.IS_DATA_KEY_LOADED` ausschließlich im Main-Kontext des gebundenen Compose-Scopes
+zurück; die aufgerufenen suspendierenden Netz- und Datenbankfunktionen übernehmen ihre
+I/O-Umschaltung selbst. Das ist erforderlich, weil der zentrale Preference-Schutz Schreibzugriffe
+von Hintergrundthreads ablehnt und dafür bewusst das rote Meldebanner anzeigt. Wird der
+Vorschlags-`LaunchedEffect` durch einen neuen Seed regulär ersetzt, wird seine
+`CancellationException` weitergereicht und nicht als echter Ladefehler protokolliert. Der
+`refreshing`-Zustand wird auch bei Fehler oder Abbruch in `finally` zuverlässig beendet.
+
 **Top Artists:** Die komplette Rangzeile einschließlich Rang, Bild, Name und Abonnentenzahl ist
 klickbar und navigiert über `NavRoutes.YT_ARTIST` mit der jeweiligen Artist-ID. Eine fehlende
 Thumbnail-URL verhindert die Navigation nicht.
@@ -576,6 +590,10 @@ ihnen angezeigt. Der danach aus dem finalen Arbeitsstand erzeugte Debug-Build wu
 `adb install -r` mit erhaltenem Datenstand eingespielt, startete ohne Crash oder ANR und wurde auf
 demselben Gerät für beide Playlist-Quellen erneut als funktionierend bestätigt. Die weitergehenden
 Filter-, Dubletten-, Sync-aus- und Fehlerfälle bleiben Bestandteil des folgenden Release-Testplans.
+Auf demselben finalen Debug-Stand wurden anschließend zwei direkte Aktualisierungen der Startseite
+per Wischgeste ausgeführt: Die Vorschläge wurden jeweils neu aufgebaut, das rote Meldebanner blieb
+aus und der Prozess aktiv. Logcat enthielt weder einen Hintergrundthread-Schreibzugriff auf
+`IsDataKeyLoaded` noch den erwartbaren Effekt-Abbruch als Fehler, `AndroidRuntime`, Crash oder ANR.
 
 Nur nicht lokal repräsentierte Konto-Playlists erhalten bewusst `Playlist.id = -1L` und
 `isYoutubePlaylist = true`; `PlaylistItem` routet sie zu `YT_PLAYLIST` statt zur lokalen Datenbank und
@@ -616,7 +634,7 @@ gewählt. Das bedeutet: Alphabetische Anzeige ist garantiert, wenn in der Oberfl
 
 ### 4.6 Schwebender Player (Android Picture-in-Picture)
 
-Die Nutzeroptionen liegen unter **Einstellungen → Erscheinungsbild**:
+Die Nutzeroptionen liegen unter **Einstellungen → Darstellung**:
 
 - `IS_PIP_ENABLED`: „Schwebenden Player erlauben“, standardmäßig aus;
 - `IS_AUTO_PIP_ENABLED`: „Beim Verlassen automatisch öffnen“, standardmäßig an und nur sichtbar,
@@ -689,7 +707,8 @@ Head Unit und echten Fahrzeug; dieser steht in §7.3 und bleibt Release-Gate.
 ## 5. Icon-Pipeline
 
 ```bash
-python3 scripts/make-kruxx-icon.py icons/KruXx_App_Icon.png --glyph-ratio 0.66
+python3 scripts/make-kruxx-icon.py icons/KruXx_App_Icon.png \
+  --glyph-ratio 0.66 --bg '#000000' --mono text
 ```
 
 erzeugt in `composeApp/src/androidKruxx/res/`: adaptives Icon (`mipmap-anydpi-v26/ic_launcher*.xml`
@@ -701,11 +720,14 @@ der reguläre Zusatz) und
 `drawable/ic_banner_foreground.png` als KruXx-Platzhalter für Titel ohne Cover. Wortmarke und
 Cover-Platzhalter werden von der App eingefärbt.
 
-Besonderheiten des aktuellen Icons: das rote „K“ mit blauer Audiowelle liegt als Kachel auf schwarzem
-Grund → der schwarze Rand wird per Flood-Fill transparent „gekeyt“ und die Kachel als Glyph (~71 dp)
-mittig platziert; Hintergrundfarbe = gekeyte Farbe. Für Themed Icons/Benachrichtigung wird ein fettes
-„K“ gerendert (`--mono text`),
-weil die glänzende 3D-Grafik keine brauchbare Silhouette liefert. Optionen: `--bg '#RRGGBB'`,
+Besonderheiten des aktuellen Icons: Das 1254²-Quellbild besitzt bereits einen echten Alpha-Kanal;
+seine abgerundete dunkle Metallkachel wurde sauber vom früheren schwarzen Außenbereich freigestellt.
+Die Pipeline behandelt sie als Glyph (~71 dp), bewahrt die Transparenz in klassischen/Legacy-Icons
+und verwendet für adaptive Icons explizit Schwarz als Hintergrund. Für Themed Icons und
+Benachrichtigungen wird ein fettes „K“ gerendert (`--mono text`), weil die glänzende 3D-Grafik keine
+brauchbare einfarbige Silhouette liefert. Der Generator entfernt ausschließlich die von ihm
+verwalteten Zieldateien; Startanimation, Theme-Werte und andere Flavor-Ressourcen bleiben erhalten.
+Optionen: `--bg '#RRGGBB'`,
 `--mode glyph|cover`, `--mono alpha|luminance|text|none`, `--mono-text`, `--wordmark`, `--tagline`,
 `--font`, `--regular-font`.
 Nach dem Generieren: `git add composeApp/src/androidKruxx/res` und neu bauen.
@@ -797,10 +819,11 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
 | Suchergebnisse/Vorschläge leer, Wiedergabe geht | YTM-Filter/Antwort hat sich geändert oder die `:oldtube`-Sitzung ist veraltet; nicht InnerTubeX | `extensions/innertube`, `SearchResultScreen`, Innertube-Logs; anonym und angemeldet vergleichen |
 | Track ist nachweislich auf YTM, fehlt aber unter „Titel“ | YTM sortiert ihn nur als Video/UGC ein; Region/Konto/Restriktion weicht ab; Parser kannte den Endpunkt nicht | Seit 2.2.3-kruxx.5 werden Titel+Videos zusammengeführt, App-Sprache/-Region und Login genutzt sowie weitere Endpunktformen erkannt. Bleibt er weg: YTM-URL/`videoId` mit beiden Kontomodi prüfen |
 | „Vorschläge“ zeigt nur einen anders großen Titel und dauerhaft einen gestrichelten Kreis | Nur der Seed war vorhanden; die alte Darstellung reservierte keine normalen Song-Zeilen oder der Radio-Aufruf scheiterte | Seit 1.0.1: Seed + deduplizierte Radio-/Related-Ergebnisse, bis zu 18 Titel in 1–3 normalen Reihen; Loader nur bei höchstens einem Ergebnis. Bei erneutem Auftreten Log-Tag `HomeQuickPicks` und `Innertube.radio()` prüfen (§4.5) |
+| Beim Herunterziehen auf der Startseite erscheint das rote Banner „Error occurs! Please submit report …“, obwohl die Inhalte geladen werden | `HomeQuickPicks.refresh()` lief im IO-Kontext und schrieb anschließend `Preferences.IS_DATA_KEY_LOADED` vom Hintergrundthread; der zentrale Preference-Schutz zeigte deshalb das allgemeine Meldebanner | Seit dem Arbeitsstand nach 1.0.2 läuft der gebundene Refresh im Main-Kontext; suspendierende Backends schalten intern auf I/O. Bei erneutem Auftreten nach `Preferences: IsDataKeyLoaded is being written on thread` und `HomeQuickPicks` filtern (§4.5) |
 | „Top Artists“ reagiert nicht auf Tippen | Rangzeile hatte keine Navigation | Seit 1.0.1 navigiert die ganze Zeile über `NavRoutes.YT_ARTIST`; bei erneutem Auftreten Artist-ID und überlagernde Modifier prüfen (§4.5) |
 | Android Auto zeigt eine leere Bibliothek, startet einen anderen Titel oder nur einen einzelnen Titel statt der gewählten Liste | Root/Leaf war nicht browsbar beziehungsweise Media-ID, Suchergebnis und Wiedergabe-Queue wurden unterschiedlich interpretiert | Seit 1.0.2 zentralisieren `MediaLibraryId` und `loadSongsForParent` ID-Auflösung, Reihenfolge und Startindex (§4.7). Im DHU Parent-/Leaf-ID und `onSetMediaItems` prüfen; Suchtexte oder Kontodaten nicht loggen |
 | Automatischer Updatehinweis erscheint nicht | Debug-Build (Self-Updater absichtlich aus), Modus deaktiviert, noch kein validiertes Netz oder erfolgreicher Abruf liegt weniger als 24 Stunden zurück | Mit signiertem Release-Build prüfen. Seit 1.0.2 wartet KruXx im Vordergrund auf Netz, reagiert auf Netzrückkehr, wiederholt transiente Fehler begrenzt und speichert das Intervall erst nach erfolgreicher Validierung. Bleibt der Hinweis aus: Modus, `last_successful_check` und Log-Tag `KruXxUpdater` prüfen, keine URL-/Kontogeheimnisse kopieren (§3.1, §7.3 Nr. 20) |
-| „From your Library“ zeigt nur YTM-/YT-Listen, im Reiter „Wiedergabelisten“ fehlen dagegen alle Konto-Listen | Die Startseite zeigte eine reine YTM-Home-Sektion; der Reiter kombinierte Room mit einem einmaligen, für diesen Zweck falschen `FEmusic_library_landing`-Abruf | Seit 1.0.2 ergänzt Home fehlende lokale Listen und der Reiter lädt `FEmusic_liked_playlists` samt Continuations. `VL`-IDs werden dedupliziert; Login-/Sync-Wechsel lösen automatisch neu aus. Der eingeblendete Leertext unterscheidet Anmeldung, Sync-Schalter und Abruffehler (§4.5) |
+| „From your Library“ zeigt nur YTM-/YT-Listen, im Reiter „Playlists“ fehlen dagegen alle Konto-Listen | Die Startseite zeigte eine reine YTM-Home-Sektion; der Reiter kombinierte Room mit einem einmaligen, für diesen Zweck falschen `FEmusic_library_landing`-Abruf | Seit 1.0.2 ergänzt Home fehlende lokale Listen und der Reiter lädt `FEmusic_liked_playlists` samt Continuations. `VL`-IDs werden dedupliziert; Login-/Sync-Wechsel lösen automatisch neu aus. Der eingeblendete Leertext unterscheidet Anmeldung, Sync-Schalter und Abruffehler (§4.5) |
 | Von mehreren YTM-Playlists lädt nur eine; die übrigen öffnen leer oder melden HTTP 401 | Synchronisierte Konto-Playlist wurde als lokale DB-ID behandelt oder der angemeldete Abruf lief fälschlich über `me.knighthat.innertube`. Enthaltene Videos/`mp4` verhindern nicht das Laden der Playlistseite | Seit 1.0.1: Online-ID `-1`, `isYoutubePlaylist=true`; angemeldete Seite samt Continuation über Metrolists `YouTube.playlist()`, anonyme Listen über `me.knighthat.innertube`. Bleibt eine einzelne Liste leer: dieselbe Playlist im YTM-Konto prüfen und normalisierte Browse-ID/Session untersuchen (§4.5) |
 | Interpreten sind sichtbar, Pull-to-refresh zeigt trotzdem das rote Banner „Synchronisation … fehlgeschlagen“ | Ein YTM-Eintrag ohne `thumbnail.thumbnails` ließ die gesamte neue Antwort beim Deserialisieren scheitern; sichtbar blieb die lokale/alte Liste | Seit 1.0.1 wird die Thumbnail-Liste optional als leer behandelt. Das Banner darf nur bei echtem Browse-/Parserfehler kommen; Log-Tag `HomeArtists` prüfen (§4.5) |
 | Interpreten sind nach Aktualisierung nicht mehr alphabetisch | Online- und lokal bereits sortierte Listen wurden erst danach aneinandergehängt | Seit 1.0.1 wird nach dem Merge global sortiert und dedupliziert. In der Oberfläche „Titel / aufsteigend“ wählen; `DATE_ADDED` und `RANDOM` sind bewusst nicht alphabetisch (§4.5) |
@@ -810,8 +833,8 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
 | „Failed to get charts“ beim Öffnen der Startseite (Log-Tag `HomeQuickPicks`) | YouTube hat die Charts-Antwort geändert; das Modul deserialisiert strikt (`MissingFieldException`) | Live-Antwort holen (`POST youtubei/v1/browse`, `browseId=FEmusic_charts`, `formData.selectedValues=["DE"]`), als Fixture nach `modules/innertube/src/test/resources/ytm/browse/`, `InnertubeChartsLiveResponseTest` nennt das fehlende Feld, Modell anpassen (§2.3) |
 | App stürzt nur beim ersten Start nach einem Update mit `IndexOutOfBoundsException: Index 0 out of bounds for length 0` ab; beim zweiten Start erscheint ein CrashReport | Release-Notes wurden nicht in Abschnitte geparst, der Changelog-Pager hatte deshalb null Seiten (trat in 2.2.3-kruxx.1/.2 durch `•` statt `-` und eine Überschrift ohne `:` auf) | Seit 2.2.3-kruxx.3: robuster Parser plus Schutz vor leeren Abschnitten. Neue Notizen immer im Format `Überschrift:` und `- Eintrag` schreiben |
 | App schließt direkt beim Start; Log meldet, der Media3-Player werde vom falschen Thread angesprochen | Der Flow des Benachrichtigungsschutzes lief im IO-Scope und las `player.isPlaying` außerhalb des Application-Loopers | Player-nahe Flows ausschließlich in `playerCoroutineScope`/`Dispatchers.Main.immediate`; `updatePlaybackNotificationSilencing()` bleibt `@MainThread` (§4.1) |
-| „Miniaturansicht“ ist aktiv, beim Verlassen erscheint aber kein kleines Fenster | Thumbnail im großen Player wurde mit Android-PiP verwechselt; PiP-Hauptschalter/Systemfreigabe aus, Auto-Unteroption aus oder kein aktueller Titel | Einstellungen → Erscheinungsbild → „Schwebenden Player erlauben“ plus „Beim Verlassen automatisch öffnen“ aktivieren; Androids PiP-Freigabe für KruXx und laufenden Titel prüfen (§4.6) |
-| Fremde Benachrichtigung ertönt trotz aktiviertem Schutz | „Nicht stören“-Zugriff fehlt/wurde entzogen, Wiedergabe ist pausiert oder der Ton ist Medien-, Wecker-, Anruf- bzw. Systemaudio und daher bewusst erlaubt | Systemzugriff und KruXx-Schalter prüfen; Log/Status von `PlaybackNotificationSilencer`. Pop-ups bleiben absichtlich sichtbar, der Schutz ist kein allgemeiner Audio-Mute (§4.1) |
+| „Miniaturansicht“ ist aktiv, beim Verlassen erscheint aber kein kleines Fenster | Thumbnail im großen Player wurde mit Android-PiP verwechselt; PiP-Hauptschalter/Systemfreigabe aus, Auto-Unteroption aus oder kein aktueller Titel | Einstellungen → Darstellung → „Schwebenden Player erlauben“ plus „Beim Verlassen automatisch öffnen“ aktivieren; Androids PiP-Freigabe für KruXx und laufenden Titel prüfen (§4.6) |
+| Fremde Benachrichtigung ertönt oder erscheint als Heads-up-Pop-up trotz aktiviertem Schutz | „Nicht stören“-Zugriff fehlt/wurde entzogen, Schalter oder Zugriff gelten nur für die andere Build-Variante, Wiedergabe ist pausiert oder der Ton ist Medien-, Wecker-, Anruf- bzw. Systemaudio und daher bewusst erlaubt | Systemzugriff und KruXx-Schalter für das tatsächlich laufende Paket prüfen; Debug und Release sind getrennte Apps. Danach Log/Status von `PlaybackNotificationSilencer` kontrollieren. Normale Einträge im Benachrichtigungsbereich bleiben sichtbar; der Schutz ist kein allgemeiner Audio-Mute (§4.1) |
 | Bei „Alle Tracks downloaden“ werden nur drei Titel markiert oder der Gesamtdurchsatz ist trotz gutem Netz gering | Media3s Standard sind drei aktive Downloads; weitere Einträge waren korrekt `QUEUED`, aber `SongItem` zeigte diesen Zustand früher nicht. Liedtext-Nebenabrufe können zusätzlich konkurrieren. Nach dem InnerTubeX-Umbau fehlte außerdem die Gesamtlänge im `DataSpec`, weshalb der CDN offene statt exakt begrenzter Range-Abrufe erhielt | Queue-/Restart-Zustände sind sichtbar, die Bulk-Übergabe ist geordnet, bis zu fünf Audiodownloads laufen parallel und höchstens ein Nebenabruf. Der eigene Download-Resolver setzt nun High-Qualität und exakte Länge. Bei echtem Stillstand Download-Benachrichtigung und Logs `DownloadHelperImpl`, `MyDownloadService`, `dataspec`, `InnerTubeXPlayer` prüfen; CDN-Drosselung bleibt extern möglich |
 | Wiedergabe wirkt mono | Quelle ist selbst mono/zentriert oder Android/Gerät mischt nach dem Decoder zusammen; KruXx enthält keinen Downmix. Ein gewählter Hall/EQ kann die Räumlichkeit verändern | „Stats for Nerds“ aufklappen: `Decoder-Kanäle: 2 (Stereo)` belegt ein Stereo-Quellformat. Dann Android → Bedienungshilfen → Audio → Mono-Audio, System-/Hersteller-EQ, Bluetooth-Gerät und Kabel/Adapter prüfen; Hall in KruXx auf „Keiner“ setzen |
 | YouTube-Login/Bibliothek defekt | `modules/metrolist` (Metrolist-Innertube) | Submodul-Update (§6.3) |
@@ -837,7 +860,7 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
 5. „Top Artists“ an Bild, Text und Rand antippen; jede Stelle muss dieselbe Interpretenseite öffnen.
    Danach einen Eintrag ohne Bild simulieren/verwenden und die Navigation erneut prüfen.
 6. Vor der Anmeldung mindestens zwei rein lokale Listen anlegen. Danach anmelden und
-   „Wiedergabelisten synchronisieren“ aktivieren: Der Reiter „Wiedergabelisten“ muss ohne manuelles
+   „Wiedergabelisten synchronisieren“ aktivieren: Der Reiter „Playlists“ muss ohne manuelles
    Aktualisieren nachladen; „From your Library“ nach dessen normalem Home-Refresh prüfen. Beide
    Ansichten müssen dieselben lokalen und YTM-/YT-Kontolisten ohne Dubletten enthalten; im
    Reiter zusätzlich „Wiedergabelisten“ (alle), „YT-Wiedergabelisten“ sowie – falls eingeblendet –
@@ -869,7 +892,7 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
     Videotreffer über „Als Nächstes“ einreihen – beim automatischen Übergang muss er Audio bleiben.
     Im Video vorspulen, auf „Nur Audio“ wechseln und dieselbe Position kontrollieren. Ein nicht
     einbettbares Video muss ohne App-Absturz an derselben Stelle als Audio weiterlaufen.
-12. PiP unter Einstellungen → Erscheinungsbild aktivieren. Mit Audio und anschließend echtem Video
+12. PiP unter Einstellungen → Darstellung aktivieren. Mit Audio und anschließend echtem Video
     die App über Home/Geste verlassen: Cover beziehungsweise Video muss im kleinen Fenster erscheinen;
     Play/Pause und Schließen prüfen. Auto-Unteroption aus: kein selbstständiger Eintritt. Hauptschalter
     aus oder kein MediaItem: kein PiP. Wenn verfügbar je ein Gerät Android 7–11 und Android 12+
@@ -891,10 +914,12 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
     Danach optional Mono-Audio in Android aktivieren, um den Unterschied eindeutig gegenzuprüfen.
 16. Benachrichtigungsschutz aktivieren, Systemzugriff zunächst abbrechen (Schalter muss
     zurückspringen), dann erteilen und während Audio sowie eingebettetem Video eine normale
-    Benachrichtigung aus einer anderen App auslösen: Pop-up sichtbar, kein Ton. Pause/Stop müssen den
-    vorherigen Zustand sofort herstellen. Zusätzlich Dienstende/Neustart sowie einen schon vorher
-    manuell aktivierten „Nicht stören“-Modus prüfen; letzterer darf nicht überschrieben oder
-    ausgeschaltet werden. Gespeicherte Crashreports werden dafür nicht geöffnet.
+    Benachrichtigung aus einer anderen App auslösen: weder Heads-up-Pop-up noch Ton, der Eintrag muss
+    aber im Benachrichtigungsbereich sichtbar bleiben. Pause/Stop müssen den vorherigen Zustand sofort
+    herstellen. Zusätzlich Dienstende/Neustart sowie einen schon vorher manuell aktivierten
+    „Nicht stören“-Modus prüfen; letzterer darf nicht überschrieben oder ausgeschaltet werden.
+    Den Test getrennt für die tatsächlich verwendete Debug- oder Release-App autorisieren;
+    gespeicherte Crashreports werden dafür nicht geöffnet.
 17. Anonym (ausgeloggt): 3–4 Songs aus Suche/Charts abspielen, dazwischen seeken; einen explizit
     markierten Song direkt als ersten, noch nicht lokal bekannten Titel einschließen. Eingeloggt einen
     Song aus der eigenen Bibliothek spielen. Zwischen zwei nicht vollständig gepufferten Online-Titeln
@@ -1034,6 +1059,90 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
   wiederverwendet werden. Tsacdops Flutter/Dart-Code ist keine direkte Abhängigkeit; Designideen oder
   portierte Logik müssen nachvollziehbar attribuiert werden. Vor Umsetzung ist festzulegen, ob der
   erste Schritt nur YTM oder zusätzlich RSS/PodcastIndex und OPML umfasst.
+- **1.1.0 „Glass Update“ – visuelle Eigenständigkeit durch [„KruXx Glass“](Design.md):** Zwei
+  Umsetzungsstufen bilden den lokalen Release-Kandidaten, ohne Navigation, Screen-Architektur,
+  Datenfluss, ViewModels,
+  Player-/Bibliothekslogik oder Android Auto funktional zu verändern. `KruxxGlass` bündelt die
+  KruXx-Markenfarben, Formen und Compose-Modifier; aktiviert wird die Schicht nur bei
+  `BuildConfig.INDEPENDENT_FORK`. Graphit-Hintergrund mit rot-blauer Lichtaura, Header, untere
+  Navigation, Mini-Player und leichte Startseitenkarten verwenden die gemeinsamen Bausteine. Die
+  Kaltstartanimation erhält denselben Hintergrund über die explizite, außerhalb von
+  `LocalAppearance` sichere `kruxxAppBackground`-Variante. Die zehn Logo-Quellen und ihre
+  600²-WebP-Runtime-Frames besitzen echte Transparenz. Der erste Frame steht sofort; jeder weitere
+  Wechsel löst die Bilder über die vollständigen 120 ms linear ineinander auf und wird von einer ruhigen Skalierungs- und
+  Leuchtbewegung begleitet. In der
+  zweiten Etappe kamen Vollbild-Player-Steuerung und -Aktionsleiste, Einstellungszeilen und klebende
+  Überschriften, die zentralen Dialog-/Menü-/Bottom-Sheet-Systeme sowie transparente gemeinsame
+  Screen-Gerüste für geöffnete Rubriken hinzu. Die Queue entfernt im KruXx-Build ihre getrennten
+  internen Listen-, Such- und Fußleistenhintergründe und verwendet damit die gemeinsame
+  Bottom-Sheet-Glasfläche. Deren opt-in `glassSurfaceOpaque` legt eine deckende Basis unter den
+  Glasverlauf, damit der Vollbild-Player nicht durch die Queue hindurchscheint.
+  Das Drei-Punkte-Trackmenü des Vollbild-Players verwendet stattdessen den bewusst kleinen Token
+  `KruxxGlass.playerMenuBackdropAlpha` (`0.08f`). `PlayerMenu` reicht ihn über beide Menüvarianten
+  bis `Menu` beziehungsweise `GridMenu` durch, sodass auch die Playlist-Unteransicht konsistent
+  bleibt, ohne die Deckung anderer Menüs global anzuheben.
+  `TabToolBar`,
+  `Search` und `ButtonsRow` liefern den vier unteren
+  Bibliotheks-Reitern eine einheitliche gläserne Werkzeugleiste und Suche sowie transparente
+  Filterchips; Titel-, Interpreten-, Alben- und Playlist-Inhalte verwenden leichte Glaskarten.
+  `HomeScreen` verwendet dafür die eigene Navigationsressource `tab_playlists`: Im Deutschen heißt
+  nur der Hauptreiter platzsparend „Playlists“, während Inhaltsüberschriften und Filter weiterhin
+  „Wiedergabelisten“ verwenden. Das verhindert abgeschnittene Randreiter und reserviert Breite für
+  den geplanten Podcast-Reiter. Die vorhandene horizontale `HorizontalNavigationBar` bleibt ohne
+  Zusatzhinweise, solange alle Reiter passen. Erst wenn der gemessene Scrollbereich einen Überlauf
+  ausweist, soll sie abhängig von aktueller Position und Scrollgrenzen `<<` beziehungsweise `>>`
+  anzeigen: nur links bei verborgenem Inhalt links, nur rechts bei verborgenem Inhalt rechts und
+  beide zwischen den Grenzen. Die Logik darf nicht an eine feste Reiterzahl gekoppelt werden.
+  `SongItem` reicht seinen Zeilen-Modifier nicht mehr an den Vorschlags-Downloadbutton durch.
+  Vorschläge und „Top Artists“ verwenden im Hochformat
+  rund 65 Prozent der Inhaltsbreite und entsprechen damit „Forgotten favorites“. Die Höhe der
+  zweizeiligen „Top Artists“-Darstellung wird aus dem dort tatsächlich verwendeten
+  `SongItem.thumbnailSize()` plus Innen- und Zeilenabstand berechnet. Das Vollbild-Player-Sheet
+  bleibt als einzige dieser gemeinsamen Flächen undurchsichtig, damit die darunterliegende
+  Startseiten-Kopfzeile nicht hinter seinen Bedienelementen durchscheint. `SettingHeader` versorgt
+  alle Einstellungsreiter und ihre Untermenüs zentral mit vollständig gerundeten 14-dp-Köpfen;
+  16 dp horizontaler sowie symmetrischer vertikaler Innenabstand zentrieren Überschrift und
+  optionalen Untertitel und richten sie an den Eintragstexten aus. Diese Geometrie bleibt über
+  `BuildConfig.INDEPENDENT_FORK` auf KruXx begrenzt. Der Release-Kandidat setzt
+  versionsübergreifend auf den performanten Transparenz-/Verlauf-/Kontur-Fallback und vermeidet Blur
+  pro Listenelement; der Vollbild-Player verwendet zusätzlich seine vorhandene echte
+  Cover-Unschärfe. Die KruXx-Debug-APK und die gemeinsame
+  Kreate-/GitHub-Variante bauen erfolgreich; die KruXx-Debug-Suite bestand 88 von 88 Unit-Tests. Auf
+  dem Samsung-Zielgerät SM-S931B mit Android 16 bestanden Installation, Start, Tabwechsel, beide
+  Playlist-Reiter mit jeweils 11 sichtbaren lokalen beziehungsweise YT-/YTM-Listen sowie
+  Online-Wiedergabe und Pause/Fortsetzen über Mini- und Vollbild-Player ohne Crash. Vollbild-Player,
+  Einstellungsseite und -Unterseite, Auswahldialog, Kopfzeilen-Dropdown, geöffnete Albumseite und
+  Titel-Bottom-Sheet bestanden den aktuellen Gerätecheck. Ein kurzer
+  Startseiten-Scrolltest ergab 5 von 675 als ruckelig bewertete Frames (0,74 %), ein 95. Perzentil
+  von 14 ms und keine verpassten VSync-Ereignisse. Die gemeinsame Sichtabnahme auf dem
+  Samsung-Zielgerät ist erfolgt. Als erweiterte Nachtests vor und nach der Veröffentlichung bleiben
+  Hellmodus, große Systemschrift, API 23 bis 30, eine breitere Performanceprüfung
+  und echter Backdrop-Blur auf weiteren geeigneten ruhenden Oberflächen offen. Die zu großen
+  Vorschlagskarten, die überhöhten und überlappenden „Top Artists“-Zeilen sowie das Durchscheinen
+  der Startseiten-Kopfzeile hinter dem Vollbild-Player wurden auf dem Gerät reproduziert. Die
+  Korrekturen kompilieren und sind automatisiert geprüft; „Top Artists“ und die Abgrenzung des
+  Vollbild-Players wurden mit der neu gebauten APK direkt nachgeprüft. Im abschließenden Sichttest
+  wurde auch die korrigierte Breite der Vorschlagskarten bestätigt. Queue-Sheet einschließlich Suche,
+  Mini-Player und Werkzeugleiste sowie alle vier unteren Bibliotheks-Reiter wurden auf dem Samsung
+  SM-S931B direkt geprüft. Elf YT-/YTM-Playlists waren sichtbar; Wiedergabe sowie Öffnen,
+  Durchsuchen und Schließen der Queue funktionierten ohne Absturz oder ANR. Nach der Korrektur war
+  der darunterliegende Vollbild-Player in der geöffneten Queue nicht mehr sichtbar.
+  Die Hintergrundintegration der Startanimation bestand mit der zuvor installierten Debug-APK
+  mehrere echte Kaltstarts. Die am 04.09.2026 ersetzten, echt freigestellten Frames
+  und das neue App-Icon sind als Quell- und Runtime-Ressourcen auf Alpha, Abmessungen und Reihenfolge
+  geprüft; die APK baut erfolgreich und enthält alle zehn transparenten WebPs. Nach
+  wiederhergestellter ADB-Verbindung wurde die aktuelle Debug-APK erneut installiert und geöffnet;
+  der sichtbare Gesamtstand einschließlich der leicht erhöhten Deckung des Drei-Punkte-Trackmenüs
+  wurde auf dem Zielgerät bestätigt.
+  Der abschließend als `1.1.0`/`1000003` versionierte Kandidat bestand 88 App- und 58 Innertube-Tests
+  ohne Fehler oder übersprungene Tests; Metrolist meldete erwartungsgemäß `NO-SOURCE`. Der
+  vollständige Release-Lint meldete nach Korrektur der neuen Ressourcen keine neuen Befunde.
+  Debug- und Release-Variante wurden gebaut, auf Paketversion und ZIP-Integrität geprüft, und die
+  englischen Release Notes sind in Changelog, generierter Ressource und Release-APK bytegleich. Der
+  direkte Release-Build ist noch unsigniert; das signierte Archiv darf erst aus dem sauberen
+  Release-Commit entstehen. Der `1.1.0`-Debug-Build wurde danach mit erhaltenen App-Daten auf dem
+  Samsung-Zielgerät installiert und startete kalt ohne Fatal-/ANR-Treffer im prozessgefilterten Log.
+  Bestehende Theme-, Farb-, Schrift- und Rundungsoptionen bleiben verbindliche Freigabekriterien.
 - **1.0.1-Freigabegate bestanden:** Das aus dem sauberen Release-Commit archivierte APK wurde über
   die bestehende Installation installiert; Paket, Version und erhaltener Datenstand stimmten. Ein
   per ADB bestätigter Kaltstart zeigte die zehn wechselnden Animationsframes, den Übergang zur

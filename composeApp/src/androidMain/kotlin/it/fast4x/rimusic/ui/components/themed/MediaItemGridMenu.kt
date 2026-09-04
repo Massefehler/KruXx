@@ -129,7 +129,8 @@ fun BaseMediaItemGridMenu(
     onClosePlayer: (() -> Unit)? = null,
     onGoToPlaylist: ((Long) -> Unit)? = null,
     onAddToPreferites: (() -> Unit)? = null,
-    onMatchingSong: (() -> Unit)? = null
+    onMatchingSong: (() -> Unit)? = null,
+    glassBackdropAlpha: Float = 0f
 ) {
     //val context = LocalContext.current
 
@@ -192,7 +193,8 @@ fun BaseMediaItemGridMenu(
         onGoToPlaylist = {
             NavRoutes.localPlaylist.navigateHere( navController, it.toString() )
         },
-        modifier = modifier
+        modifier = modifier,
+        glassBackdropAlpha = glassBackdropAlpha
     )
 }
 
@@ -259,7 +261,8 @@ fun MediaItemGridMenu (
     onGoToAlbum: ((String) -> Unit)? = null,
     onGoToArtist: ((String) -> Unit)? = null,
     onRemoveFromQuickPicks: (() -> Unit)? = null,
-    onGoToPlaylist: ((Long) -> Unit)?
+    onGoToPlaylist: ((Long) -> Unit)?,
+    glassBackdropAlpha: Float = 0f
 ) {
     val player: StatefulPlayer = koinInject()
     val uriHandler = LocalUriHandler.current
@@ -575,7 +578,8 @@ fun MediaItemGridMenu (
             Menu(
                 modifier = modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.5f)
+                    .fillMaxHeight(0.5f),
+                glassBackdropAlpha = glassBackdropAlpha
             ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -686,6 +690,7 @@ fun MediaItemGridMenu (
             val colorPalette = colorPalette()
 
             GridMenu(
+                glassBackdropAlpha = glassBackdropAlpha,
                 contentPadding = PaddingValues(
                     start = 8.dp,
                     top = 8.dp,
@@ -947,4 +952,3 @@ fun MediaItemGridMenu (
         }
     }
 }
-

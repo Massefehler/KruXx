@@ -18,12 +18,16 @@ import androidx.compose.ui.unit.dp
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.ui.components.tab.toolbar.Button
 import it.fast4x.rimusic.ui.components.tab.toolbar.EllipsisMenuComponent
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 
 object TabToolBar {
 
     val TOOLBAR_ICON_SIZE = 32.dp
     val HORIZONTAL_PADDING = 12.dp
     val VERTICAL_PADDING = 4.dp
+    private val GLASS_HORIZONTAL_MARGIN = 8.dp
 
     @Composable
     fun Buttons(
@@ -69,16 +73,30 @@ object TabToolBar {
             )
         }
 
+        val rowModifier = if( isKruxxGlassEnabled ) {
+            modifier.fillMaxWidth()
+                    .padding( horizontal = GLASS_HORIZONTAL_MARGIN, vertical = 2.dp )
+                    .kruxxGlassSurface(
+                        fallbackColor = colorPalette().background1,
+                        shape = KruxxGlass.navigationShape,
+                        elevated = false,
+                        strong = true
+                    )
+                    .padding( HORIZONTAL_PADDING, VERTICAL_PADDING )
+        } else {
+            modifier.fillMaxWidth()
+                    .padding( HORIZONTAL_PADDING, VERTICAL_PADDING )
+        }
+
         Row(
             horizontalArrangement = horizontalArrangement,
             verticalAlignment = verticalAlignment,
-            modifier = modifier.fillMaxWidth()
-                               .padding( HORIZONTAL_PADDING, VERTICAL_PADDING )
-                               .onGloballyPositioned {
-                                   // [it.size.width] returns size in px
-                                   val widthDp = it.size.width / density
-                                   availableWidth = widthDp.dp - (HORIZONTAL_PADDING * 2)
-                               }
+            modifier = rowModifier.onGloballyPositioned {
+                // [it.size.width] returns size in px
+                val widthDp = it.size.width / density
+                availableWidth = widthDp.dp - (HORIZONTAL_PADDING * 2) -
+                    if( isKruxxGlassEnabled ) GLASS_HORIZONTAL_MARGIN * 2 else 0.dp
+            }
         ) {
             // Wait until [availableWidth] is set and [canDisplay]
             // is properly calculated before showing

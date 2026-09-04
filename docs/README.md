@@ -1,6 +1,6 @@
 # KruXx-Dokumentation
 
-Stand: 04.09.2026 · öffentlicher Release `1.0.2`
+Stand: 04.09.2026 · öffentlicher Release `1.0.2` · lokaler Release-Kandidat `1.1.0`
 
 Diese Übersicht legt fest, welche Dokumente den aktuellen KruXx-Stand beschreiben und welche Dateien
 bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
@@ -9,14 +9,27 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 
 | Dokument | Zweck |
 |---|---|
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx 1.0.2 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx 1.0.2 und dem lokalen Kandidaten 1.1.0 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
+| [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |
 | [`../README.md`](../README.md) | Öffentliche Projektübersicht, Installation, Kernfunktionen und Einstieg in den Build |
 | [`../NOTICE.md`](../NOTICE.md) | Herkunft, Lizenzen, Abgrenzung und Danksagungen |
 | [`changelogs/kruxx/`](changelogs/kruxx/) | Unveränderliche Versionshistorie und die Release Notes der jeweils gebauten KruXx-Version |
 
 Bei einem Widerspruch gilt der Quellcode als technische Wahrheit. Der aktuelle Soll-/Prüfstand wird
 anschließend zuerst in `KRUXX-IST-STAND.md` und dann in den übrigen KruXx-Dokumenten berichtigt.
+
+Die rein visuelle Modernisierung [„KruXx Glass“](Design.md) bei unveränderter App-Architektur ist
+dem lokalen Release-Kandidaten `1.1.0` „Glass Update“ zugeordnet. Zwei Umsetzungsstufen umfassen
+Grundlayout und Startseite, Vollbild-Player, Einstellungen, gemeinsame Menüs/Dialoge und geöffnete
+Rubriken sowie Queue-Sheet, Werkzeugleisten, Suche, Filter und Inhaltskarten aller unteren
+Bibliotheks-Reiter. Der Stand ist auf dem Samsung-Zielgerät weitgehend geprüft, aber noch nicht als
+Release veröffentlicht. Der eigenständige Podcast-Bereich mit vollständiger Podcast-Funktion bleibt
+als separates späteres Vorhaben vorgemerkt und ist ausdrücklich kein Bestandteil von `1.1.0`.
+Roadmap und
+Produktstatus stehen in `KRUXX-IST-STAND.md` §4 und im Entwicklerhandbuch §9; das Designkonzept
+konkretisiert Implementierungsstand, Abgrenzung und Abnahmekriterien. Historische Release Notes
+werden dafür nicht nachträglich geändert.
 
 ## Bewusst nicht als aktueller KruXx-Stand behandeln
 

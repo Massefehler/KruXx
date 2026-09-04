@@ -55,6 +55,7 @@ import it.fast4x.rimusic.ui.components.themed.Title
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeLoggedIn
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asSong
 import it.fast4x.rimusic.utils.forcePlay
@@ -137,7 +138,7 @@ fun HistoryList(
 
     Column (
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             .fillMaxHeight()
             .fillMaxWidth(
                 if( NavigationBarPosition.Right.isCurrent() )
@@ -156,7 +157,7 @@ fun HistoryList(
             contentPadding = LocalPlayerAwareWindowInsets.current
                 .only(WindowInsetsSides.Vertical + WindowInsetsSides.End).asPaddingValues(),
             modifier = Modifier
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(colorPalette().background0))
                 .fillMaxSize()
         ) {
 
@@ -256,4 +257,3 @@ fun HistoryList(
         }
     }
 }
-

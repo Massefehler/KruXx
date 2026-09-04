@@ -26,7 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import app.kreate.android.Preferences
+import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.ColorPaletteMode
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 import it.fast4x.rimusic.utils.isLandscape
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,9 +48,26 @@ fun CustomModalBottomSheet(
     scrimColor: Color = BottomSheetDefaults.ScrimColor,
     dragHandle: @Composable (() -> Unit)? = { BottomSheetDefaults.DragHandle() },
     contentWindowInsets: @Composable () -> WindowInsets = { WindowInsets.ime },
+    glassSurfaceEnabled: Boolean = true,
+    glassSurfaceOpaque: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val bottomPadding = if(isLandscape) 0.dp else WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val palette = colorPalette()
+    val useGlassSurface = isKruxxGlassEnabled && glassSurfaceEnabled
+    val resolvedModifier = if (useGlassSurface) {
+        modifier.kruxxGlassSurface(
+            fallbackColor = containerColor.takeUnless { it == Color.Transparent } ?: palette.background1,
+            shape = shape,
+            strong = true,
+            opaqueBackdrop = glassSurfaceOpaque
+        )
+    } else {
+        modifier
+    }
+    val resolvedContainerColor = if (useGlassSurface) Color.Transparent else containerColor
+    val resolvedContentColor = if (useGlassSurface) palette.text else contentColor
+    val resolvedElevation = if (useGlassSurface) 0.dp else tonalElevation
 
     //NEW SHEET
 //    val mbSheetState: ModalBottomSheetState = androidx.compose.material.rememberModalBottomSheetState(
@@ -89,12 +109,12 @@ fun CustomModalBottomSheet(
         //PREVIOUS SHEET
         ModalBottomSheet(
             onDismissRequest = onDismissRequest,
-            modifier = modifier,
+            modifier = resolvedModifier,
             sheetState = sheetState,
             shape = shape,
-            containerColor = containerColor,
-            contentColor = contentColor,
-            tonalElevation = tonalElevation,
+            containerColor = resolvedContainerColor,
+            contentColor = resolvedContentColor,
+            tonalElevation = resolvedElevation,
             scrimColor = scrimColor,
             dragHandle = dragHandle,
             contentWindowInsets = contentWindowInsets

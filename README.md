@@ -17,6 +17,12 @@ implementation, verification status and remaining extended device checks are rec
 [KruXx status report](docs/KRUXX-IST-STAND.md); the immutable in-app notes are available in
 [`docs/changelogs/kruxx/1.0.2.txt`](docs/changelogs/kruxx/1.0.2.txt).
 
+The next local release candidate is KruXx `1.1.0` (`versionCode 1000003`), titled
+**KruXx Glass Update**. It is a visual feature update with new branding and targeted reliability
+fixes; the planned dedicated podcast section remains outside this release. Its automated tests,
+release lint, Debug build and unsigned Release build pass locally. Until a signed artifact from the
+clean release commit is verified and published, `1.0.2` remains the latest stable download.
+
 ## Install and update
 
 Download only the signed APK attached to the
@@ -39,6 +45,19 @@ Update checks can be changed or disabled under **Settings → General → Update
 crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
+
+### Next release candidate: 1.1.0 — Glass Update
+
+- A distinct graphite backdrop with restrained blue and red light accents and reusable glass-style
+  surfaces throughout home, library tabs, players, settings, details, dialogs, menus and sheets.
+- A new transparent app icon set and a smoother ten-frame cold-start animation integrated into the
+  same KruXx backdrop.
+- More compact Quick Picks cards and download controls, corrected Top Artists spacing, refined
+  player/queue layering and consistently rounded settings headers.
+- A home refresh fix and restored optional suppression of notification sounds and heads-up pop-ups
+  during active playback.
+
+### Included in the current stable release
 
 - Quick Picks is the default start page. Its suggestions can show up to 18 deduplicated results
   assembled from the seed, radio and related items in consistently sized rows, and Top Artists now

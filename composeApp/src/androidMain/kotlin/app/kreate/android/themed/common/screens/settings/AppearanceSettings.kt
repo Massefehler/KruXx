@@ -39,6 +39,8 @@ import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.enums.WallpaperType
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxDialogSurface
 import it.fast4x.rimusic.utils.isAtLeastAndroid7
 import it.fast4x.rimusic.utils.isLandscape
 import me.knighthat.utils.Toaster
@@ -57,7 +59,7 @@ fun AppearanceSettings(paddingValues: PaddingValues) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.background( colorPalette().background0 )
+        modifier = Modifier.background( kruxxContentColor(colorPalette().background0) )
                            .padding( paddingValues )
                            .fillMaxHeight()
                            .fillMaxWidth(
@@ -165,9 +167,15 @@ fun AppearanceSettings(paddingValues: PaddingValues) {
             onDismissRequest = {wallpaperResetAlertVisible.value = false},
         ) {
             Surface(
-                modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+                modifier = Modifier.wrapContentWidth()
+                    .wrapContentHeight()
+                    .kruxxDialogSurface(
+                        fallbackColor = MaterialTheme.colorScheme.surface,
+                        fallbackShape = MaterialTheme.shapes.large
+                    ),
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = AlertDialogDefaults.TonalElevation,
+                color = kruxxContentColor(MaterialTheme.colorScheme.surface),
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(stringResource(R.string.settings_live_wallpaper_reset_warning))

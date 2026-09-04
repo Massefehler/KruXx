@@ -119,6 +119,7 @@ import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
 import it.fast4x.rimusic.ui.styling.ColorPalette
 import it.fast4x.rimusic.ui.styling.favoritesIcon
+import it.fast4x.rimusic.ui.styling.kruxxDialogSurface
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asSong
 import it.fast4x.rimusic.utils.bold
@@ -325,10 +326,7 @@ inline fun DefaultDialog(
             horizontalAlignment = horizontalAlignment,
             modifier = modifier
                 .padding(all = 10.dp)
-                .background(
-                    color = colorPalette().background1,
-                    shape = RoundedCornerShape(8.dp)
-                )
+                .kruxxDialogSurface(colorPalette().background1)
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             content = content
         )
@@ -351,7 +349,7 @@ fun <T> ValueSelectorDialog(
         Column(
             modifier = modifier
                 .padding(all = 10.dp)
-                .background(color = colorPalette.background1, shape = RoundedCornerShape(8.dp))
+                .kruxxDialogSurface(colorPalette.background1)
                 .padding(vertical = 16.dp)
         ) {
             BasicText(
@@ -454,7 +452,7 @@ inline fun SelectorDialog(
         Column(
             modifier = modifier
                 .padding(all = 10.dp)
-                .background(color = colorPalette().background1, shape = RoundedCornerShape(8.dp))
+                .kruxxDialogSurface(colorPalette().background1)
                 .padding(vertical = 16.dp)
         ) {
             BasicText(
@@ -664,7 +662,7 @@ inline fun InputNumericDialog(
         Column(
             modifier = modifier
                 .padding(all = 10.dp)
-                .background(color = colorPalette().background1, shape = RoundedCornerShape(8.dp))
+                .kruxxDialogSurface(colorPalette().background1)
                 .padding(vertical = 16.dp)
                 .requiredHeight(190.dp)
         ) {
@@ -798,7 +796,7 @@ inline fun InputTextDialog(
         Column(
             modifier = modifier
                 .padding(all = 10.dp)
-                .background(color = colorPalette().background1, shape = RoundedCornerShape(8.dp))
+                .kruxxDialogSurface(colorPalette().background1)
                 .padding(vertical = 16.dp)
                 .defaultMinSize(Dp.Unspecified, 190.dp)
         ) {
@@ -944,7 +942,7 @@ inline fun StringListDialog(
         Column(
             modifier = modifier
                 .padding(all = 10.dp)
-                .background(color = colorPalette().background1, shape = RoundedCornerShape(8.dp))
+                .kruxxDialogSurface(colorPalette().background1)
                 .padding(vertical = 16.dp)
                 .defaultMinSize(Dp.Unspecified, 190.dp)
         ) {
@@ -1077,7 +1075,7 @@ inline fun GenericDialog(
         Column(
             modifier = modifier
                 .padding(all = 48.dp)
-                .background(color = colorPalette().background1, shape = RoundedCornerShape(8.dp))
+                .kruxxDialogSurface(colorPalette().background1)
                 .padding(vertical = 16.dp)
         ) {
             BasicText(
@@ -1727,7 +1725,7 @@ fun SongMatchingDialog(
             modifier = Modifier
                 .fillMaxWidth(if (isLandscape) 0.5f else 0.9f)
                 .fillMaxHeight(if (isLandscape) 0.9f else 0.7f)
-                .background(color = colorPalette().background1,shape = RoundedCornerShape(8.dp))
+                .kruxxDialogSurface(colorPalette().background1)
         ) {
             fun filteredText(text : String): String{
                 val filteredText = text

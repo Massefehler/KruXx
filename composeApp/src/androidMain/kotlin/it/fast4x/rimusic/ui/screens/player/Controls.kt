@@ -36,6 +36,7 @@ import it.fast4x.rimusic.enums.PlayerControlsType
 import it.fast4x.rimusic.enums.PlayerInfoType
 import it.fast4x.rimusic.enums.PlayerPlayButtonType
 import it.fast4x.rimusic.enums.PlayerType
+import it.fast4x.rimusic.ui.styling.kruxxPlayerControls
 import it.fast4x.rimusic.models.Info
 import it.fast4x.rimusic.ui.screens.player.components.controls.InfoAlbumAndArtistEssential
 import it.fast4x.rimusic.ui.screens.player.components.controls.InfoAlbumAndArtistModern
@@ -89,6 +90,7 @@ fun Controls(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Bottom,
                 modifier = Modifier
+                    .kruxxPlayerControls()
                     .padding(horizontal = playerTimelineSize.size.dp)
             ) {
                 if (!isShowingLyrics || titleExpanded) {
@@ -146,6 +148,7 @@ fun Controls(
                 horizontalAlignment = Alignment.Start,
                 modifier = modifier
                     .fillMaxWidth()
+                    .kruxxPlayerControls()
                     .padding(horizontal = playerTimelineSize.size.dp)
                     //.fillMaxHeight(0.40f)
             ) {
@@ -216,6 +219,7 @@ fun Controls(
             verticalArrangement = Arrangement.Bottom,
             modifier = modifier
                 .fillMaxWidth()
+                .kruxxPlayerControls()
                 .padding(horizontal = playerTimelineSize.size.dp)
         ) {
 

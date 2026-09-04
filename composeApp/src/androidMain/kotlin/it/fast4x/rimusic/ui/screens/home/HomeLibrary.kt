@@ -57,6 +57,8 @@ import it.fast4x.rimusic.ui.components.themed.FloatingActionsContainerWithScroll
 import it.fast4x.rimusic.ui.components.themed.HeaderInfo
 import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxGlassCard
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.CheckMonthlyPlaylist
 import it.fast4x.rimusic.utils.center
@@ -189,7 +191,7 @@ fun HomeLibrary(
     ) {
         Box(
             modifier = Modifier
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(colorPalette().background0))
                 //.fillMaxSize()
                 .fillMaxHeight()
                 .fillMaxWidth(
@@ -214,7 +216,9 @@ fun HomeLibrary(
                 LazyVerticalGrid(
                     state = lazyGridState,
                     columns = GridCells.Adaptive( itemSize.size.dp ),
-                    modifier = Modifier.background( colorPalette().background0 ),
+                    modifier = Modifier.background(
+                        kruxxContentColor(colorPalette().background0)
+                    ),
                     verticalArrangement = Arrangement.spacedBy( PlaylistItem.ROW_SPACING.dp ),
                     contentPadding = PaddingValues(bottom = Dimensions.bottomSpacer)
                 ) {
@@ -261,6 +265,7 @@ fun HomeLibrary(
                             values = playlistItemValues,
                             songCount = preview.songCount,
                             navController = navController,
+                            modifier = Modifier.kruxxGlassCard(),
                             sizeDp = sizeDp,
                             thumbnailUrl = preview.thumbnailUrl,
                             useLogin = preview.playlist.isYoutubePlaylist,

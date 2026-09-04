@@ -21,6 +21,8 @@
     <string name="artists">Artists</string>
     <string name="enter_the_playlist_name">Enter the playlist name</string>
     <string name="playlists">Playlists</string>
+    <!-- Locale-aware alias; German intentionally overrides only the compact navigation label. -->
+    <item type="string" name="tab_playlists" tools:ignore="MissingTranslation">@string/playlists</item>
     <string name="favorites">Favorites</string>
     <string name="quick_picks">Quick Picks</string>
     <string name="songs">Songs</string>
@@ -293,6 +295,8 @@
     <string name="this_folder_already_exists">This folder already exists</string>
     <string name="are_you_sure_you_want_to_remove_this_folder_from_the_blacklist">Are you sure you want to remove this folder from the blacklist?</string>
     <string name="player_appearance">Player Appearance</string>
+    <!-- Locale-aware alias; German intentionally overrides only the compact navigation label. -->
+    <item type="string" name="tab_appearance" tools:ignore="MissingTranslation">@string/player_appearance</item>
     <string name="player_action_bar">PLAYER ACTION BAR</string>
     <string name="tab_data">Data</string>
     <string name="image_cache_max_size">Image cache max size</string>
@@ -722,7 +726,7 @@
     <string name="settings_audio_focus">Audio focus</string>
     <string name="settings_audio_focus_info">Allows automatic pause and resume playback after a call for example</string>
     <string name="settings_silence_notifications_during_playback">Mute notification sounds during playback</string>
-    <string name="settings_silence_notifications_during_playback_info">Silences other apps’ notification sounds only while music is playing. Requires Do Not Disturb access; music, alarms and calls remain audible, and pop-ups stay visible.</string>
+    <string name="settings_silence_notifications_during_playback_info">Silences other apps’ notification sounds and hides heads-up pop-ups only while music is playing. Requires Do Not Disturb access; music, alarms and calls remain audible.</string>
     <string name="notification_policy_access_not_granted">Do Not Disturb access was not granted</string>
     <string name="notification_policy_settings_unavailable">Do Not Disturb settings could not be opened</string>
     <string name="songs_liked_yt">Song(s) are Liked in YouTube</string>

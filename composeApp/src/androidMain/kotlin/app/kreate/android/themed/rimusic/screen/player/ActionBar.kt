@@ -84,6 +84,9 @@ import it.fast4x.rimusic.ui.components.themed.AddToPlaylistPlayerMenu
 import it.fast4x.rimusic.ui.components.themed.DownloadStateIconButton
 import it.fast4x.rimusic.ui.components.themed.IconButton
 import it.fast4x.rimusic.ui.components.themed.PlayerMenu
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 import it.fast4x.rimusic.utils.DisposableListener
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.conditional
@@ -153,27 +156,38 @@ fun BoxScope.ActionBar(
     var isShowingVisualizer by showVisualizerState
     var isShowingLyrics by showLyricsState
 
+    val actionBarColor = colorPalette().background2.copy(
+        alpha =
+            if (transparentBackgroundActionBarPlayer
+                || (playerBackgroundColors == PlayerBackgroundColors.CoverColorGradient
+                    || playerBackgroundColors == PlayerBackgroundColors.ThemeColorGradient)
+                && blackGradient)
+                0.0f
+            else
+                0.7f
+    )
+    val actionBarSurface = if (isKruxxGlassEnabled) {
+        Modifier.kruxxGlassSurface(
+            fallbackColor = actionBarColor,
+            shape = KruxxGlass.playerControlsShape,
+            strong = true
+        )
+    } else {
+        Modifier.background(actionBarColor)
+    }
+
     Row(
         modifier = Modifier.padding( if( isLandscape ) WindowInsets.navigationBars.asPaddingValues() else PaddingValues() )
                            .align(if (isLandscape) Alignment.BottomEnd else Alignment.BottomCenter)
+                           .conditional(isKruxxGlassEnabled) {
+                               padding(horizontal = 10.dp, vertical = 4.dp)
+                           }
                            .requiredHeight(if (showNextSongsInPlayer && (showLyricsThumbnail || (!isShowingLyrics || miniQueueExpanded))) 90.dp else 50.dp)
                            .fillMaxWidth(if (isLandscape) 0.8f else 1f)
                            .clickable( enabled = tapQueue ) {
                                showQueue = true
                            }
-                           .background(
-                               colorPalette().background2.copy(
-                                   alpha =
-                                       if (transparentBackgroundActionBarPlayer
-                                           || (playerBackgroundColors == PlayerBackgroundColors.CoverColorGradient
-                                                   || (playerBackgroundColors == PlayerBackgroundColors.ThemeColorGradient)
-                                               )
-                                           && blackGradient)
-                                           0.0f
-                                       else
-                                           0.7f // 0.0 > 0.1
-                               )
-                           )
+                           .then(actionBarSurface)
                            .pointerInput(Unit) {
                                if (swipeUpQueue)
                                    detectVerticalDragGestures(
@@ -195,9 +209,12 @@ fun BoxScope.ActionBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .background(
-                            colorPalette().background2.copy(
-                                alpha = if (transparentBackgroundActionBarPlayer) 0.0f else 0.3f
-                            )
+                            if (isKruxxGlassEnabled)
+                                Color.Transparent
+                            else
+                                colorPalette().background2.copy(
+                                    alpha = if (transparentBackgroundActionBarPlayer) 0.0f else 0.3f
+                                )
                         )
                         .padding(horizontal = 12.dp)
                         .fillMaxWidth()

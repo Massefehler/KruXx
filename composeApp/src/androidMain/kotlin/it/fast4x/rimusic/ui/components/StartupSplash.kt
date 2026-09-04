@@ -1,8 +1,10 @@
 package it.fast4x.rimusic.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -21,7 +23,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +33,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -44,11 +44,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.kreate.android.R
+import it.fast4x.rimusic.ui.styling.kruxxAppBackground
 import kotlinx.coroutines.delay
 
 private const val SplashHoldMillis = 2_400L
 private const val SplashExitMillis = 420
 private const val SplashFrameMillis = 120L
+private const val SplashFrameBlendMillis = 120
 
 /**
  * A short branded bridge between Android's launch window and the already composing app.
@@ -59,6 +61,8 @@ fun AnimatedStartupSplash(
     visible: Boolean,
     appName: String,
     backgroundColor: Color,
+    secondaryBackgroundColor: Color,
+    isDark: Boolean,
     contentColor: Color,
     accentColor: Color,
     onFinished: () -> Unit,
@@ -110,9 +114,9 @@ fun AnimatedStartupSplash(
         }
 
         val iconScale by animateFloatAsState(
-            targetValue = if (introStarted) 1f else 0.94f,
+            targetValue = if (introStarted) 1f else 0.965f,
             animationSpec = tween(
-                durationMillis = 500,
+                durationMillis = 650,
                 easing = FastOutSlowInEasing,
             ),
             label = "splash icon scale",
@@ -120,8 +124,8 @@ fun AnimatedStartupSplash(
         val wordmarkAlpha by animateFloatAsState(
             targetValue = if (introStarted) 1f else 0f,
             animationSpec = tween(
-                durationMillis = 450,
-                delayMillis = 160,
+                durationMillis = 600,
+                delayMillis = 180,
             ),
             label = "splash wordmark alpha",
         )
@@ -132,7 +136,7 @@ fun AnimatedStartupSplash(
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
                 animation = tween(
-                    durationMillis = 760,
+                    durationMillis = 1_000,
                     easing = FastOutSlowInEasing,
                 ),
                 repeatMode = RepeatMode.Reverse,
@@ -143,7 +147,11 @@ fun AnimatedStartupSplash(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(backgroundColor)
+                .kruxxAppBackground(
+                    backgroundColor = backgroundColor,
+                    secondaryBackgroundColor = secondaryBackgroundColor,
+                    isDark = isDark,
+                )
                 // Do not let touches reach controls composing underneath the splash.
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
@@ -171,8 +179,8 @@ fun AnimatedStartupSplash(
                         modifier = Modifier
                             .fillMaxSize()
                             .graphicsLayer {
-                                alpha = 0.12f + pulse * 0.12f
-                                val glowScale = 0.88f + pulse * 0.08f
+                                alpha = 0.10f + pulse * 0.10f
+                                val glowScale = 0.90f + pulse * 0.07f
                                 scaleX = glowScale
                                 scaleY = glowScale
                             }
@@ -187,19 +195,30 @@ fun AnimatedStartupSplash(
                             )
                     )
 
-                    Image(
-                        painter = framePainters[frameIndex],
-                        contentDescription = appName,
+                    // Frame 1 is visible immediately. Every following state change softly
+                    // dissolves the outgoing transparent artwork into the incoming frame.
+                    Crossfade(
+                        targetState = frameIndex,
                         modifier = Modifier
                             .size(176.dp)
-                            .clip(RoundedCornerShape(28.dp))
                             .graphicsLayer {
-                                val animatedScale = iconScale * (1f + pulse * 0.018f)
+                                val animatedScale = iconScale * (1f + pulse * 0.010f)
                                 scaleX = animatedScale
                                 scaleY = animatedScale
                             },
-                        contentScale = ContentScale.Fit,
-                    )
+                        animationSpec = tween(
+                            durationMillis = SplashFrameBlendMillis,
+                            easing = LinearEasing,
+                        ),
+                        label = "splash frame crossfade",
+                    ) { index ->
+                        Image(
+                            painter = framePainters[index],
+                            contentDescription = appName,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 }
 
                 Box(

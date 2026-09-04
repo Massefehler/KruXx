@@ -36,6 +36,7 @@ import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 
 @ExperimentalTextApi
 @UnstableApi
@@ -59,7 +60,7 @@ fun NewAlbums(
 
     Column(
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             //.fillMaxSize()
             .fillMaxHeight()
             .fillMaxWidth(
@@ -83,7 +84,7 @@ fun NewAlbums(
                 columns = GridCells.Adaptive(Dimensions.thumbnails.album + 24.dp),
                 //contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
                 modifier = Modifier
-                    .background(colorPalette().background0)
+                    .background(kruxxContentColor(colorPalette().background0))
                 //.fillMaxSize()
             ) {
                 item(

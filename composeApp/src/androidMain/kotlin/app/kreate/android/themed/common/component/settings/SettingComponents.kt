@@ -48,6 +48,8 @@ import app.kreate.component.TextView
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.themed.Switch
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxSettingsEntry
 import it.fast4x.rimusic.utils.semiBold
 import me.knighthat.component.dialog.Dialog
 import me.knighthat.component.dialog.RestartAppDialog
@@ -118,14 +120,26 @@ object SettingComponents {
         Row(
             horizontalArrangement = Arrangement.spacedBy( 16.dp ),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier
-                .padding(all = DEFAULT_HORIZONTAL_PADDING.dp)
-                .fillMaxWidth()
-                .clickable(
-                    enabled = isEnabled,
-                    onClick = onClick
-                )
-                .alpha(if (isEnabled) 1f else 0.5f)
+            modifier = if (isKruxxGlassEnabled) {
+                modifier
+                    .fillMaxWidth()
+                    .kruxxSettingsEntry()
+                    .clickable(
+                        enabled = isEnabled,
+                        onClick = onClick
+                    )
+                    .alpha(if (isEnabled) 1f else 0.5f)
+                    .padding(all = DEFAULT_HORIZONTAL_PADDING.dp)
+            } else {
+                modifier
+                    .padding(all = DEFAULT_HORIZONTAL_PADDING.dp)
+                    .fillMaxWidth()
+                    .clickable(
+                        enabled = isEnabled,
+                        onClick = onClick
+                    )
+                    .alpha(if (isEnabled) 1f else 0.5f)
+            }
         ) {
             Column( Modifier.weight( 1f ) ) {
                 BasicText(

@@ -30,6 +30,7 @@ import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.center
 import it.fast4x.rimusic.utils.secondary
 import kotlinx.coroutines.Dispatchers
@@ -77,7 +78,7 @@ inline fun <T : Innertube.Item> ItemsPage(
 
     Box(
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             //.fillMaxSize()
             .fillMaxHeight()
             .fillMaxWidth(

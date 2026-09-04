@@ -102,6 +102,7 @@ import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.favoritesIcon
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.px
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.addToYtPlaylist
@@ -234,7 +235,7 @@ fun Podcast(
 
         Box(
             modifier = Modifier
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(colorPalette().background0))
                 //.fillMaxSize()
                 .fillMaxHeight()
                 .fillMaxWidth(
@@ -254,7 +255,7 @@ fun Podcast(
                 //contentPadding = LocalPlayerAwareWindowInsets.current
                 //.only(WindowInsetsSides.Vertical + WindowInsetsSides.End).asPaddingValues(),
                 modifier = Modifier
-                    .background(colorPalette().background0)
+                    .background(kruxxContentColor(colorPalette().background0))
                     .fillMaxSize()
             ) {
 

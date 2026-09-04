@@ -31,6 +31,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import it.fast4x.rimusic.colorPalette
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 
 val GridMenuItemHeight = 96.dp
 
@@ -39,6 +42,7 @@ fun GridMenu(
     modifier: Modifier = Modifier,
     topContent: @Composable (() -> Unit)? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    glassBackdropAlpha: Float = 0f,
     content: LazyGridScope.() -> Unit
 ) {
 
@@ -46,7 +50,17 @@ fun GridMenu(
         modifier = modifier
             .padding(top = 48.dp)
             .fillMaxWidth()
-            .background(colorPalette().background1)
+            .then(
+                if (isKruxxGlassEnabled)
+                    Modifier.kruxxGlassSurface(
+                        fallbackColor = colorPalette().background1,
+                        shape = KruxxGlass.menuShape,
+                        strong = true,
+                        backdropAlpha = glassBackdropAlpha
+                    )
+                else
+                    Modifier.background(colorPalette().background1)
+            )
             .padding(top = 2.dp)
             .padding(vertical = 8.dp),
     ) {

@@ -43,6 +43,8 @@ import it.fast4x.rimusic.enums.UiType
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.Skeleton
 import it.fast4x.rimusic.ui.components.themed.StringListDialog
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxSettingsEntry
 import it.fast4x.rimusic.utils.secondary
 import it.fast4x.rimusic.utils.semiBold
 import me.knighthat.component.dialog.RestartAppDialog
@@ -76,7 +78,7 @@ fun SettingsScreen(
         navBarContent = { item ->
             item(0, stringResource(R.string.tab_general), R.drawable.app_icon_monochrome)
             item(1, stringResource(R.string.ui_tab), R.drawable.ui)
-            item(2, stringResource(R.string.player_appearance), R.drawable.color_palette)
+            item(2, stringResource(R.string.tab_appearance), R.drawable.color_palette)
             if( isYouTubeLoggedIn() )
                 item(3, stringResource(R.string.home), R.drawable.ytmusic)
             else
@@ -160,13 +162,20 @@ fun SettingsEntry(
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .clickable(enabled = isEnabled, onClick = onClick)
-            .alpha(if (isEnabled) 1f else 0.5f)
-            //.padding(start = 16.dp)
-            //.padding(all = 16.dp)
-            .padding(all = 12.dp)
-            .fillMaxWidth()
+        modifier = if (isKruxxGlassEnabled) {
+            modifier
+                .fillMaxWidth()
+                .kruxxSettingsEntry()
+                .clickable(enabled = isEnabled, onClick = onClick)
+                .alpha(if (isEnabled) 1f else 0.5f)
+                .padding(all = 12.dp)
+        } else {
+            modifier
+                .clickable(enabled = isEnabled, onClick = onClick)
+                .alpha(if (isEnabled) 1f else 0.5f)
+                .padding(all = 12.dp)
+                .fillMaxWidth()
+        }
     ) {
         Column(
             modifier = Modifier

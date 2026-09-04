@@ -106,6 +106,7 @@ import it.fast4x.rimusic.ui.components.themed.Synchronize
 import it.fast4x.rimusic.ui.components.themed.ThumbnailPicker
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.onOverlay
 import it.fast4x.rimusic.ui.styling.overlay
 import it.fast4x.rimusic.utils.DeletePlaylist
@@ -392,7 +393,7 @@ fun LocalPlaylistSongs(
 
     Box(
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             //.fillMaxSize()
             .fillMaxHeight()
             .fillMaxWidth(
@@ -407,7 +408,7 @@ fun LocalPlaylistSongs(
             state = reorderingState.lazyListState,
             contentPadding = PaddingValues(bottom = Dimensions.bottomSpacer),
             modifier = Modifier
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(colorPalette().background0))
                 .fillMaxSize()
         ) {
             item(

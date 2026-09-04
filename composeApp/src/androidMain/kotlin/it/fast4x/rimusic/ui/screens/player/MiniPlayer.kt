@@ -74,8 +74,11 @@ import it.fast4x.rimusic.thumbnailShape
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.themed.NowPlayingSongIndicator
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.KruxxGlass
 import it.fast4x.rimusic.ui.styling.favoritesIcon
 import it.fast4x.rimusic.ui.styling.favoritesOverlay
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 import it.fast4x.rimusic.utils.DisposableListener
 import it.fast4x.rimusic.utils.intent
 import it.fast4x.rimusic.utils.isExplicit
@@ -175,6 +178,9 @@ fun MiniPlayer(
     )
     val backgroundProgress by Preferences.MINI_PLAYER_PROGRESS_BAR
     val effectRotationEnabled by Preferences.ROTATION_EFFECT
+    val palette = colorPalette()
+    val miniPlayerShape =
+        if (isKruxxGlassEnabled) KruxxGlass.miniPlayerShape else RoundedCornerShape(12.dp)
     val shouldBePlayingTransition = updateTransition(shouldBePlaying, label = "shouldBePlaying")
     val playPauseRoundness by shouldBePlayingTransition.animateDp(
         transitionSpec = { tween(durationMillis = 100, easing = LinearEasing) },
@@ -192,7 +198,7 @@ fun MiniPlayer(
     SwipeToDismissBox(
         modifier = Modifier
             .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(miniPlayerShape),
         state = dismissState,
         backgroundContent = {
             /*
@@ -209,7 +215,12 @@ fun MiniPlayer(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(colorPalette().background1)
+                    .kruxxGlassSurface(
+                        fallbackColor = palette.background1,
+                        shape = miniPlayerShape,
+                        elevated = false,
+                        strong = true
+                    )
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = when (dismissState.targetValue) {
                     SwipeToDismissBoxValue.StartToEnd -> Arrangement.Start
@@ -218,22 +229,34 @@ fun MiniPlayer(
                 },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = when (dismissState.targetValue) {
-                        SwipeToDismissBoxValue.StartToEnd -> {
-                            if (miniPlayerType == MiniPlayerType.Modern)
-                                ImageVector.vectorResource(R.drawable.play_skip_back)
-                            else if ( isSongLiked )
-                                ImageVector.vectorResource(R.drawable.heart)
-                            else
-                                ImageVector.vectorResource(R.drawable.heart_outline)
-                        }
-                        SwipeToDismissBoxValue.EndToStart ->  ImageVector.vectorResource(R.drawable.play_skip_forward)
-                        SwipeToDismissBoxValue.Settled ->  ImageVector.vectorResource(R.drawable.play)
-                    },
-                    contentDescription = null,
-                    tint = colorPalette().iconButtonPlayer,
-                )
+                // The opaque upstream mini player hides this resting-state icon.
+                // KruXx glass is translucent, so only expose it while swiping.
+                if (!isKruxxGlassEnabled || dismissState.targetValue != SwipeToDismissBoxValue.Settled) {
+                    Icon(
+                        imageVector = when (dismissState.targetValue) {
+                            SwipeToDismissBoxValue.StartToEnd -> {
+                                if (miniPlayerType == MiniPlayerType.Modern)
+                                    ImageVector.vectorResource(R.drawable.play_skip_back)
+                                else if ( isSongLiked )
+                                    ImageVector.vectorResource(R.drawable.heart)
+                                else
+                                    ImageVector.vectorResource(R.drawable.heart_outline)
+                            }
+                            SwipeToDismissBoxValue.EndToStart -> ImageVector.vectorResource(R.drawable.play_skip_forward)
+                            SwipeToDismissBoxValue.Settled -> ImageVector.vectorResource(R.drawable.play)
+                        },
+                        contentDescription = null,
+                        tint = if (isKruxxGlassEnabled) {
+                            when (dismissState.targetValue) {
+                                SwipeToDismissBoxValue.StartToEnd -> KruxxGlass.signalRed
+                                SwipeToDismissBoxValue.EndToStart -> KruxxGlass.electricBlue
+                                SwipeToDismissBoxValue.Settled -> palette.iconButtonPlayer
+                            }
+                        } else {
+                            palette.iconButtonPlayer
+                        },
+                    )
+                }
             }
         }
     ) {
@@ -274,12 +297,19 @@ fun MiniPlayer(
                         }
                     )
                 }
-                .background(colorPalette().background2)
                 .fillMaxWidth()
+                .kruxxGlassSurface(
+                    fallbackColor = colorPalette.background2,
+                    shape = miniPlayerShape,
+                    strong = true
+                )
                 .drawBehind {
                     if (backgroundProgress == BackgroundProgress.Both || backgroundProgress == BackgroundProgress.MiniPlayer) {
                         drawRect(
-                            color = colorPalette.favoritesOverlay,
+                            color = if (isKruxxGlassEnabled)
+                                KruxxGlass.electricBlue.copy(alpha = 0.20f)
+                            else
+                                colorPalette.favoritesOverlay,
                             topLeft = Offset.Zero,
                             size = Size(
                                 width = positionAndDuration.first.toFloat() /
@@ -382,13 +412,23 @@ fun MiniPlayer(
                             }
                             if (effectRotationEnabled) isRotated = !isRotated
                         }
-                        .background(colorPalette().background2)
+                        .background(
+                            if (isKruxxGlassEnabled)
+                                KruxxGlass.signalRed
+                            else
+                                colorPalette().background2
+                        )
                         .size(42.dp)
                 ) {
                     Image(
                         painter = painterResource(if (shouldBePlaying) R.drawable.pause else R.drawable.play),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(colorPalette().iconButtonPlayer),
+                        colorFilter = ColorFilter.tint(
+                            if (isKruxxGlassEnabled)
+                                androidx.compose.ui.graphics.Color.White
+                            else
+                                colorPalette().iconButtonPlayer
+                        ),
                         modifier = Modifier
                             .rotate(rotationAngle)
                             .align(Alignment.Center)

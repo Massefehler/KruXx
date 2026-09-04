@@ -1,7 +1,6 @@
 package app.kreate.android.themed.common.component.settings
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +17,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.typography
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxSettingsHeader
 import it.fast4x.rimusic.utils.secondary
 import it.fast4x.rimusic.utils.semiBold
 
@@ -29,12 +30,21 @@ fun SettingHeader(
     trailingContent: @Composable () -> Unit = {}
 ) {
     val underlineColor = colorPalette().textDisabled.copy( .6f )
+    val subtitleText = subtitle()
+    val contentModifier =
+        if (isKruxxGlassEnabled)
+            Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    .heightIn(min = 48.dp)
+        else
+            Modifier.padding(top = 24.dp, bottom = 10.dp)
+                    .heightIn(min = 30.dp)
 
     Row(
-        verticalAlignment = Alignment.Bottom,
+        verticalAlignment =
+            if (isKruxxGlassEnabled) Alignment.CenterVertically else Alignment.Bottom,
         // Set background to make all other elements hidden
         // when scroll pass header
-        modifier = modifier.background( colorPalette().background0 )
+        modifier = modifier.kruxxSettingsHeader( colorPalette().background0 )
                            .drawBehind {
                                // Simple dimmed line to make distinction
                                // between header and other elements.
@@ -45,11 +55,7 @@ fun SettingHeader(
                                    strokeWidth = 2f
                                )
                            }
-                           .padding(
-                               top = 24.dp,
-                               bottom = 10.dp
-                           )
-                           .heightIn( min = 30.dp )
+                           .then(contentModifier)
                            .fillMaxWidth()
     ) {
         Column( Modifier.weight( 1f ) ) {
@@ -60,9 +66,9 @@ fun SettingHeader(
                                     .copy( colorPalette().accent ),
             )
 
-            if ( subtitle().isNotBlank() )
+            if ( subtitleText.isNotBlank() )
                 BasicText(
-                    text = subtitle(),
+                    text = subtitleText,
                     style = typography().xxs.secondary,
                     modifier = Modifier.padding( start = 3.dp )
                 )

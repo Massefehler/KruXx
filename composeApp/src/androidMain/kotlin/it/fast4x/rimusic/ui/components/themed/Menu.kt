@@ -29,10 +29,14 @@ import it.fast4x.rimusic.utils.medium
 import it.fast4x.rimusic.utils.secondary
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.typography
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 
 @Composable
 inline fun Menu(
     modifier: Modifier = Modifier,
+    glassBackdropAlpha: Float = 0f,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
@@ -40,7 +44,17 @@ inline fun Menu(
             .padding(top = 48.dp)
             .verticalScroll(rememberScrollState())
             .fillMaxWidth()
-            .background(colorPalette().background1)
+            .then(
+                if (isKruxxGlassEnabled)
+                    Modifier.kruxxGlassSurface(
+                        fallbackColor = colorPalette().background1,
+                        shape = KruxxGlass.menuShape,
+                        strong = true,
+                        backdropAlpha = glassBackdropAlpha
+                    )
+                else
+                    Modifier.background(colorPalette().background1)
+            )
             .padding(top = 2.dp)
             .padding(vertical = 8.dp)
             .navigationBarsPadding(),

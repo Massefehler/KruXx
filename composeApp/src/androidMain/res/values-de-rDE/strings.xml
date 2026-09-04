@@ -21,6 +21,7 @@
     <string name="artists">Interpreten</string>
     <string name="enter_the_playlist_name">Name der Wiedergabeliste eingeben</string>
     <string name="playlists">Wiedergabelisten</string>
+    <string name="tab_playlists">Playlists</string>
     <string name="favorites">Favoriten</string>
     <string name="quick_picks">Startseite</string>
     <string name="songs">Titel</string>
@@ -293,6 +294,7 @@
     <string name="this_folder_already_exists">Dieser Ordner existiert bereits.</string>
     <string name="are_you_sure_you_want_to_remove_this_folder_from_the_blacklist">Bist du sicher, dass du diesen Ordner von der Blacklist entfernen möchten?</string>
     <string name="player_appearance">Erscheinungsbild</string>
+    <string name="tab_appearance">Darstellung</string>
     <string name="player_action_bar">PLAYER-AKTIONSLEISTE</string>
     <string name="tab_data">Daten</string>
     <string name="image_cache_max_size">Maximale Größe des Bild-Cache</string>
@@ -722,7 +724,7 @@
     <string name="settings_audio_focus">Audio Fokus</string>
     <string name="settings_audio_focus_info">Ermöglicht das automatische Anhalten und Fortsetzen der Wiedergabe</string>
     <string name="settings_silence_notifications_during_playback">Benachrichtigungstöne bei Wiedergabe stummschalten</string>
-    <string name="settings_silence_notifications_during_playback_info">Schaltet die Benachrichtigungstöne anderer Apps nur während der Musikwiedergabe stumm. Benötigt Zugriff auf „Nicht stören“; Musik, Wecker und Anrufe bleiben hörbar, Pop-ups bleiben sichtbar.</string>
+    <string name="settings_silence_notifications_during_playback_info">Schaltet Benachrichtigungstöne anderer Apps stumm und blendet Heads-up-Pop-ups nur während der Musikwiedergabe aus. Benötigt Zugriff auf „Nicht stören“; Musik, Wecker und Anrufe bleiben hörbar.</string>
     <string name="notification_policy_access_not_granted">Der Zugriff auf „Nicht stören“ wurde nicht erteilt</string>
     <string name="notification_policy_settings_unavailable">Die Einstellungen für „Nicht stören“ konnten nicht geöffnet werden</string>
     <string name="songs_liked_yt">Titel die auf YouTube mit \"Gefällt mir\" markiert sind</string>

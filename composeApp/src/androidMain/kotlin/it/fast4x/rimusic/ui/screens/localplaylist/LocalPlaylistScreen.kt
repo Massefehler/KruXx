@@ -44,6 +44,8 @@ import it.fast4x.rimusic.enums.PlayerPosition
 import it.fast4x.rimusic.enums.TransitionEffect
 import it.fast4x.rimusic.enums.UiType
 import it.fast4x.rimusic.ui.components.navigation.header.AppHeader
+import it.fast4x.rimusic.ui.styling.kruxxAppBackground
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 
 @OptIn(KotlinCsvExperimental::class)
 @ExperimentalTextApi
@@ -63,9 +65,16 @@ fun LocalPlaylistScreen(
     val saveableStateHolder = rememberSaveableStateHolder()
     PersistMapCleanup(tagPrefix = "localPlaylist/$playlistId/")
 
+    val palette = colorPalette()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .kruxxAppBackground()
+    ) {
     androidx.compose.material3.Scaffold(
-        modifier = modifier,
-        containerColor = colorPalette().background0,
+        modifier = modifier.fillMaxSize(),
+        containerColor = kruxxContentColor(palette.background0),
         topBar = {
             if( UiType.RiMusic.isCurrent() )
                 AppHeader( navController ).Draw()
@@ -80,7 +89,7 @@ fun LocalPlaylistScreen(
 
             Row(
                 modifier = modifier
-                    .background(colorPalette().background0)
+                    .background(kruxxContentColor(palette.background0))
                     .fillMaxSize()
             ) {
                 val topPadding = if ( UiType.ViMusic.isCurrent() ) 30.dp else 0.dp
@@ -164,5 +173,6 @@ fun LocalPlaylistScreen(
                 miniPlayer.invoke()
             }
         }
+    }
     }
 }

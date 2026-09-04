@@ -41,6 +41,7 @@ import it.fast4x.rimusic.enums.ThumbnailType
 import it.fast4x.rimusic.enums.UiType
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import me.knighthat.component.dialog.InputDialogConstraints
 import kotlin.math.roundToInt
 
@@ -113,7 +114,7 @@ fun UiSettings( paddingValues: PaddingValues ) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.background( colorPalette().background0 )
+        modifier = Modifier.background( kruxxContentColor(colorPalette().background0) )
                            .padding( paddingValues )
                            .fillMaxHeight()
                            .fillMaxWidth(

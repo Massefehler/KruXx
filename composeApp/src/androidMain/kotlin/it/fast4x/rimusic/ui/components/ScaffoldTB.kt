@@ -49,6 +49,8 @@ import it.fast4x.rimusic.enums.PlayerPosition
 import it.fast4x.rimusic.enums.TransitionEffect
 import it.fast4x.rimusic.ui.components.navigation.header.AppHeader
 import it.fast4x.rimusic.ui.components.navigation.nav.HorizontalNavigationBar
+import it.fast4x.rimusic.ui.styling.kruxxAppBackground
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,9 +90,18 @@ fun ScaffoldTB(
     val transitionEffect by Preferences.TRANSITION_EFFECT
     val playerPosition by Preferences.MINI_PLAYER_POSITION
 
+    val palette = colorPalette()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .kruxxAppBackground()
+    ) {
     androidx.compose.material3.Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-       containerColor = colorPalette().background0,
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+       containerColor = kruxxContentColor(palette.background0),
         topBar = {
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,
@@ -174,7 +185,7 @@ fun ScaffoldTB(
 
         Row(
             modifier = modifier
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(palette.background0))
                 .fillMaxSize()
         ) {
             AnimatedContent(
@@ -227,6 +238,7 @@ fun ScaffoldTB(
         ) {
             miniPlayer?.invoke()
         }
+    }
     }
     }
 }

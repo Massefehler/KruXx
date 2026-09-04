@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -40,6 +41,9 @@ import androidx.core.text.isDigitsOnly
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 import it.fast4x.rimusic.utils.isAtLeastAndroid8
 import me.knighthat.component.dialog.Dialog
 import me.knighthat.component.dialog.TextInputDialog
@@ -164,7 +168,16 @@ class StorageSizeInputDialog(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                containerColor = colorPalette.background0
+                modifier = if (isKruxxGlassEnabled) {
+                    Modifier.kruxxGlassSurface(
+                        fallbackColor = colorPalette.background0,
+                        shape = RoundedCornerShape(12.dp),
+                        strong = true
+                    )
+                } else {
+                    Modifier
+                },
+                containerColor = kruxxContentColor(colorPalette.background0)
             ) {
                 units.forEach { selectionOption ->
                     if( selectionOption == unit ) return@forEach

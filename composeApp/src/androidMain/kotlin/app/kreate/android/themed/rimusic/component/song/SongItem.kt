@@ -470,7 +470,7 @@ object SongItem: Visual() {
                 )
 
                 if( !song.isLocal )
-                    CacheAndDownloadIcon( song.id, song, values, MyDownloadHelper::handleDownload , modifier ) {
+                    CacheAndDownloadIcon( song.id, song, values, MyDownloadHelper::handleDownload ) {
                         val cache: Cache by inject(Cache::class.java, CacheType.CACHE)
                         cache.removeResource( song.id )
                     }

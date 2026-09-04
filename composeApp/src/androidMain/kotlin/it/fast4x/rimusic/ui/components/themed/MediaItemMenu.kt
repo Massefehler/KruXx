@@ -503,7 +503,8 @@ fun BaseMediaItemMenu(
     onClosePlayer: (() -> Unit)? = null,
     onGoToPlaylist: ((Long) -> Unit)? = null,
     onAddToPreferites: (() -> Unit)?,
-    onMatchingSong: (() -> Unit)?
+    onMatchingSong: (() -> Unit)?,
+    glassBackdropAlpha: Float = 0f
 ) {
     val context = LocalContext.current
 
@@ -564,7 +565,8 @@ fun BaseMediaItemMenu(
         onGoToPlaylist = {
             NavRoutes.localPlaylist.navigateHere( navController, it.toString() )
         },
-        modifier = modifier
+        modifier = modifier,
+        glassBackdropAlpha = glassBackdropAlpha
     )
 }
 
@@ -649,7 +651,8 @@ fun MediaItemMenu(
     onRemoveFromQuickPicks: (() -> Unit)? = null,
     onShare: () -> Unit,
     onGoToPlaylist: ((Long) -> Unit)? = null,
-    onMatchingSong: (() -> Unit)? = null
+    onMatchingSong: (() -> Unit)? = null,
+    glassBackdropAlpha: Float = 0f
 ) {
     val density = LocalDensity.current
 
@@ -803,7 +806,8 @@ fun MediaItemMenu(
 
             Menu(
                 modifier = modifier
-                    .requiredHeight(height)
+                    .requiredHeight(height),
+                glassBackdropAlpha = glassBackdropAlpha
             ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -956,7 +960,8 @@ fun MediaItemMenu(
         } else {
             Menu(
                 modifier = modifier
-                    .onPlaced { height = with(density) { it.size.height.toDp() } }
+                    .onPlaced { height = with(density) { it.size.height.toDp() } },
+                glassBackdropAlpha = glassBackdropAlpha
             ) {
                 val thumbnailSizeDp = Dimensions.thumbnails.song + 20.dp
                 val thumbnailSizePx = thumbnailSizeDp.px

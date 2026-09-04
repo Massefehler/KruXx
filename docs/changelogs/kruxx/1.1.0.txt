@@ -1,0 +1,17 @@
+KruXx Glass:
+- Introduces a distinct graphite backdrop with subtle blue and red light accents while preserving the existing navigation and app architecture
+- Extends the glass-style surfaces across the home screen, library tabs, full-screen and mini players, settings, detail pages, dialogs, menus and sheets
+- Refines Quick Picks with compact suggestion cards and download controls plus correctly spaced Top Artists rows
+
+Player and menus:
+- Keeps the full-screen player, queue and track menus clearly separated from the content beneath them while retaining the glass appearance
+- Gives settings headers consistent rounded corners, spacing and alignment across every settings tab and submenu
+- Uses shorter German navigation labels so all current tabs fit while retaining horizontal scrolling for future sections
+
+Branding and startup:
+- Replaces the app icon throughout launcher, adaptive, themed, notification and TV resources
+- Reworks the ten-frame cold-start animation with transparent artwork, continuous crossfades and the new KruXx background
+
+Reliability:
+- Fixes the misleading red error-report banner that could appear after refreshing the home screen
+- Restores optional suppression of other apps' notification sounds and heads-up pop-ups only during active playback

@@ -30,6 +30,7 @@ import app.kreate.constant.Language
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import me.knighthat.utils.Toaster
 import java.util.Locale
 
@@ -45,7 +46,7 @@ fun GeneralSettings( paddingValues: PaddingValues ) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.background( colorPalette().background0 )
+        modifier = Modifier.background( kruxxContentColor(colorPalette().background0) )
                            .padding( paddingValues )
                            .fillMaxHeight()
                            .fillMaxWidth(

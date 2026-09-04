@@ -1,6 +1,5 @@
 package me.knighthat.component.dialog
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
@@ -19,6 +17,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.typography
+import it.fast4x.rimusic.ui.styling.kruxxDialogSurface
 import it.fast4x.rimusic.utils.bold
 import it.fast4x.rimusic.utils.isLandscape
 
@@ -108,10 +107,7 @@ interface Dialog {
                                        maxWidth = screenWidthDp * maxWidth,
                                        maxHeight = screenHeightDp * maxHeight
                                    )
-                                   .background(
-                                       color = colorPalette().background0,
-                                       shape = RoundedCornerShape( 8.dp )
-                                   )
+                                   .kruxxDialogSurface(colorPalette().background0)
                                    .padding( vertical = VERTICAL_PADDING.dp ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

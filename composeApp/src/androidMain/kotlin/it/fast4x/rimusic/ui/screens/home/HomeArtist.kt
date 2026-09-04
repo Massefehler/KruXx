@@ -70,6 +70,8 @@ import it.fast4x.rimusic.ui.components.themed.HeaderInfo
 import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxGlassCard
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.semiBold
 import kotlinx.coroutines.Dispatchers
@@ -159,7 +161,7 @@ fun HomeArtists(
     ) {
         Box (
             modifier = Modifier
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(colorPalette().background0))
                 .fillMaxHeight()
                 .fillMaxWidth(
                     if( NavigationBarPosition.Right.isCurrent() )
@@ -252,7 +254,9 @@ fun HomeArtists(
                 LazyVerticalGrid(
                     state = lazyGridState,
                     columns = GridCells.Adaptive( itemSize.size.dp ),
-                    modifier = Modifier.background( colorPalette().background0 )
+                    modifier = Modifier.background(
+                        kruxxContentColor(colorPalette().background0)
+                    )
                                        .fillMaxSize(),
                     contentPadding = PaddingValues( bottom = Dimensions.bottomSpacer ),
                     verticalArrangement = Arrangement.spacedBy( ArtistItem.ROW_SPACING.dp )
@@ -265,6 +269,7 @@ fun HomeArtists(
                             artist = artist,
                             values = artistItemValues,
                             navController = navController,
+                            modifier = Modifier.kruxxGlassCard(),
                             sizeDp = sizeDp,
                             onClick = search::hideIfEmpty,
                         )
@@ -285,4 +290,3 @@ fun HomeArtists(
         }
     }
 }
-

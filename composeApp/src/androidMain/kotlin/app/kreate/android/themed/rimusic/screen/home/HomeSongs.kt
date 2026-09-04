@@ -64,6 +64,7 @@ import it.fast4x.rimusic.ui.components.SwipeablePlaylistItem
 import it.fast4x.rimusic.ui.components.tab.toolbar.Button
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxGlassCard
 import it.fast4x.rimusic.ui.styling.onOverlay
 import it.fast4x.rimusic.ui.styling.overlay
 import it.fast4x.rimusic.utils.addNext
@@ -290,7 +291,8 @@ fun HomeSongs(
                     isPlaying = song.shallowCompare( currentMediaItem ),
                     values = songItemValues,
                     itemSelector = itemSelector,
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.animateItem()
+                                       .kruxxGlassCard(),
                     thumbnailOverlay = {
                         if ( songSort.sortBy == SongSortBy.TOTAL_PLAY_TIME || builtInPlaylist == BuiltInPlaylist.Top ) {
                             var text = song.formattedTotalPlayTime

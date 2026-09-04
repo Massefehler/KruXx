@@ -2159,6 +2159,7 @@ fun Player(
             modifier = Modifier
                 .fillMaxWidth(),
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            glassSurfaceOpaque = true,
             dragHandle = {
                 Surface(
                     modifier = Modifier.padding(vertical = 0.dp),
@@ -2222,6 +2223,5 @@ fun PagerState.LaunchedEffectScrollToPage(
         }
     }
 }
-
 
 

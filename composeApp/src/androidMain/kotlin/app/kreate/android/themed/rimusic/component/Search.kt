@@ -28,6 +28,8 @@ import it.fast4x.rimusic.thumbnailShape
 import it.fast4x.rimusic.ui.components.tab.toolbar.Descriptive
 import it.fast4x.rimusic.ui.components.tab.toolbar.MenuIcon
 import it.fast4x.rimusic.ui.styling.favoritesIcon
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 
 class Search(
     private val scrollableState: ScrollableState?
@@ -98,11 +100,22 @@ class Search(
             modifier = Modifier.padding( all = 10.dp )
                                .fillMaxWidth()
         ) {
-            super.SearchBar(
+            val searchModifier = if( isKruxxGlassEnabled ) {
+                modifier.kruxxGlassSurface(
+                    fallbackColor = colorPalette().background4,
+                    shape = thumbnailShape(),
+                    elevated = false,
+                    strong = true
+                )
+            } else {
                 modifier.background(
                     colorPalette().background4,
                     thumbnailShape()
                 )
+            }
+
+            super.SearchBar(
+                searchModifier
             )
         }
     }

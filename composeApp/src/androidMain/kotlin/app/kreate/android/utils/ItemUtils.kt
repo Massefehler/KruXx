@@ -62,6 +62,7 @@ object ItemUtils {
         innertubeItems: List<Innertube.Item>,
         currentlyPlaying: String?,
         modifier: Modifier = Modifier,
+        itemModifier: Modifier = Modifier,
         useLogin: Boolean = false,
         localPlaylists: List<PlaylistPreview> = emptyList(),
         menu: BottomMenu = LocalBottomMenu.current
@@ -105,6 +106,7 @@ object ItemUtils {
                         hapticFeedback = hapticFeedback,
                         values = songItemValues,
                         isPlaying = childItem.key == currentlyPlaying,
+                        modifier = itemModifier,
                         onClick = {
                             player.forcePlay( childItem.asMediaItem )
                         },
@@ -120,6 +122,7 @@ object ItemUtils {
                             hapticFeedback = hapticFeedback,
                             isPlaying = currentlyPlaying == childItem.key,
                             values = songItemValues,
+                            modifier = itemModifier,
                             thumbnailSizeDp = SongItem.thumbnailSize(),
                             onClick = {
                                 player.stopRadio()
@@ -138,19 +141,22 @@ object ItemUtils {
                     is Innertube.AlbumItem -> AlbumItem.Vertical(
                         innertubeAlbum = childItem,
                         values = albumItemValues,
-                        navController = navController
+                        navController = navController,
+                        modifier = itemModifier
                     )
 
                     is Innertube.ArtistItem -> ArtistItem.Render(
                         innertubeArtist = childItem,
                         values = artistItemValues,
-                        navController = navController
+                        navController = navController,
+                        modifier = itemModifier
                     )
 
                     is Innertube.PlaylistItem -> PlaylistItem.Vertical(
                         innertubePlaylist = childItem,
                         values = playlistItemValues,
                         navController = navController,
+                        modifier = itemModifier,
                         useLogin = useLogin
                     )
                 }
@@ -164,6 +170,7 @@ object ItemUtils {
                     playlist = preview.playlist,
                     values = playlistItemValues,
                     navController = navController,
+                    modifier = itemModifier,
                     songCount = preview.songCount,
                     thumbnailUrl = preview.thumbnailUrl,
                     onLongClick = {
@@ -181,6 +188,7 @@ object ItemUtils {
         innertubeItems: List<InnertubeItem>,
         currentlyPlaying: String?,
         modifier: Modifier = Modifier,
+        itemModifier: Modifier = Modifier,
         player: StatefulPlayer = koinInject(),
         menu: BottomMenu = LocalBottomMenu.current
     ) {
@@ -209,6 +217,7 @@ object ItemUtils {
                         hapticFeedback = hapticFeedback,
                         values = songIV,
                         isPlaying = item.id == currentlyPlaying,
+                        modifier = itemModifier,
                         onClick = {
                             player.forcePlay( item.toMediaItem )
                         },
@@ -221,19 +230,22 @@ object ItemUtils {
                     is InnertubeAlbum -> AlbumItem.Vertical(
                         innertubeAlbum = item,
                         values = albumIV,
-                        navController = navController
+                        navController = navController,
+                        modifier = itemModifier
                     )
 
                     is InnertubeArtist -> ArtistItem.Render(
                         innertubeArtist = item,
                         values = artistIV,
-                        navController = navController
+                        navController = navController,
+                        modifier = itemModifier
                     )
 
                     is InnertubePlaylist -> PlaylistItem.Vertical(
                         innertubePlaylist = item,
                         values = playlistIV,
-                        navController = navController
+                        navController = navController,
+                        modifier = itemModifier
                     )
                 }
             }

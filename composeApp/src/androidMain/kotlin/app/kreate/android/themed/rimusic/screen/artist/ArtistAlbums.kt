@@ -29,6 +29,7 @@ import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.ui.components.Skeleton
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -104,7 +105,7 @@ fun ArtistAlbums(
                 state = lazyGridState,
                 columns = GridCells.Adaptive( Dimensions.thumbnails.album + 24.dp ),
                 contentPadding = PaddingValues( bottom = Dimensions.bottomSpacer ),
-                modifier = Modifier.background( colorPalette().background0 )
+                modifier = Modifier.background( kruxxContentColor(colorPalette().background0) )
             ) {
                 items(
                     items = albums.distinctBy( Innertube.AlbumItem::key ),

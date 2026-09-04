@@ -17,6 +17,8 @@ import app.kreate.android.Preferences
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.BuiltInPlaylist
 import it.fast4x.rimusic.enums.ColorPaletteMode
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 
 @Composable
 fun <E> ButtonsRow(
@@ -34,19 +36,24 @@ fun <E> ButtonsRow(
         Spacer(Modifier.width(12.dp))
 
         chips.forEach { (value, label) ->
+            val palette = colorPalette()
             FilterChip(
                 label = { Text(label) },
                 selected = currentValue == value,
                 colors = FilterChipDefaults
                     .filterChipColors(
-                        containerColor = colorPalette().background1,
-                        labelColor = colorPalette().text,
-                        selectedContainerColor = when (colorPaletteMode) {
-                            ColorPaletteMode.Dark, ColorPaletteMode.PitchBlack
-                                -> colorPalette().textDisabled
-                            else -> colorPalette().background3
-                        } ,
-                        selectedLabelColor = colorPalette().text,
+                        containerColor = if( isKruxxGlassEnabled )
+                            palette.background1.copy( alpha = if( palette.isDark ) .52f else .72f )
+                        else
+                            palette.background1,
+                        labelColor = palette.text,
+                        selectedContainerColor = if( isKruxxGlassEnabled )
+                            KruxxGlass.electricBlue.copy( alpha = if( palette.isDark ) .34f else .24f )
+                        else when (colorPaletteMode) {
+                            ColorPaletteMode.Dark, ColorPaletteMode.PitchBlack -> palette.textDisabled
+                            else -> palette.background3
+                        },
+                        selectedLabelColor = palette.text,
                     ),
                 onClick = { onValueUpdate(value) }
             )
@@ -72,19 +79,24 @@ fun ButtonsRow(
         Spacer(Modifier.width(12.dp))
 
         chips.forEach { playlistType ->
+            val palette = colorPalette()
             FilterChip(
                 label = { Text( playlistType.text ) },
                 selected = currentValue == playlistType,
                 colors = FilterChipDefaults
                     .filterChipColors(
-                        containerColor = colorPalette().background1,
-                        labelColor = colorPalette().text,
-                        selectedContainerColor = when (colorPaletteMode) {
-                            ColorPaletteMode.Dark, ColorPaletteMode.PitchBlack
-                                -> colorPalette().textDisabled
-                            else -> colorPalette().background3
-                        } ,
-                        selectedLabelColor = colorPalette().text,
+                        containerColor = if( isKruxxGlassEnabled )
+                            palette.background1.copy( alpha = if( palette.isDark ) .52f else .72f )
+                        else
+                            palette.background1,
+                        labelColor = palette.text,
+                        selectedContainerColor = if( isKruxxGlassEnabled )
+                            KruxxGlass.electricBlue.copy( alpha = if( palette.isDark ) .34f else .24f )
+                        else when (colorPaletteMode) {
+                            ColorPaletteMode.Dark, ColorPaletteMode.PitchBlack -> palette.textDisabled
+                            else -> palette.background3
+                        },
+                        selectedLabelColor = palette.text,
                     ),
                 onClick = { onValueUpdate(playlistType) }
             )

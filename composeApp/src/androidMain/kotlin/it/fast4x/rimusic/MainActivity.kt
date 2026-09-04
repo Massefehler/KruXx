@@ -850,7 +850,8 @@ MainActivity :
                                             shape = thumbnailShape()
                                         ) {}
                                     },
-                                    shape = thumbnailRoundness.shape
+                                    shape = thumbnailRoundness.shape,
+                                    glassSurfaceEnabled = false
                                 ) {
                                     Player( navController ) { showPlayer = false }
                                 }
@@ -870,7 +871,8 @@ MainActivity :
                                         shape = thumbnailShape()
                                     ) {}
                                 },
-                                shape = thumbnailRoundness.shape
+                                shape = thumbnailRoundness.shape,
+                                glassSurfaceEnabled = false
                             ) {
                                 youtubePlayer()
                             }
@@ -962,6 +964,8 @@ MainActivity :
                     visible = showStartupSplash,
                     appName = BuildConfig.APP_NAME,
                     backgroundColor = appearance.colorPalette.background0,
+                    secondaryBackgroundColor = appearance.colorPalette.background1,
+                    isDark = appearance.colorPalette.isDark,
                     contentColor = appearance.colorPalette.text,
                     accentColor = appearance.colorPalette.accent,
                     onFinished = { showStartupSplash = false },

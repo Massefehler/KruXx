@@ -103,6 +103,9 @@ import it.fast4x.rimusic.ui.components.themed.Title
 import it.fast4x.rimusic.ui.components.themed.Title2Actions
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeLoggedIn
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxGlassCard
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.WelcomeMessage
 import it.fast4x.rimusic.utils.asMediaItem
@@ -120,7 +123,7 @@ import it.fast4x.rimusic.utils.rememberPreference
 import it.fast4x.rimusic.utils.secondary
 import it.fast4x.rimusic.utils.semiBold
 import it.fast4x.rimusic.utils.shimmerEffect
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -224,7 +227,7 @@ fun HomeQuickPicks(
         if (loadedData) return
 
         runCatching {
-            refreshScope.launch(Dispatchers.IO) {
+            refreshScope.launch {
                 when (playEventType) {
                     PlayEventsType.MostPlayed ->
                         Database.eventTable
@@ -311,6 +314,7 @@ fun HomeQuickPicks(
                     .toList()
             }
             .onFailure { error ->
+                if (error is CancellationException) throw error
                 Logger.e( "Failed to load suggestions", error, "HomeQuickPicks" )
             }
 
@@ -321,16 +325,21 @@ fun HomeQuickPicks(
 
     fun refresh() {
         if (refreshing) return
+        refreshing = true
         loadedData = false
         relatedPageResult = null
         relatedInit = null
         trending = null
         suggestedSongs = emptyList()
-        refreshScope.launch(Dispatchers.IO) {
-            refreshing = true
-            loadData()
-            delay(500)
-            refreshing = false
+        // loadData updates Compose state and IS_DATA_KEY_LOADED. Both must stay on the
+        // main thread; the suspend network/database calls dispatch their own I/O work.
+        refreshScope.launch {
+            try {
+                loadData()
+                delay(500)
+            } finally {
+                refreshing = false
+            }
         }
     }
 
@@ -366,6 +375,8 @@ fun HomeQuickPicks(
             val quickPicksLazyGridItemWidthFactor =
                 if (isLandscape && maxWidth * 0.475f >= 320.dp) {
                     0.475f
+                } else if (isKruxxGlassEnabled) {
+                    0.65f
                 } else {
                     0.9f
                 }
@@ -377,7 +388,7 @@ fun HomeQuickPicks(
 
             Column(
                 modifier = Modifier
-                    .background(colorPalette().background0)
+                    .background(kruxxContentColor(colorPalette().background0))
                     .fillMaxHeight()
                     .verticalScroll(scrollState)
             ) {
@@ -552,7 +563,9 @@ fun HomeQuickPicks(
                                 hapticFeedback = hapticFeedback,
                                 isPlaying = song.shallowCompare( currentMediaItem ),
                                 values = songItemValues,
-                                modifier = Modifier.width( itemInHorizontalGridWidth ),
+                                modifier = Modifier
+                                    .width(itemInHorizontalGridWidth)
+                                    .kruxxGlassCard(),
                                 onLongClick = {
                                     val page = MenuPage.Song(song.asMediaItem)
                                     bottomMenu.show( page, true )
@@ -609,7 +622,12 @@ fun HomeQuickPicks(
                                     items = newReleaseAlbumsFiltered.distinctBy { it.key },
                                     key = System::identityHashCode
                                 ) { album ->
-                                    AlbumItem.Vertical( album, albumItemValues, navController )
+                                    AlbumItem.Vertical(
+                                        innertubeAlbum = album,
+                                        values = albumItemValues,
+                                        navController = navController,
+                                        modifier = Modifier.kruxxGlassCard()
+                                    )
                                 }
                             }
 
@@ -630,7 +648,12 @@ fun HomeQuickPicks(
                                 items = page.newReleaseAlbums.distinctBy { it.key },
                                 key = System::identityHashCode
                             ) { album ->
-                                AlbumItem.Vertical( album, albumItemValues, navController )
+                                AlbumItem.Vertical(
+                                    innertubeAlbum = album,
+                                    values = albumItemValues,
+                                    navController = navController,
+                                    modifier = Modifier.kruxxGlassCard()
+                                )
                             }
                         }
                     }
@@ -652,7 +675,12 @@ fun HomeQuickPicks(
                                 items = albums.distinctBy { it.key },
                                 key = System::identityHashCode
                             ) { album ->
-                                AlbumItem.Vertical( album, albumItemValues, navController )
+                                AlbumItem.Vertical(
+                                    innertubeAlbum = album,
+                                    values = albumItemValues,
+                                    navController = navController,
+                                    modifier = Modifier.kruxxGlassCard()
+                                )
                             }
                         }
                     }
@@ -676,7 +704,8 @@ fun HomeQuickPicks(
                                 ArtistItem.Render(
                                     innertubeArtist = artist,
                                     values = artistItemValues,
-                                    navController = navController
+                                    navController = navController,
+                                    modifier = Modifier.kruxxGlassCard()
                                 )
                             }
                         }
@@ -703,7 +732,8 @@ fun HomeQuickPicks(
                                 PlaylistItem.Vertical(
                                     innertubePlaylist = playlist,
                                     values = playlistItemValues,
-                                    navController = navController
+                                    navController = navController,
+                                    modifier = Modifier.kruxxGlassCard()
                                 )
                             }
                         }
@@ -782,7 +812,8 @@ fun HomeQuickPicks(
                                         playlist = preview.playlist,
                                         values = playlistItemValues,
                                         showSongCount = false,
-                                        navController = navController
+                                        navController = navController,
+                                        modifier = Modifier.kruxxGlassCard()
                                     )
                                 }
                             }
@@ -796,15 +827,13 @@ fun HomeQuickPicks(
                         mutableStateOf<InnertubeCharts?>( null, referentialEqualityPolicy() )
                     }
                     LaunchedEffect( refreshing, countryCode ) {
-                        CoroutineScope( Dispatchers.IO ).launch {
-                            me.knighthat.innertube.Innertube.charts( CURRENT_LOCALE, countryCode, null )
-                                .onFailure { err ->
-                                    Logger.e( "", err, "HomeQuickPicks" )
-                                    Toaster.e( R.string.error_failed_to_get_charts )
-                                }
-                                .getOrNull()
-                                .also { charts = it }
-                        }
+                        me.knighthat.innertube.Innertube.charts( CURRENT_LOCALE, countryCode, null )
+                            .onFailure { err ->
+                                Logger.e( "", err, "HomeQuickPicks" )
+                                Toaster.e( R.string.error_failed_to_get_charts )
+                            }
+                            .getOrNull()
+                            .also { charts = it }
                     }
 
                     charts?.run {
@@ -860,7 +889,8 @@ fun HomeQuickPicks(
                                                 PlaylistItem.Vertical(
                                                     innertubePlaylist = playlist,
                                                     values = playlistItemValues,
-                                                    navController = navController
+                                                    navController = navController,
+                                                    modifier = Modifier.kruxxGlassCard()
                                                 )
                                             }
                                         }
@@ -890,7 +920,9 @@ fun HomeQuickPicks(
                                                 Row(
                                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                                     verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(start = 16.dp)
+                                                    modifier = Modifier
+                                                        .padding(start = 16.dp)
+                                                        .kruxxGlassCard()
                                                 ) {
                                                     BasicText(
                                                         text = "${index + 1}",
@@ -924,13 +956,36 @@ fun HomeQuickPicks(
                                 section.contents
                                     .fastMapNotNull { it as? InnertubeRankedArtist }
                                     .also { rankedArtists ->
+                                        val artistThumbnailSize = if (isKruxxGlassEnabled) {
+                                            SongItem.thumbnailSize()
+                                        } else {
+                                            DpSize(
+                                                Dimensions.thumbnails.song,
+                                                Dimensions.thumbnails.song
+                                            )
+                                        }
+                                        val artistRowHeight = if (isKruxxGlassEnabled) {
+                                            artistThumbnailSize.height +
+                                                Dimensions.itemsVerticalPadding * 2
+                                        } else {
+                                            ArtistItem.thumbnailSize().height
+                                        }
+                                        val artistRowSpacing = 8.dp
+                                        val artistColumnSpacing = if (isKruxxGlassEnabled) {
+                                            ItemUtils.COLUMN_SPACING.dp
+                                        } else {
+                                            0.dp
+                                        }
+
                                         LazyHorizontalGrid(
                                             rows = GridCells.Fixed(2),
                                             modifier = Modifier
-                                                .height(130.dp)
+                                                .height(artistRowHeight * 2 + artistRowSpacing)
                                                 .fillMaxWidth(),
                                             state = chartsPageArtistLazyGridState,
                                             flingBehavior = ScrollableDefaults.flingBehavior(),
+                                            verticalArrangement = Arrangement.spacedBy(artistRowSpacing),
+                                            horizontalArrangement = Arrangement.spacedBy(artistColumnSpacing),
                                         ) {
                                             itemsIndexed(
                                                 items = rankedArtists.distinctBy( InnertubeRankedArtist::id ),
@@ -939,14 +994,26 @@ fun HomeQuickPicks(
                                                 Row(
                                                     horizontalArrangement = Arrangement.spacedBy( 10.dp ),
                                                     verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding( start = 16.dp )
-                                                                       .requiredHeight( ArtistItem.thumbnailSize().height )
-                                                                       .clickable {
-                                                                           NavRoutes.YT_ARTIST.navigateHere(
-                                                                               navController,
-                                                                               artist.id
-                                                                           )
-                                                                       }
+                                                    modifier = (if (isKruxxGlassEnabled) {
+                                                        Modifier.width(itemInHorizontalGridWidth)
+                                                    } else {
+                                                        Modifier.padding(start = 16.dp)
+                                                    })
+                                                        .requiredHeight(artistRowHeight)
+                                                        .kruxxGlassCard()
+                                                        .clickable {
+                                                            NavRoutes.YT_ARTIST.navigateHere(
+                                                                navController,
+                                                                artist.id
+                                                            )
+                                                        }
+                                                        .then(
+                                                            if (isKruxxGlassEnabled) {
+                                                                Modifier.padding(horizontal = 16.dp)
+                                                            } else {
+                                                                Modifier
+                                                            }
+                                                        )
                                                 ) {
                                                     BasicText(
                                                         text = artist.rank,
@@ -961,12 +1028,20 @@ fun HomeQuickPicks(
                                                         artistId = artist.id,
                                                         thumbnailUrl = artist.thumbnails.firstOrNull()?.url,
                                                         showPlatformIcon = false,
-                                                        sizeDp = DpSize(Dimensions.thumbnails.song, Dimensions.thumbnails.song)
+                                                        sizeDp = artistThumbnailSize
                                                     )
 
                                                     Column(
                                                         verticalArrangement = Arrangement.Center,
-                                                        modifier = Modifier.fillMaxHeight()
+                                                        modifier = Modifier
+                                                            .fillMaxHeight()
+                                                            .then(
+                                                                if (isKruxxGlassEnabled) {
+                                                                    Modifier.weight(1f)
+                                                                } else {
+                                                                    Modifier
+                                                                }
+                                                            )
                                                     ) {
                                                         ArtistItem.Title(
                                                             title = artist.name,
@@ -1016,6 +1091,7 @@ fun HomeQuickPicks(
                         navController = navController,
                         innertubeItems = emptyList(),
                         currentlyPlaying = currentMediaItem?.mediaId,
+                        itemModifier = Modifier.kruxxGlassCard(),
                         localPlaylists = databasePlaylists
                     )
                 }
@@ -1037,6 +1113,7 @@ fun HomeQuickPicks(
                             navController = navController,
                             innertubeItems = sectionItems,
                             currentlyPlaying = currentMediaItem?.mediaId,
+                            itemModifier = Modifier.kruxxGlassCard(),
                             useLogin = true,
                             localPlaylists = if( it.isAccountPlaylistSection() )
                                 databasePlaylists

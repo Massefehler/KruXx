@@ -36,6 +36,8 @@ import it.fast4x.rimusic.ui.components.navigation.header.AppHeader
 import it.fast4x.rimusic.ui.components.navigation.nav.AbstractNavigationBar
 import it.fast4x.rimusic.ui.components.navigation.nav.HorizontalNavigationBar
 import it.fast4x.rimusic.ui.components.navigation.nav.VerticalNavigationBar
+import it.fast4x.rimusic.ui.styling.kruxxAppBackground
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.transition
 
 // THIS IS THE SCAFFOLD
@@ -78,62 +80,70 @@ fun Skeleton(
         else
             Modifier.nestedScroll( scrollBehavior.nestedScrollConnection )
 
-    Scaffold(
-        modifier = modifier,
-        containerColor = colorPalette().background0,
-        topBar = appHeader,
-        bottomBar = {
-            if ( NavigationBarPosition.Bottom.isCurrent() )
-                navigationBar.Draw()
-        }
+    val palette = colorPalette()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .kruxxAppBackground()
     ) {
-        val paddingSides = WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
-        val innerPadding =
-            if( NavigationBarPosition.Top.isCurrent() )
-                windowInsets.only( paddingSides ).asPaddingValues()
-            else
-                PaddingValues( Dp.Hairline )
-
-        Box(
-            Modifier
-                .padding(it)
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            Row(
-                Modifier
-                    .background(colorPalette().background0)
-                    .fillMaxSize()
-            ) {
-                if( NavigationBarPosition.Left.isCurrent() )
-                    navigationBar.Draw()
-
-                val topPadding = if ( UiType.ViMusic.isCurrent() ) 30.dp else 0.dp
-                AnimatedContent(
-                    targetState = tabIndex,
-                    transitionSpec = transition(),
-                    content = content,
-                    label = "",
-                    modifier = Modifier.fillMaxHeight().padding( top = topPadding )
-                )
-
-                if( NavigationBarPosition.Right.isCurrent() )
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            containerColor = kruxxContentColor(palette.background0),
+            topBar = appHeader,
+            bottomBar = {
+                if ( NavigationBarPosition.Bottom.isCurrent() )
                     navigationBar.Draw()
             }
-
-            val playerPosition by Preferences.MINI_PLAYER_POSITION
-            val playerAlignment =
-                if (playerPosition == PlayerPosition.Top)
-                    Alignment.TopCenter
+        ) {
+            val paddingSides = WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+            val innerPadding =
+                if( NavigationBarPosition.Top.isCurrent() )
+                    windowInsets.only( paddingSides ).asPaddingValues()
                 else
-                    Alignment.BottomCenter
+                    PaddingValues( Dp.Hairline )
 
             Box(
                 Modifier
-                    .padding( vertical = 5.dp )
-                    .align( playerAlignment ),
-                content = { miniPlayer?.invoke() }
-            )
+                    .padding(it)
+                    .padding(innerPadding)
+                    .fillMaxSize()
+            ) {
+                Row(
+                    Modifier
+                        .background(kruxxContentColor(palette.background0))
+                        .fillMaxSize()
+                ) {
+                    if( NavigationBarPosition.Left.isCurrent() )
+                        navigationBar.Draw()
+
+                    val topPadding = if ( UiType.ViMusic.isCurrent() ) 30.dp else 0.dp
+                    AnimatedContent(
+                        targetState = tabIndex,
+                        transitionSpec = transition(),
+                        content = content,
+                        label = "",
+                        modifier = Modifier.fillMaxHeight().padding( top = topPadding )
+                    )
+
+                    if( NavigationBarPosition.Right.isCurrent() )
+                        navigationBar.Draw()
+                }
+
+                val playerPosition by Preferences.MINI_PLAYER_POSITION
+                val playerAlignment =
+                    if (playerPosition == PlayerPosition.Top)
+                        Alignment.TopCenter
+                    else
+                        Alignment.BottomCenter
+
+                Box(
+                    Modifier
+                        .padding( vertical = 5.dp )
+                        .align( playerAlignment ),
+                    content = { miniPlayer?.invoke() }
+                )
+            }
         }
     }
 }

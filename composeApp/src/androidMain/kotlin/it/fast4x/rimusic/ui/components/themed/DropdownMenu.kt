@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import it.fast4x.rimusic.ui.styling.favoritesIcon
 import it.fast4x.rimusic.colorPalette
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 
 class DropdownMenu(
     val expanded: Boolean,
@@ -37,11 +40,22 @@ class DropdownMenu(
 
     @Composable
     fun Draw() {
+        val palette = colorPalette()
+        val hasExplicitContainer = containerColor != Color.Transparent
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = onDismissRequest,
-            containerColor = containerColor,
-            modifier = modifier,
+            containerColor = if (isKruxxGlassEnabled) Color.Transparent else containerColor,
+            modifier = if (isKruxxGlassEnabled) {
+                modifier.kruxxGlassSurface(
+                    fallbackColor = if (hasExplicitContainer) containerColor else palette.background1,
+                    shape = KruxxGlass.cardShape,
+                    strong = true,
+                    opaqueBackdrop = hasExplicitContainer
+                )
+            } else {
+                modifier
+            },
             content = { components().forEach { it() } }
         )
     }

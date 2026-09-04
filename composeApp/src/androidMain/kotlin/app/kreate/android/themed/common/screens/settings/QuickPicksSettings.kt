@@ -33,6 +33,7 @@ import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.ui.components.themed.ConfirmationDialog
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeLoggedIn
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import kotlinx.coroutines.Dispatchers
 import me.knighthat.utils.Toaster
 
@@ -52,7 +53,7 @@ fun QuickPicksSettings( paddingValues: PaddingValues ) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.background( colorPalette().background0 )
+        modifier = Modifier.background( kruxxContentColor(colorPalette().background0) )
                            .padding( paddingValues )
                            .fillMaxHeight()
                            .fillMaxWidth(

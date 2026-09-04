@@ -43,6 +43,7 @@ import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.center
 import it.fast4x.rimusic.utils.secondary
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +70,7 @@ fun NewAlbumsFromArtists(
 
     Column(
         modifier = Modifier
-            .background(colorPalette().background0)
+            .background(kruxxContentColor(colorPalette().background0))
             //.fillMaxSize()
             .fillMaxHeight()
             .fillMaxWidth(
@@ -108,7 +109,7 @@ fun NewAlbumsFromArtists(
                 columns = GridCells.Adaptive(Dimensions.thumbnails.album + 24.dp),
                 //contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
                 modifier = Modifier
-                    .background(colorPalette().background0)
+                    .background(kruxxContentColor(colorPalette().background0))
                 //.fillMaxSize()
             ) {
                 item(
