@@ -107,7 +107,9 @@ See [download architecture and device checks](docs/DOWNLOADS.md).
 
 Further local visual fixes unify artist and playlist submenus, download dialogs and floating glass
 surfaces, fix clipped expanding menus, and give artist and playlist tracks the same subtle cards and
-spacing as the Songs tab. Filter rows across Songs, Artists, Albums, Playlists, Downloads, History
+spacing as the Songs tab. Song/video search results and library search use those cards too;
+library results update with each edited query. Shared download dialogs blur the underlying app
+view on Android 12 and newer, with tinted glass on older versions. Filter rows across Songs, Artists, Albums, Playlists, Downloads, History
 and Statistics share a stationary glass surface with scrollable choices and a clear selection.
 Statistics also use glass cards for listening totals and tracks, with enough row width for artist
 names and download controls on phones. A saved List/Grid choice switches the track statistics

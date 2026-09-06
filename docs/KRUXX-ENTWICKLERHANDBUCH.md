@@ -200,9 +200,22 @@ einen vollständig sauberen Git-Stand und gleicht die von AGP im APK eingebettet
 `HEAD` ab. So kann kein Release-Artefakt unbemerkt uncommitteten oder veralteten Quellen zugeordnet
 werden.
 
-Erster Build dauert 5–10 min (Downloads), danach 1–4 min. D8 beziehungsweise Lint-Vital können wegen
-der Kombination aus AGP 8.13 und Kotlin-Metadaten 2.4 Diagnosezeilen zur erwarteten Metadatenversion
-ausgeben. Maßgeblich ist der separat ausgeführte vollständige
+Für den signierten Release ist ein gewöhnlicher sauberer Clone mit eigenem `.git`-Verzeichnis
+zu verwenden. Beim 1.2.0-Kandidaten schrieb AGP 8.13 aus einem Git-Worktree lediglich
+`generate_error_reason: NO_VALID_GIT_FOUND` in `version-control-info.textproto`; das Build-Skript
+wies dieses APK korrekt zurück und archivierte es nicht. Derselbe Commit in einem gewöhnlichen
+Clone enthält seine vollständige Git-Revision und besteht die Herkunftsprüfung. Worktrees bleiben
+für Entwicklung und Tests nutzbar; die Prüfung im Release-Skript darf dafür nicht abgeschaltet werden.
+
+Erster Build dauert 5–10 min (Downloads), danach 1–4 min. Kotlin 2.4 benötigt
+[mindestens R8 9.1.29](https://developer.android.com/build/kotlin-support). Da AGP 8.13.2 noch
+R8 8.13.19 mitliefert, pinnt `settings.gradle.kts` R8 9.1.43 aus Google Maven im
+`pluginManagement.buildscript` ([offizieller Override](https://r8.googlesource.com/r8/+/refs/heads/main/README.md)).
+Die tatsächlich verwendete Version steht am Anfang der Release-`mapping.txt`; die R8-Warnungen
+zu unbekannten Kotlin-Metadaten entfallen damit. Bei einem künftigen AGP-Update diesen Pin erneut prüfen.
+
+Der separate Lint-Analysator von AGP 8.13 kann weiterhin Diagnosezeilen zur erwarteten
+Metadatenversion 2.2 statt 2.4 ausgeben. Maßgeblich ist der separat ausgeführte vollständige
 `:composeApp:lintKruxxUniversalProdRelease`: Die versionierte `composeApp/lint-baseline.xml` friert
 nur geerbte Altbefunde ein, jeder neue Befund lässt den Gate fehlschlagen. Für 1.0.1 lief dieser Gate
 ohne neue Befunde durch; der Release-Build endete anschließend mit `>> done:`.
@@ -800,12 +813,17 @@ Lokale Nacharbeit vom 06.09.2026, noch nicht Bestandteil von 1.1.0:
   Vollbild-Player-Menüs. Vollbild-Audio-/Video-Sheets und die deckende Queue bleiben gesondert behandelt.
 - `ThemedAlertDialog` verbindet das Material-Dialoglayout mit `kruxxDialogSurface` und einer lokal
   angepassten Material-Farbpalette. Download-/Kopierauswahl, Verlauf, Fortschritt, Dateientfernen und
-  der Live-Hintergrund-Hinweis verwenden diesen Baustein. Die übrigen Dialogbasen, Künstlerauswahl,
+  der Live-Hintergrund-Hinweis verwenden diesen Baustein. `KruxxDialogBackdrop` setzt ab API 31
+  einen `RenderEffect` auf die Activity-Ansicht hinter dem separaten Dialogfenster (16 dp, höchstens
+  64 Pixel). Referenzzählung hält überlappende Dialoge korrekt; nach dem letzten Schließen wird
+  der Effekt entfernt. Kein systemweiter Fenster-Blur nötig, ältere APIs nutzen nur die Tönung.
+  Die übrigen Dialogbasen, Künstlerauswahl,
   Darstellungsvorschau, Dropdowns und der Spiel-Dialog sind ebenfalls auf gemeinsame Flächen geprüft.
 - `KruxxGlass.modalBackdropAlpha` (`0.88f`) hält schwebende Menüs und Dialoge über Bildern und Schrift
   lesbar. `kruxxTrackCard()` liefert dagegen leichte Karten ohne Einzelschatten/Blur mit 8 dp
   horizontalem und 3 dp vertikalem Außenabstand. Aufrufer sind Künstler-Online-/Bibliothekslisten,
-  lokale/Online-Playlists sowie Titel-/Geräte- und Statistiklisten. Den Modifier nicht global auf `SongItem.Render`
+  lokale/Online-Playlists, Online-Titel-/Videosuche, Suchvorschläge und Bibliothekssuche sowie
+  Titel-/Geräte- und Statistiklisten. Den Modifier nicht global auf `SongItem.Render`
   anwenden: andere Aufrufer wie Quick Picks besitzen bereits eigene Karten.
 - Die beiden `ButtonsRow`-Signaturen verwenden dieselbe Implementierung. `kruxxFilterBar()` gibt
   Titel-, Künstler-, Alben-, Playlist-, Downloads-, Verlaufs- und Statistikfiltern eine gemeinsame
@@ -1102,6 +1120,27 @@ Dependencies: `innertubex`, `ktor-client-okhttp`, `ktor-client-content-negotiati
 InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der App testen.
 
 ---
+
+### Nacharbeit an Suchansicht und Dialogen für 1.2.0
+
+Die Online-Suchtreffer (Titel und Videos), Song-Vorschläge und Bibliothekssuche tragen die
+bestehende `kruxxTrackCard`-Fläche. Die Bibliothekssuche erzeugt ihren Datenbank-Flow mit
+`remember(textFieldValue.text)` erneut, wenn der Text geändert wird; ohne den Schlüssel blieb
+die erste Abfrage aktiv. Der Samsung-Debugtest wechselt im selben Bibliotheksreiter erfolgreich
+zwischen „Maddix“ (drei Treffer) und „Noma“ (ein Treffer).
+
+`ThemedAlertDialog` setzt `KruxxDialogBackdrop` innerhalb des Dialogfensters ein. Auf dem Samsung
+ist der systemweite Fenster-Blur nicht unterstützt; der lokale `RenderEffect` der Activity
+verwischt trotzdem die darunterliegende Liste. Abbrechen, Zurück und erneutes Öffnen sind mit der
+Debug-App geprüft. Die signierte Endfassung wird separat abgenommen.
+
+Bei der zusätzlichen API-23-Abnahme ist Debug-Erfolg allein kein ausreichender Nachweis.
+Die Android-6-x86-Testlaufzeit ließ in der maschinenoptimierten Release-Ausführung bereits eine
+isolierte `MutableFloatState`-Zuweisung von `NaN` auf `0f` wirkungslos; daraus folgte der
+`AnchoredDraggableState.requireOffset`-Absturz. Derselbe APK-Inhalt funktioniert im Interpreter.
+Ein solcher Diagnoselauf ersetzt die Abnahme unter unveränderten Laufzeiteinstellungen nicht.
+Details und der nachfolgende Gerätevergleich stehen im IST-Stand; keine der wirkungslosen
+Wisch-/Float-Keep-Regeln und keine Diagnoseausgabe gehören zum ausgelieferten App-Code.
 
 ## 8. Release-Checkliste
 

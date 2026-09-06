@@ -55,6 +55,7 @@ import it.fast4x.rimusic.ui.components.themed.InHistoryMediaItemMenu
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.ui.styling.px
 import it.fast4x.rimusic.utils.align
 import it.fast4x.rimusic.utils.medium
@@ -84,7 +85,7 @@ fun LocalSongSearch(
     val (colorPalette, typography) = LocalAppearance.current
     val hapticFeedback = LocalHapticFeedback.current
 
-    val items by remember {
+    val items by remember(textFieldValue.text) {
         Database.songTable
                 .findAllTitleArtistContains( textFieldValue.text )
                 .distinctUntilChanged()
@@ -251,6 +252,7 @@ fun LocalSongSearch(
             ) { song ->
                 SongItem.Render(
                     song = song,
+                    modifier = Modifier.kruxxTrackCard(),
                     hapticFeedback = hapticFeedback,
                     values = songItemValues,
                     isPlaying = song.shallowCompare( currentMediaItem ),

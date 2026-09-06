@@ -123,6 +123,12 @@ vollständig vorhandene Quellen wird keine unnötige Netzwerkbedingung gesetzt.
   Glass-Nacharbeit vom 06.09.2026 `ThemedAlertDialog`. Glasfläche, Rundungen und lesbare Material-
   Auswahl-/Aktionsfarben werden zentral bereitgestellt; Auftrags-, Bestätigungs- und Dateilogik
   bleiben in den bestehenden Komponenten.
+  Die anschließende Sichtprüfung desselben Suchtreffers in Debug und Release zeigte noch scharf
+  durchscheinenden Hintergrundtext. `KruxxDialogBackdrop` ergänzt deshalb ab API 31 einen einzelnen
+  `RenderEffect` auf der App-Ansicht hinter dem separaten Dialogfenster. Der Effekt benötigt keine
+  systemweite Fenster-Blur-Unterstützung, die auf dem Samsung als nicht verfügbar gemeldet wird.
+  Der letzte geschlossene Dialog entfernt den Effekt wieder; ältere Geräte behalten die getönte
+  Glasunterlage. Es gibt keinen Blur pro Auswahlzeile oder Track.
 - `DownloadCenter` sammelt Anfragen und Vorgaben. `DownloadHelper.addDownload(s)` ist der
   öffentliche Einstieg; `addDownloadsInternal` darf nur nach der Auswahl bzw. aus dem Worker
   verwendet werden. Bestehende Download-Entfernung entfernt auch zugehörige private MP3-/Videodateien.
@@ -372,7 +378,7 @@ Debug-Stand besteht alle 133 App-Tests und Release-Lint ohne neue Befunde. Nach 
 sind die blaue Auswahl, rote Entfernen-Aktion, Bestätigung aller 5 Audiodateien und Abbrechen
 erneut geprüft; im AndroidRuntime-Log des Debug-Prozesses erscheint kein Absturz.
 
-**Zusätzliche Abnahme für 1.2.0 am 06.09.2026:** Auf dem Samsung wurde der Sammelauftrag für sieben
+**Zusätzliche Debug-Abnahme für 1.2.0 am 06.09.2026:** Auf dem Samsung wurde der Sammelauftrag für sieben
 bereits lokal verfügbare Titel als MP3 nach `KruXx-Downloads/Audio` während der Umwandlung
 abgebrochen und danach über die Oberfläche wiederholt. Trotz zwischenzeitlichem Hintergrundwechsel
 endete er bei 100 % mit zwei neuen und fünf bereits vorhandenen Dateien. Beide neuen Dateien sind

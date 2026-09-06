@@ -77,6 +77,7 @@ import it.fast4x.rimusic.ui.components.themed.TitleMiniSection
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.utils.align
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.forcePlay
@@ -345,6 +346,7 @@ fun OnlineSearch(
                     item{
                         SongItem.Render(
                             innertubeSong = song,
+                            modifier = Modifier.kruxxTrackCard(),
                             hapticFeedback = hapticFeedback,
                             values = songItemValues,
                             isPlaying = song.shallowCompare( currentMediaItem ),

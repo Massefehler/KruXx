@@ -41,6 +41,24 @@ Glass-Korrekturen und der auswählbaren Statistikansicht. Version und Release No
 `1.2.0` / `1000004` vorbereitet. Der öffentliche Release bleibt bis zur Veröffentlichung `1.1.0`.
 Der eigenständige Podcast-Bereich bleibt ein separates späteres Vorhaben.
 
+Nach dem ersten signierten Updatekandidaten wurden Titel-Suchergebnisse und Downloadauswahl
+direkt zwischen Release und Debug auf dem Samsung verglichen: In beiden Paketen fehlen die
+Track-Kacheln in der Suche; der Download-Dialog besitzt die Glaskontur, lässt aber unverwischte
+Schrift der darunterliegenden Liste durchscheinen. Die Nacharbeit ergänzt die gemeinsame
+Track-Fläche in Online-/Bibliothekssuche und Videotreffern sowie einen Blur der App-Ansicht hinter
+gemeinsamen Material-Dialogen ab API 31. Dafür wird `RenderEffect` verwendet: Der Samsung-Test
+meldet systemweiten Fenster-Blur als nicht unterstützt. Der getönte Fallback für ältere Geräte
+bleibt erhalten. Der Debug-Nachtest auf dem Samsung bestätigt die Suchkacheln, die echte
+Unschärfe hinter der Download-Auswahl und die wieder scharfe Liste nach Abbrechen beziehungsweise
+Zurück; erneutes Öffnen funktioniert ebenfalls. Debug-Build und Release-Lint sind bestanden.
+Die Korrekturen sind vor Veröffentlichung noch mit der neu signierten APK zu prüfen.
+
+Die Bibliothekssuche bindet ihre Datenbankabfrage jetzt an den aktuellen Suchtext. Zuvor blieb
+die beim ersten Öffnen erzeugte Abfrage durch ein schlüsselloses `remember` unverändert, auch
+wenn anschließend ein anderer Text eingegeben wurde. Der Samsung-Debugtest bestätigt die
+laufende Aktualisierung: von drei Maddix-Treffern zu „Noma – Sleepwalker“, ohne den Bibliotheksreiter
+zu verlassen; beide Listen tragen die gemeinsamen Track-Kacheln.
+
 Die zusätzliche Geräteabnahme, der Release-Commit, der signierte Build und dessen Updateprüfung
 werden im Rahmen dieser Vorbereitung durchgeführt. Noch nicht verfügbare USB-/SD-Medien und
 weitere Geräte werden nicht als geprüft gewertet; der abschließende Nachweis wird hier ergänzt.
@@ -53,7 +71,13 @@ an den Dateilogger. Der erneute Start und die Bedienung auf API 23 sind bestande
 Regressionstests prüfen begrenzte Übergabe bei blockiertem Schreiben, Weiterverarbeitung nach
 Schreibfehlern, Log-Rotation und den Erhalt vorhandener Logs beim Neustart.
 
-Zusätzliche Abnahme des Kandidaten am 06.09.2026:
+Zusätzliche Abnahme des Kandidaten am 06.09.2026 mit dem Debug-Paket `de.kruxx.music.debug`:
+
+Die nachfolgend genannten internen Downloads und bisherigen öffentlichen Testkopien stammen
+aus der Debug-App. Sie sind kein Nachweis für Downloads mit der signierten Release-App.
+Beide Pakete haben getrennte interne Speicher und Android-Dateiberechtigungen; der öffentliche
+Ordnername ist gemeinsam. Die abschließende Release-Abnahme verwendet deshalb neue, direkt
+mit `de.kruxx.music` heruntergeladene Dateien, ohne bestehende Benutzerdateien zu löschen.
 
 - 137 App-Unit-Tests, Debug-Build und Release-Lint bestanden; weiterhin nur die zwei bekannten
   Media3-Versionshinweise. Die ausgediente Kermit-IO-Dateiprotokollierung wurde entfernt.
@@ -75,6 +99,36 @@ Zusätzliche Abnahme des Kandidaten am 06.09.2026:
   Speicherung vollständig bis 100 % bestanden. Die Datei ist vollständig dekodierbar:
   MP3 / 320 kbit/s / 48 kHz / Stereo, 200,52 Sekunden, Künstler und Titel korrekt.
   Der nach der Loggerkorrektur gestartete Prozess enthält keine Fatal-/Rotationsfehler.
+
+Abnahme des ersten signierten 1.2.0-Kandidaten vor der Such-/Blur-Nacharbeit:
+
+- Der vollständige Testlauf im sauberen Release-Clone besteht 137 App- und 58 Innertube-Tests
+  ohne Fehler. Der frische Release-Lint enthält ausschließlich 34 Hinweise auf neuere
+  Werkzeug-/Bibliotheksversionen, keine Fehler. Die Zahl unterscheidet sich durch die erneute
+  Versionsabfrage vom lokalen Lint mit zwei Media3-Hinweisen.
+- Das Update über 1.1.0 auf dem Samsung behält Paketidentität, Erstinstallation und die
+  112 vorhandenen Bibliothekstitel. Vor dem neuen Download sind 50 interne Originale vorhanden.
+- Mit der tatsächlichen Release-App neu heruntergeladen: „Kevin MacLeod – Fluffing a Duck“ als
+  MP3 nach `Download/KruXx-Downloads/Audio`. MediaStore bestätigt `de.kruxx.music` als Eigentümer.
+  Die Datei hat 2.696.732 Bytes, 67,416 Sekunden, 320 kbit/s, 48 kHz, zwei Kanäle und korrekte
+  Künstler-/Titel-Metadaten; die vollständige Dekodierung ist fehlerfrei. Bestehende Debug-Dateien
+  wurden dafür nicht gelöscht.
+- Ein Suchaufruf auf API 23 beendet den ersten signierten Kandidaten. Der Fehler wird vor der
+  Freigabe mit einem ausschließlich lokalen Diagnose-Build eingegrenzt; ein Erfolg mit der
+  Debug-App wird hier nicht als bestandener Release-Test gewertet.
+- Bei der Diagnose wurde eine unpassende Werkzeugkombination erkannt: Kotlin 2.4 benötigt
+  laut Google mindestens R8 9.1.29; AGP 8.13.2 bringt noch R8 8.13.19 mit. Der Build verwendet
+  deshalb über `settings.gradle.kts` R8 9.1.43 aus Google Maven. Dessen Mapping bestätigt die
+  Version, und die R8-Metadatenwarnungen entfallen. Der API-23-Suchabsturz tritt weiterhin auf;
+  diese Anpassung allein wird ausdrücklich nicht als dessen Behebung gewertet. Die separate
+  Metadaten-Diagnose des älteren Lint-Analysators ist davon zu unterscheiden.
+- Die weitere Diagnose grenzt den Suchabsturz auf die Maschinenoptimierung der verwendeten
+  Android-6-x86-Laufzeit ein: Schon `mutableFloatStateOf(Float.NaN)` bleibt nach einer Zuweisung
+  von `0f` ungültig, sowohl außerhalb als auch innerhalb einer Composition. Derselbe signierte
+  Diagnose-APK-Inhalt liefert mit `interpret-only` korrekte Zahlenwerte und öffnet die Suche.
+  Die Emulator-Einstellung wurde anschließend zurückgesetzt. Ausnahmen für R8 an Wisch- oder
+  Float-Zustandsklassen waren wirkungslos und werden nicht übernommen; die Wisch-Komponente
+  bleibt unverändert. Ein zweites, unverändertes API-23-Systemabbild wird zur Abnahme ergänzt.
 
 ### Technische Release-Vorprüfung vom 06.09.2026
 

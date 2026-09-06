@@ -60,6 +60,7 @@ import it.fast4x.rimusic.ui.components.themed.NonQueuedMediaItemMenu
 import it.fast4x.rimusic.ui.components.themed.Title
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.ui.styling.px
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.asMediaItem
@@ -215,6 +216,7 @@ fun SearchResultScreen(
                             ) {
                                 SongItem.Render(
                                     song = song.asSong,
+                                    modifier = Modifier.kruxxTrackCard(),
                                     hapticFeedback = hapticFeedback,
                                     isPlaying = song.shallowCompare( currentMediaItem ),
                                     values = songItemValues,
@@ -515,6 +517,7 @@ fun SearchResultScreen(
                             ) {
                                 SongItem.Render(
                                     innertubeVideo = video,
+                                    modifier = Modifier.kruxxTrackCard(),
                                     hapticFeedback = hapticFeedback,
                                     isPlaying = video.shallowCompare( currentMediaItem ),
                                     values = songItemValues,

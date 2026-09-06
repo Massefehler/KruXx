@@ -244,6 +244,23 @@ Die vollständige Geräte-/Darstellungsmatrix, insbesondere API 23–30, bleibt 
 Details stehen im
 [`IST-Stand`](KRUXX-IST-STAND.md#lokale-glass-nacharbeit-vom-06092026--noch-nicht-veröffentlicht).
 
+### Ergänzung: Suchtreffer und Dialoghintergrund
+
+Bei der zusätzlichen Release-Sichtprüfung wurden die Titel-Suchergebnisse mit genau derselben
+Suche in der Debug-App verglichen. Beide ließen die Track-Flächen aus. Online-Titel-/Videotreffer,
+Bibliothekssuche und empfohlene Titel während der Suche verwenden deshalb ebenfalls
+`kruxxTrackCard()` mit den bestehenden Abständen.
+
+Die Material-Dialoge ergänzen jetzt `KruxxDialogBackdrop`: ein einzelner `RenderEffect` auf der
+Activity-Ansicht hinter dem separaten Dialogfenster ab API 31. Radius: 16 dp, auf 64 Pixel begrenzt.
+Die Schrift und Bedienelemente des Dialogs bleiben scharf. Eine Zählung aktiver Dialoge verhindert,
+dass ein geschlossener Dialog die Unschärfe eines weiteren entfernt; der letzte Dialog gibt die
+scharfe App-Ansicht wieder frei. Ältere Geräte behalten die getönte Glasunterlage. Anders als
+[systemweiter Fenster-Blur](https://source.android.com/docs/core/display/window-blurs) benötigt
+dieser Effekt keine gesonderte WindowManager-Unterstützung; diese ist auf dem Samsung nicht verfügbar.
+Diese Ergänzung ist auf die gemeinsamen Material-Dialoge begrenzt; scrollende Kacheln erhalten
+weiterhin keinen eigenen Blur-Durchlauf. Der signierte Nachtest ist im IST-Stand zu ergänzen.
+
 ### Ergänzung: einheitliche Filterleisten
 
 Die Leisten mit „Titel/Favoriten/Zwischengespeichert“ beziehungsweise

@@ -16,4 +16,6 @@ Navigation and glass:
 - Fixed a startup freeze during log rotation on Android 6 and 7; file logging no longer blocks the interface when storage stops responding.
 - Gives all navigation tabs equal widths based on the longest label and shows left or right scroll hints when more tabs are hidden
 - Unifies glass surfaces in artist and playlist submenus, dialogs, track lists and filter rows, and fixes clipped expanding menus
+- Adds the same track cards to song and video searches, and blurs the background behind download dialogs on supported devices
+- Updates library search results as you change the search text
 - Adds glass cards to listening statistics and a saved choice between a full-width list and a compact two-column grid
