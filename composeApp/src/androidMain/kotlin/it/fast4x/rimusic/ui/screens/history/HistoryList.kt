@@ -53,6 +53,7 @@ import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
 import it.fast4x.rimusic.ui.components.themed.NonQueuedMediaItemMenuLibrary
 import it.fast4x.rimusic.ui.components.themed.Title
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeLoggedIn
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
@@ -179,7 +180,8 @@ fun HistoryList(
                     chips = buttonsList,
                     currentValue = historyType,
                     onValueUpdate = { historyType = it },
-                    modifier = Modifier.padding(start = 12.dp, end = 12.dp)
+                    modifier = if (isKruxxGlassEnabled) Modifier
+                        else Modifier.padding(horizontal = 12.dp)
                 )
             }
 

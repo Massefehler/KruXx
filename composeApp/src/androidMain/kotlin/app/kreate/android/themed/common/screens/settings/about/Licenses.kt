@@ -61,7 +61,15 @@ fun Licenses(
         }.onFailure { err ->
             err.printStackTrace()
             err.message?.also( Toaster::e )
-        }.getOrDefault( emptyList() )
+        }.getOrDefault( emptyList() ) + listOf(
+            Dependency(
+                moduleName = "LAME MP3 encoder",
+                moduleVersion = "3.100",
+                moduleUrl = "https://lame.sourceforge.io/",
+                moduleLicense = "GNU Library General Public License 2.0 or later",
+                moduleLicenseUrl = "https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html",
+            )
+        )
 
         LazyColumn(
             contentPadding = PaddingValues( bottom = Dimensions.bottomSpacer ),

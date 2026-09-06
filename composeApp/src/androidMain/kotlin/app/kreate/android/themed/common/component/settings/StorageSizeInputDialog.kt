@@ -44,6 +44,7 @@ import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
+import it.fast4x.rimusic.ui.styling.KruxxGlass
 import it.fast4x.rimusic.utils.isAtLeastAndroid8
 import me.knighthat.component.dialog.Dialog
 import me.knighthat.component.dialog.TextInputDialog
@@ -172,7 +173,8 @@ class StorageSizeInputDialog(
                     Modifier.kruxxGlassSurface(
                         fallbackColor = colorPalette.background0,
                         shape = RoundedCornerShape(12.dp),
-                        strong = true
+                        strong = true,
+                        backdropAlpha = KruxxGlass.modalBackdropAlpha
                     )
                 } else {
                     Modifier

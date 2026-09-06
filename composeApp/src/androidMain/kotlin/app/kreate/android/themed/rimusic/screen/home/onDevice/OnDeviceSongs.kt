@@ -64,7 +64,7 @@ import it.fast4x.rimusic.ui.components.SwipeablePlaylistItem
 import it.fast4x.rimusic.ui.components.tab.toolbar.Button
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
-import it.fast4x.rimusic.ui.styling.kruxxGlassCard
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.bold
@@ -277,7 +277,7 @@ fun OnDeviceSong(
                     values = songItemValues,
                     itemSelector = itemSelector,
                     modifier = Modifier.animateItem()
-                                       .kruxxGlassCard(),
+                                       .kruxxTrackCard(),
                     onClick = {
                         search.hideIfEmpty()
 

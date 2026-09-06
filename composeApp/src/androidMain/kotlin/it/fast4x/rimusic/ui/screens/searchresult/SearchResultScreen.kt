@@ -30,6 +30,7 @@ import androidx.navigation.NavController
 import app.kreate.android.LocalBottomMenu
 import app.kreate.android.Preferences
 import app.kreate.android.R
+import app.kreate.android.downloads.forVideoDownload
 import app.kreate.android.constant.MenuPage
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.themed.rimusic.component.album.AlbumItem
@@ -504,7 +505,9 @@ fun SearchResultScreen(
                                     player.addNext(video.asMediaItem)
                                 },
                                 onDownload = {
-                                    Toaster.w( R.string.downloading_videos_not_supported )
+                                    if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+                                        app.kreate.android.downloads.DownloadCenter.request(listOf(video.asMediaItem), video = true)
+                                    else Toaster.w(R.string.downloading_videos_not_supported)
                                 },
                                 onEnqueue = {
                                     player.enqueue(video.asMediaItem)
@@ -520,7 +523,7 @@ fun SearchResultScreen(
                                         menuState.display {
                                             NonQueuedMediaItemMenu(
                                                 navController = navController,
-                                                mediaItem = video.asMediaItem,
+                                                mediaItem = if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) video.asMediaItem.forVideoDownload() else video.asMediaItem,
                                                 onDismiss = menuState::hide
                                             )
                                         };

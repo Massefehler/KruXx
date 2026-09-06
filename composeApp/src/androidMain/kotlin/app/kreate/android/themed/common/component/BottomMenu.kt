@@ -39,9 +39,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -76,12 +76,12 @@ import app.kreate.android.utils.scrollingText
 import app.kreate.database.models.PlaylistPreview
 import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.enums.MenuStyle
+import it.fast4x.rimusic.ui.components.CustomModalBottomSheet
 import it.fast4x.rimusic.ui.components.navigation.header.TabToolBar
 import it.fast4x.rimusic.ui.components.themed.IconButton
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.KruxxGlass
 import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
-import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 import it.fast4x.rimusic.ui.styling.favoritesIcon
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asSong
@@ -150,20 +150,14 @@ class BottomMenu {
         val (colorPalette, typography) = LocalAppearance.current
         val currentScreen = backStack.lastOrNull() ?: MenuPage.Empty
 
-        ModalBottomSheet(
+        CustomModalBottomSheet(
+            showSheet = true,
             onDismissRequest = ::hide,
-            modifier = if (isKruxxGlassEnabled) {
-                modifier.kruxxGlassSurface(
-                    fallbackColor = colorPalette.background0,
-                    shape = KruxxGlass.menuShape,
-                    strong = true
-                )
-            } else {
-                modifier
-            },
+            modifier = modifier,
+            sheetState = rememberModalBottomSheetState(),
+            contentWindowInsets = { BottomSheetDefaults.windowInsets },
             shape = if (isKruxxGlassEnabled) KruxxGlass.menuShape else BottomSheetDefaults.ExpandedShape,
-            containerColor = if (isKruxxGlassEnabled) Color.Transparent else colorPalette.background0,
-            tonalElevation = if (isKruxxGlassEnabled) 0.dp else BottomSheetDefaults.Elevation,
+            containerColor = colorPalette.background0,
             dragHandle = {
                 Box(
                     Modifier.background(

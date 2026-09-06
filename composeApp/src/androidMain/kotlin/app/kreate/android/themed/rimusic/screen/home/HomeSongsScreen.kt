@@ -54,6 +54,7 @@ import it.fast4x.rimusic.ui.components.themed.PlayNext
 import it.fast4x.rimusic.ui.components.themed.PlaylistsMenu
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.enqueue
@@ -163,7 +164,7 @@ fun HomeSongsScreen(
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding( horizontal = 12.dp )
+                modifier = Modifier.padding(horizontal = if (isKruxxGlassEnabled) 0.dp else 12.dp)
                     .padding( bottom = 8.dp )
                     .fillMaxWidth()
             ) {

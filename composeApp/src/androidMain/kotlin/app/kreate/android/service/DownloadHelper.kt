@@ -34,6 +34,9 @@ interface DownloadHelper {
      */
     fun addDownloads( mediaItems: List<MediaItem> )
 
+    /** Enqueue after a storage decision, or from an automatic background task. Never opens UI. */
+    fun addDownloadsInternal(mediaItems: List<MediaItem>)
+
     fun removeDownload( mediaItem: MediaItem )
 
     fun autoDownload( mediaItem: MediaItem )

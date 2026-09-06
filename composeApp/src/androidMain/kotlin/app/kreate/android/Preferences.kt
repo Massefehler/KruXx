@@ -967,6 +967,9 @@ sealed class Preferences<T>(
         val STATISTIC_PAGE_CATEGORY by lazy {
             Enum( preferences, Key.STATISTIC_PAGE_CATEGORY, "statisticsCategory", StatisticsCategory.Songs )
         }
+        val STATISTICS_GRID_VIEW by lazy {
+            Boolean( preferences, Key.STATISTICS_GRID_VIEW, "", false )
+        }
         val MARQUEE_TEXT_EFFECT by lazy {
             Boolean(preferences, Key.MARQUEE_TEXT_EFFECT, "", true )
         }
@@ -2000,6 +2003,7 @@ sealed class Preferences<T>(
         const val APP_REGION = "AppRegion"
         const val HOME_ARTIST_AND_ALBUM_FILTER = "filterBy"
         const val STATISTIC_PAGE_CATEGORY = "StatisticPageCategory"
+        const val STATISTICS_GRID_VIEW = "StatisticsGridView"
         const val MARQUEE_TEXT_EFFECT = "MarqueeEffect"
         const val PARENTAL_CONTROL = "ParentalControl"
         const val ROTATION_EFFECT = "RotationEffect"

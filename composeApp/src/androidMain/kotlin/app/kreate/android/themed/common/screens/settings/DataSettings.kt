@@ -139,6 +139,15 @@ fun DataSettings( paddingValues: PaddingValues ) {
             state = scrollState,
             contentPadding = PaddingValues(bottom = Dimensions.bottomSpacer)
         ) {
+            if (BuildConfig.INDEPENDENT_FORK) {
+                entry(search, R.string.kruxx_download_settings) {
+                    SettingComponents.Text(
+                        title = stringResource(R.string.kruxx_download_settings),
+                        subtitle = stringResource(R.string.kruxx_download_settings_note),
+                        onClick = app.kreate.android.downloads.DownloadCenter::settings,
+                    )
+                }
+            }
             header(
                 titleId = R.string.cache,
                 subtitle = { stringResource( R.string.cache_cleared ) }

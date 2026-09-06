@@ -6,7 +6,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -71,6 +71,7 @@ import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.kruxxGlassCard
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.semiBold
@@ -179,26 +180,17 @@ fun HomeArtists(
                 // Sticky tab's tool bar
                 TabToolBar.Buttons( sort, search, randomizer, shuffle, itemSize )
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        //.padding(vertical = 4.dp)
-                        .padding(bottom = 8.dp)
-                        .fillMaxWidth()
-                ) {
-                    Box {
-                        ButtonsRow(
-                            chips = buttonsList,
-                            currentValue = artistType,
-                            onValueUpdate = { artistType = it },
-                            modifier = Modifier.padding(end = 12.dp)
-                        )
-                        if (isYouTubeSyncEnabled()) {
+                ButtonsRow(
+                    chips = buttonsList,
+                    currentValue = artistType,
+                    onValueUpdate = { artistType = it },
+                    modifier = if (isKruxxGlassEnabled) Modifier
+                        else Modifier.padding(start = 12.dp, end = 24.dp, bottom = 8.dp),
+                    trailingContent = if (isYouTubeSyncEnabled()) {
+                        {
                             Row(
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
+                                modifier = Modifier.padding(end = 8.dp).widthIn(max = 148.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 BasicText(
                                     text = when (filterBy) {
@@ -210,7 +202,7 @@ fun HomeArtists(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier
-                                        .align(Alignment.CenterVertically)
+                                        .weight(1f, fill = false)
                                         .padding(end = 5.dp)
                                         .clickable {
                                             menuState.display {
@@ -224,25 +216,18 @@ fun HomeArtists(
                                                     onLocal = { filterBy = FilterBy.Local }
                                                 )
                                             }
-
                                         }
                                 )
                                 HeaderIconButton(
                                     icon = R.drawable.playlist,
                                     color = colorPalette.text,
                                     onClick = {},
-                                    modifier = Modifier
-                                        .offset(0.dp, 2.5.dp)
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null,
-                                            onClick = {}
-                                        )
+                                    modifier = Modifier.offset(0.dp, 2.5.dp)
                                 )
                             }
                         }
-                    }
-                }
+                    } else null,
+                )
 
                 // Sticky search bar
                 search.SearchBar()

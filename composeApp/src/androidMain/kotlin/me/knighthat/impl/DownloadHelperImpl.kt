@@ -19,6 +19,8 @@ import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.scheduler.Requirements
 import app.kreate.android.Preferences
+import app.kreate.android.BuildConfig
+import app.kreate.android.downloads.DownloadCenter
 import app.kreate.android.coil3.ImageFactory
 import app.kreate.android.service.DownloadHelper
 import app.kreate.android.service.isDownloadPending
@@ -281,6 +283,10 @@ class DownloadHelperImpl(
     }
 
     override fun addDownload( mediaItem: MediaItem ) {
+        if (BuildConfig.INDEPENDENT_FORK) {
+            DownloadCenter.request(listOf(mediaItem))
+            return
+        }
         if( !isNetworkConnected( context ) ) {
             Toaster.noInternet()
             return
@@ -290,6 +296,10 @@ class DownloadHelperImpl(
     }
 
     override fun addDownloads(mediaItems: List<MediaItem>) {
+        if (BuildConfig.INDEPENDENT_FORK) {
+            DownloadCenter.request(mediaItems)
+            return
+        }
         if( !isNetworkConnected( context ) ) {
             Toaster.noInternet()
             return
@@ -298,8 +308,11 @@ class DownloadHelperImpl(
         enqueue(mediaItems)
     }
 
+    override fun addDownloadsInternal(mediaItems: List<MediaItem>) = enqueue(mediaItems)
+
     override fun removeDownload( mediaItem: MediaItem ) {
         if (mediaItem.isLocal) return
+        if (BuildConfig.INDEPENDENT_FORK) DownloadCenter.removeFiles(mediaItem.mediaId)
 
         //sendRemoveDownload(context,MyDownloadService::class.java,mediaItem.mediaId,false)
         coroutineScope.launch {
@@ -314,7 +327,9 @@ class DownloadHelperImpl(
     override fun autoDownload( mediaItem: MediaItem ) {
         if ( Preferences.AUTO_DOWNLOAD.value ) {
             if (downloads.value[mediaItem.mediaId]?.state != Download.STATE_COMPLETED)
-                addDownload(mediaItem)
+                if (BuildConfig.INDEPENDENT_FORK)
+                    DownloadCenter.request(listOf(mediaItem), automatic = true)
+                else addDownload(mediaItem)
         }
     }
 

@@ -69,6 +69,7 @@ import it.fast4x.rimusic.ui.styling.favoritesOverlay
 import it.fast4x.rimusic.ui.styling.onOverlay
 import it.fast4x.rimusic.ui.styling.overlay
 import it.fast4x.rimusic.utils.asSong
+import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.conditional
 import it.fast4x.rimusic.utils.downloadedStateMedia
 import it.fast4x.rimusic.utils.getDownloadState
@@ -469,7 +470,7 @@ object SongItem: Visual() {
                                        .align( Alignment.Bottom )
                 )
 
-                if( !song.isLocal )
+                if( !song.isLocal && !app.kreate.android.BuildConfig.INDEPENDENT_FORK )
                     CacheAndDownloadIcon( song.id, song, values, MyDownloadHelper::handleDownload ) {
                         val cache: Cache by inject(Cache::class.java, CacheType.CACHE)
                         cache.removeResource( song.id )
@@ -477,6 +478,8 @@ object SongItem: Visual() {
             },
             trailingContent = {
                 itemSelector?.CheckBox( song )
+                if (app.kreate.android.BuildConfig.INDEPENDENT_FORK && !song.isLocal)
+                    app.kreate.android.downloads.AudioDownloadButton(song.asMediaItem)
                 trailingContent?.invoke( this )
             },
             modifier = modifier.songItemModifier( isPlaying, values, onClick ) {
@@ -636,7 +639,7 @@ object SongItem: Visual() {
 
             Column(
                 horizontalAlignment = Alignment.Start,
-                modifier = Modifier.requiredHeight( thumbnailSizeDp.height )
+                modifier = Modifier.weight(1f).requiredHeight( thumbnailSizeDp.height )
                                    .padding( vertical = 5.dp )
             ) {
                 Title( innertubeVideo.info?.name.orEmpty(), values, Modifier.fillMaxWidth() )
@@ -660,6 +663,8 @@ object SongItem: Visual() {
                 )
             }
 
+            if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+                app.kreate.android.downloads.VideoDownloadButton(innertubeVideo.asMediaItem)
             trailingContent()
         }
 

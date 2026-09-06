@@ -58,6 +58,9 @@
         android:usesCleartextTraffic="false"
         tools:targetApi="tiramisu">
 
+        <service android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync" tools:node="merge" />
+
 
         <activity
             android:name="it.fast4x.rimusic.MainActivity"

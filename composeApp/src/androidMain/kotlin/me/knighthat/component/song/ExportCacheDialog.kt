@@ -19,6 +19,7 @@ import app.kreate.android.R
 import app.kreate.database.models.Song
 import app.kreate.di.CacheType
 import it.fast4x.rimusic.Database
+import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.ui.components.tab.toolbar.Descriptive
 import it.fast4x.rimusic.ui.components.tab.toolbar.MenuIcon
 import kotlinx.coroutines.CoroutineScope
@@ -106,7 +107,11 @@ class ExportCacheDialog(
         @Composable
         get() = stringResource( R.string.export_cached )
 
-    override fun onShortClick() = showDialog()
+    override fun onShortClick() {
+        if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+            app.kreate.android.downloads.DownloadCenter.copy(listOf(getSong().asMediaItem))
+        else showDialog()
+    }
 
     override fun defaultFileName(): String =
         with( getSong() ) { "$title - ${cleanArtistsText()}" }

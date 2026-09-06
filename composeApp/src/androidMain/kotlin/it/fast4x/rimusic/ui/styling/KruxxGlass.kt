@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
@@ -42,6 +43,9 @@ object KruxxGlass {
     val surfaceBorderWidth = 1.dp
     val surfaceElevation = 8.dp
 
+    // Text in floating menus and dialogs must stay readable over covers and lists.
+    const val modalBackdropAlpha = 0.88f
+
     // Only the full-player track menu needs a touch more separation from the
     // artwork below it; keeping this small preserves the glass appearance.
     const val playerMenuBackdropAlpha = 0.08f
@@ -49,6 +53,9 @@ object KruxxGlass {
 
 val isKruxxGlassEnabled: Boolean
     get() = BuildConfig.INDEPENDENT_FORK
+
+/** Menus inside a glass sheet reuse its surface instead of stacking another pane. */
+val LocalKruxxGlassSheet = staticCompositionLocalOf { false }
 
 /**
  * Keeps content surfaces transparent only in KruXx, allowing the shared
@@ -206,6 +213,22 @@ fun Modifier.kruxxGlassCard(shape: Shape = KruxxGlass.cardShape): Modifier =
     else
         this
 
+/** Shared spacing and lightweight glass for tracks in library and detail lists. */
+@Composable
+fun Modifier.kruxxTrackCard(): Modifier =
+    if (isKruxxGlassEnabled)
+        padding(horizontal = 8.dp, vertical = 3.dp).kruxxGlassCard()
+    else
+        this
+
+/** One stationary glass pane around a horizontally scrolling filter row. */
+@Composable
+fun Modifier.kruxxFilterBar(): Modifier =
+    if (isKruxxGlassEnabled)
+        padding(horizontal = 8.dp, vertical = 4.dp).kruxxGlassCard()
+    else
+        this
+
 /** A regular content card which preserves the original surface in other builds. */
 @Composable
 fun Modifier.kruxxCardSurface(
@@ -252,7 +275,8 @@ fun Modifier.kruxxDialogSurface(
         kruxxGlassSurface(
             fallbackColor = fallbackColor,
             shape = KruxxGlass.dialogShape,
-            strong = true
+            strong = true,
+            backdropAlpha = KruxxGlass.modalBackdropAlpha
         )
     else
         background(fallbackColor, fallbackShape)

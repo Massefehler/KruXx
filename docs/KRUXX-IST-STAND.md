@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 04.09.2026 · maßgeblich für den lokalen Entwicklungsstand
+Stand: 06.09.2026 · maßgeblich für den lokalen Entwicklungsstand
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,7 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | `1.1.0` „Glass Update“ |
 | Öffentlicher Android-Versionscode | `1_000_003` |
-| Nächster Release | noch nicht versioniert; eigenständiger Podcast-Bereich als separates späteres Vorhaben |
+| Nächster Release | `1.2.0` „Downloads Update“, Versionscode `1_000_004`; Release-Vorbereitung läuft, noch nicht veröffentlicht |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | API 23 / Android 6.0 |
@@ -28,11 +28,252 @@ keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, 
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
 
-Der Stand wurde vollständig automatisiert getestet, gelintet, gebaut, signiert und als `v1.1.0`
+Der veröffentlichte Stand 1.1.0 wurde vollständig automatisiert getestet, gelintet, gebaut, signiert und als `v1.1.0`
 veröffentlicht. Das exakt archivierte Release-APK wurde als Upgrade über `1.0.2` installiert und
 gestartet; die App-Daten blieben erhalten. Tag, Submodul-Pins, APK-Größe und APK-Digest wurden
 anschließend noch einmal gegen den veröffentlichten Stand abgeglichen. Dadurch bleibt die APK
 eindeutig ihrem Quellcode zugeordnet.
+
+### Release-Kandidat 1.2.0 „Downloads Update“
+
+Der nächste Feature-Release bündelt Downloads, MP3 und Dateikopien mit den nachfolgenden
+Glass-Korrekturen und der auswählbaren Statistikansicht. Version und Release Notes sind auf
+`1.2.0` / `1000004` vorbereitet. Der öffentliche Release bleibt bis zur Veröffentlichung `1.1.0`.
+Der eigenständige Podcast-Bereich bleibt ein separates späteres Vorhaben.
+
+Die zusätzliche Geräteabnahme, der Release-Commit, der signierte Build und dessen Updateprüfung
+werden im Rahmen dieser Vorbereitung durchgeführt. Noch nicht verfügbare USB-/SD-Medien und
+weitere Geräte werden nicht als geprüft gewertet; der abschließende Nachweis wird hier ergänzt.
+
+Bei der zusätzlichen Abnahme auf Android 6 / API 23 wurde ein Start-ANR gefunden: Die
+Dateiprotokollierung beendet ihren Leser bei einer nicht unterstützten atomaren Log-Rotation;
+der nächste Log-Aufruf wartet dadurch unbegrenzt, auch auf dem Hauptthread. Die Vorbereitung
+ergänzt deshalb Androids native Umbenennung und eine begrenzte, nicht blockierende Übergabe
+an den Dateilogger. Der erneute Start und die Bedienung auf API 23 sind bestanden. Vier neue
+Regressionstests prüfen begrenzte Übergabe bei blockiertem Schreiben, Weiterverarbeitung nach
+Schreibfehlern, Log-Rotation und den Erhalt vorhandener Logs beim Neustart.
+
+Zusätzliche Abnahme des Kandidaten am 06.09.2026:
+
+- 137 App-Unit-Tests, Debug-Build und Release-Lint bestanden; weiterhin nur die zwei bekannten
+  Media3-Versionshinweise. Die ausgediente Kermit-IO-Dateiprotokollierung wurde entfernt.
+- Samsung / Android 16: „Alle Titel herunterladen“ im Filter „Offline-Songs“ mit sieben bereits
+  lokal verfügbaren Originalen als MP3 nach `KruXx-Downloads/Audio` gestartet, während der
+  Umwandlung abgebrochen und über „Erneut versuchen“ wiederholt. Auch nach zwischenzeitlichem
+  Wechsel in den Hintergrund erreicht der Auftrag 100 %: zwei gespeichert, fünf bereits vorhanden.
+  Beide neuen Dateien sind vollständig dekodierbares MP3 mit 320 kbit/s, 48 kHz, Stereo und
+  passenden Künstler-/Titel-Metadaten. Alle acht bisherigen öffentlichen Dateien und 16 erfassten
+  privaten Mediendateien bleiben laut SHA-256 unverändert. Das ist ein vollständiger Sammelauftrag
+  mit wiederverwendeten Quellen; ein großer Auftrag mit ausschließlich neuen Netzwerkquellen ist
+  dadurch nicht abgedeckt.
+- Samsung: gespeichertes Caminandes-Audio spielt im Flugmodus mit deaktiviertem WLAN und
+  fortschreitender Wiedergabeposition. Das gespeicherte Video zeigt unter denselben Bedingungen
+  laufende Bilder und 00:40 von 01:35. Die ursprünglichen Netzwerkeinstellungen sind wiederhergestellt;
+  ein subjektiver Hörtest der Bild-/Tonsynchronität ist dadurch nicht ersetzt.
+- Frischer Android-6-Emulator (API 23, x86): regulärer Download von „The Emptiness Machine“ über
+  den Format-/Speicherdialog, Androids Speicherberechtigung, native MP3-Umwandlung und öffentliche
+  Speicherung vollständig bis 100 % bestanden. Die Datei ist vollständig dekodierbar:
+  MP3 / 320 kbit/s / 48 kHz / Stereo, 200,52 Sekunden, Künstler und Titel korrekt.
+  Der nach der Loggerkorrektur gestartete Prozess enthält keine Fatal-/Rotationsfehler.
+
+### Technische Release-Vorprüfung vom 06.09.2026
+
+- Der aktuelle Arbeitsbaum besteht erneut alle 133 App-Unit-Tests. Der unveränderte Innertube-Stand
+  bleibt mit 58 erfolgreichen Tests `UP-TO-DATE`. Vollständiger Release-Lint und erstmals auch der
+  optimierte Universal-Release-Build einschließlich der lokalen Download-/MP3-/Glass-Erweiterungen
+  sind erfolgreich. Die zwei bestehenden Media3-Versionshinweise und die bekannte
+  Kotlin-Metadaten-Diagnose des Build-Werkzeugs bleiben bestehen; neue Lint-Befunde gibt es nicht.
+- Am erzeugten Release-APK sind ZIP-Integrität, Paketmetadaten, erhaltene native MP3-Schnittstellen
+  im optimierten DEX-Code sowie beide MP3-Bibliotheken für alle vier ABIs geprüft. ELF- und
+  APK-Ausrichtung erfüllen jeweils 16 KiB. LAME-Lizenz und die bisherigen Release Notes sind trotz
+  Resource-Shrinking bytegleich mit ihren Quellen enthalten.
+- Das war eine lokale Build-Vorprüfung vor der Versionierung des nächsten Releases: Versionsname
+  und Versionscode standen dabei noch auf `1.1.0` / `1000003`, neue Release Notes und ein sauberer
+  Release-Commit fehlten. Für diese Vorprüfung wurde keine neue signierte APK erstellt oder auf
+  dem Handy installiert und nichts veröffentlicht. Vor Freigabe folgen der signierte Build aus dem
+  finalen Commit und dessen Update-Installation mit Datenerhalt.
+- Zum Zeitpunkt dieser Vorprüfung standen die praktischen Downloadfälle aus
+  [`DOWNLOADS.md`](DOWNLOADS.md#prüfung-und-geräteabnahme) noch aus. Die zusätzliche Abnahme für
+  1.2.0 ist oben separat beschrieben; physische USB-/SD-Medien und die übrigen Fehlerkombinationen
+  sind weiterhin nicht pauschal als geprüft gewertet.
+
+### Lokale Glass-Nacharbeit vom 06.09.2026 – noch nicht veröffentlicht
+
+- Alle app-eigenen Dialog-, Dropdown- und Bottom-Sheet-Einstiegspunkte sind im Quellcode auf
+  Glasflächen und verdeckende Hintergrundflächen geprüft. Künstlerauswahl, Darstellungsvorschau,
+  Download-/Kopierauswahl, Downloadverlauf, Fortschrittsdialog und Dateientfernen verwenden jetzt
+  die gemeinsamen Glasbausteine; auch der separate Spiel-Dialog ist angeglichen.
+  Material-Dialoge übernehmen lesbare Auswahl-/Aktionsfarben aus der KruXx-Darstellung; das gilt
+  auch für den Hinweis zum Zurücksetzen des Live-Hintergrunds.
+- Ein auf dem Samsung reproduzierter Fehler schnitt aufklappende Menüs ab: Die äußere Glasfläche
+  blieb oberhalb des verschobenen Menüinhalts stehen. Glasfläche und Griff liegen jetzt zusammen
+  im bewegten Sheet. Listen-, Raster- und Playlist-Untermenüs teilen dessen Fläche, statt mehrere
+  Glaslagen übereinanderzuzeichnen. Schwebende Dialoge und Menüs erhalten eine getönte Unterlage
+  für lesbare Schrift über Bildern und Listen.
+- Künstlerlisten (Online/Bibliothek), lokale und Online-Playlists verwenden dieselben leichten
+  Track-Kacheln wie „Titel“ und Gerätetitel: 8 dp Seitenrand, 3 dp Abstand je Ober-/Unterkante,
+  feine Kontur, kein eigener Schatten oder Blur-Durchlauf pro Track. Die lokale Playlist-Kopfkarte
+  ist ebenfalls angeglichen.
+- Prüfung erfolgreich: 133 App-Unit-Tests sowie abschließender Debug-Build und Release-Lint.
+  Die finale Debug-APK ist mit Datenerhalt auf dem Samsung SM-S931B/Android 16 installiert.
+  Geprüft sind Künstler-/Playlist-Kontext- und Überlaufmenüs in Listen- und Rasterdarstellung,
+  Playlist-Untermenü und neuer Playlist-Dialog, Künstlertext-Bearbeitung, Track-Kacheln sowie
+  Einzel-/Sammeldownload, Kopierauswahl, Downloadverlauf und Entfernen-Bestätigung. Die Bestätigungen
+  wurden abgebrochen; dafür wurden keine Medien heruntergeladen, kopiert oder entfernt.
+  Die Download-Auswahl ist auch im Hellmodus mit Systemschriftfaktor 1,3 lesbar und bedienbar.
+  Systemmodus, Listenmenü und ursprünglicher Schriftfaktor 0,8 wurden wiederhergestellt.
+  API 23–30 sowie weitere Kombinationen aus Gerät, Darstellung und seltenen Dialogwegen bleiben
+  ergänzende Nachtests; der Quellcode-Audit ist umfassender als die praktische Stichprobe.
+
+### Lokale Filterleisten-Nacharbeit vom 06.09.2026 – noch nicht veröffentlicht
+
+- Die horizontalen Auswahlleisten hatten bisher nur transparente Standard-Chips. `ButtonsRow`
+  verwendet jetzt eine gemeinsame Glasfläche mit 8 dp Seitenrand und 4 dp vertikalem Außenabstand.
+  Eine blaue Auswahlfläche und Kontur markieren den aktiven Filter; die Reiter bleiben horizontal
+  scrollbar. Die beiden bisher duplizierten Varianten teilen dieselbe Implementierung.
+- Das gilt für Titel (Titel/Favoriten/Zwischengespeichert usw.), Künstler, Alben, Playlists,
+  Downloads (Audio/Video/Nur in KruXx), Verlauf und Statistik. Die gesonderte Reiterleiste im
+  Release-Änderungsdialog verwendet ebenfalls den Glasbaustein. Die horizontale Haupt-/Detailnavigation
+  verwendet bereits ihre gemeinsame Glasfläche.
+- Bei Künstlern und Alben liegt der zusätzliche Quellenfilter innerhalb derselben Leiste und
+  reserviert eigenen Platz rechts. Er überlagert die scrollbaren Reiter nicht mehr. Zusätzliche
+  Außenabstände der einzelnen Aufrufer entfallen in KruXx zugunsten einheitlicher Ränder.
+- Es bleibt beim vorhandenen Glas-Fallback aus Transparenz, Verlauf und Kontur ohne zusätzlichen
+  Blur-Durchlauf. Die Statistik-Karte für Titelanzahl/Wiedergabezeit und ihre Titel verwenden jetzt
+  ebenfalls die gemeinsamen Glasflächen. Die Listenansicht bietet einen Titel je Zeile mit Platz
+  für Künstler, Dauer und Downloadknopf. Das gilt für alle Statistikzeiträume einschließlich
+  „Gesamt“; die ergänzte Ansichtsauswahl ist im folgenden Abschnitt beschrieben.
+- Abschließender Debug-Build und Release-Lint sind erfolgreich; die beiden bestehenden
+  Gradle-Abhängigkeitswarnungen bleiben unverändert. Die aktuelle Debug-APK ist mit Datenerhalt
+  auf dem Samsung SM-S931B/Android 16 installiert. Titel, Künstler, Alben, Playlists, Downloads
+  (alle drei Bereiche), Verlauf und Statistik sind geprüft. Seitliches Scrollen bei Titel und
+  der reservierte Quellenfilter bei Künstlern sind auch mit Schriftfaktor 1,3 geprüft.
+- Die Statistik-Karten sind in „Gesamt“ und „1 Jahr“ nachgeprüft. Alle zehn vorhandenen Ranglisten-
+  Titel sind durch Scrollen erreichbar; Titelanzahl und Wiedergabezeit bleiben unverändert.
+  Im aktuellen App-Prozess gab es während dieser Stichprobe keinen Fatal-/ANR-Eintrag.
+  Schriftfaktor 0,8, Themenmodus „System“ und ursprüngliche Bibliotheksfilter sind wiederhergestellt.
+  Die Release-Änderungsreiter sind im Debug-Build nicht erreichbar und nur im Quellcode/Build
+  geprüft. API 23–30 und weitere Geräte-/Darstellungskombinationen bleiben ergänzende Nachtests.
+
+### Auswählbare Statistikansicht vom 06.09.2026 – noch nicht veröffentlicht
+
+- Die KruXx-Titelstatistik bietet neben der Zeitraumüberschrift die Auswahl „Liste / Raster“.
+  Liste zeigt einen Titel je Zeile und ist die Voreinstellung; Raster zeigt zwei kompakte
+  Glaskarten nebeneinander. Die Auswahl wird unabhängig von anderen Darstellungsoptionen
+  gespeichert und gilt für alle Statistikzeiträume, auch nach einem App-Neustart.
+- Rasterkarten ordnen Cover mit Rangnummer, Dauer und Downloadaktion oberhalb von Titel und
+  Künstler an. Downloadstatus, Favoriten-/Playlist-/Explicit-Markierungen, Wiedergabe und
+  langes Drücken für das Titelmenü verwenden weiterhin die vorhandenen Bausteine und Aktionen.
+  Künstler-, Alben- und Playliststatistiken behalten ihre jeweilige Darstellung.
+- Abschließender Debug-Build und Release-Lint sind erfolgreich, ohne neue Lint-Warnungen.
+  Die aktuelle Debug-APK ist mit Datenerhalt auf dem Samsung SM-S931B/Android 16 installiert.
+  Liste und zweispaltiges Raster, Scrollen bis zum letzten Titel, Zeitraumwechsel sowie
+  Downloadauswahl und Titelmenü sind geprüft; beide Dialoge wurden ohne Medienänderung geschlossen.
+  Nach einem kalten App-Neustart wurde das gespeicherte Raster wiederhergestellt; anschließend
+  wurde auf die voreingestellte Liste zurückgeschaltet. Statistikwerte, Schriftfaktor 0,8,
+  Themenmodus „System“ und Bibliotheksfilter sind unverändert. Der aktuelle App-Prozess zeigt
+  während der Stichprobe keine Fatal-/ANR-Einträge. Weitere Gerätegrößen bleiben Nachtests.
+
+### Lokale Weiterentwicklung vom 05.09.2026 – noch nicht veröffentlicht
+
+- Alle manuellen Downloadaktionen einschließlich „Alle Tracks downloaden“, Album, Künstler,
+  Playlist und Auswahl verwenden einen gemeinsamen Dialog einmal je Auftrag: „Nur in KruXx“,
+  zusätzlich im automatisch angelegten `Download/KruXx-Downloads` oder zusätzlich in einem anderen
+  Ordner speichern; Originalaudio oder MP3 mit festen 320 kbit/s. „Nur in KruXx“ bleibt die anfängliche
+  Vorgabe, der öffentliche Ordner ist optional. Die Auswahl lässt sich
+  merken und unter Einstellungen → Daten → Downloads und Dateikopien zurücksetzen.
+- Videos besitzen ein Downloadsymbol mit Video inklusive Ton oder MP3. Gespeicherte Videos laufen
+  lokal über ExoPlayer; gespeicherte MP3s und Videos sind über die Download-Einstellungen abrufbar.
+- Normale Audiotitel besitzen rechts einen gleichwertigen Downloadknopf für Originalaudio/MP3 und
+  alle drei Speicheroptionen, auch in Such-, Künstler-, Album- und Playlistlisten. Bereits fertige
+  Downloads können darüber nachträglich konvertiert/kopiert werden; der Knopf entfernt sie nicht.
+- Der öffentliche Downloadordner trennt jetzt `Audio` (MP3 und Originalaudio) und `Video`.
+  Ein zusätzlicher Hauptreiter „Downloads“ zeigt den aktuellen Ordnerinhalt und interne Downloads.
+  Die Hauptleiste bleibt horizontal scrollbar; `<<`/`>>` erscheinen nur bei tatsächlich verborgenen
+  Reitern und erhalten eigene Randflächen. Fertige eigene Altdateien werden auf Android 10+ aus
+  dem Stammordner übernommen; fremde Dateien bleiben erhalten.
+- Im Downloads-Reiter können Dateien direkt über das Papierkorbsymbol entfernt werden.
+  „Auswählen“ oder langes Drücken öffnet die Mehrfachauswahl; „Alle auswählen“ gilt für den
+  aktuellen Bereich. Vor dem dauerhaften Entfernen werden Anzahl, Dateien und Speicherort
+  bestätigt. Öffentliche Kopien, internes Originalaudio, MP3 und Video sind getrennt auswählbar.
+  Teilerfolge und fehlgeschlagene Dateien werden angezeigt; eine Wiederholung betrifft die
+  fehlgeschlagene Auswahl. Automatische Prüfung und Samsung-Gerätetest sind erfolgreich:
+  Einzel-/Mehrfachlöschung öffentlicher Dateien und interner MP3s/Videos, Abbrechen sowie
+  „Alle auswählen“ wurden mit eigenen Testdateien geprüft. Andere Kopien und Formate bleiben
+  erhalten. Alle Testdateien sind entfernt; Namen und SHA-256 der vorhandenen Downloads sind
+  unverändert (7 öffentliche, 5 interne Mediendateien und 9 Dateien im Originalaudio-Cache).
+  Der abschließend geprüfte Debug-Build ist auf dem Samsung-Gerät installiert; Auswahl,
+  Bestätigung und Abbrechen sind auch nach kaltem App-Start geprüft.
+- Die Breite aller beschrifteten Reiter richtet sich nun gemeinsam nach der längsten Beschriftung
+  und der aktuellen Schriftgröße. Symbol und Text sind mittig ausgerichtet; spätere Reiter wie
+  Podcast werden ohne feste Reiterzahl berücksichtigt. Der deutsche Reiter heißt jetzt „Künstler“.
+  Nachtest auf dem Samsung-Gerät: gleiche Reiterbreiten und zentrierte Inhalte bei Systemschrift
+  0,8 und 1,3; Wischen, Richtungspfeile und Sichtbarkeit ausgewählter Randreiter geprüft.
+  Debug-Update installiert, Build und Release-Lint ohne neue Befunde erfolgreich.
+- „Dateien kopieren …“ neben vorhandenen Sammeldownload-Aktionen und im Titelmenü bietet eine
+  Auswahl fertiger Downloads aus dem jeweiligen Kontext. Androids Ordnerauswahl ermöglicht
+  Gerätespeicher, SD-Karte und angeschlossene USB-Laufwerke, soweit deren Anbieter dies unterstützt.
+- Kopien lesen ausschließlich vollständige Download-Dateien. Sie erhalten App-Downloads und
+  vorhandene andere Zieldateien, prüfen SHA-256 und überspringen identische Kopien. Dateiaufträge
+  laufen persistent über WorkManager, mit Fortschritt, Abbruch und Wiederholung fehlgeschlagener
+  oder abgebrochener Aufträge. Die Media3-Audioqueue wird unabhängig verwaltet.
+- Manuellen Einzel-, Sammel- und Kopieraufträgen folgt eine moderne Fortschrittskarte mit
+  animiertem Verlaufsbalken, Prozentzahl, Arbeitsschritt, Format und Speicherziel. Sie lässt sich
+  von Beginn an über ein dezent rötliches Glas-× oder seitliches Wischen ausblenden. Die Entscheidung
+  bleibt pro Auftrag über Reiterwechsel und Neustarts erhalten; neue Aufträge dürfen wieder erscheinen.
+  Ausgeblendete Aufträge bleiben über das Zahnrad im Downloads-Reiter abrufbar und laufen weiter.
+  „Abbrechen“ ist eine separate Aktion. 100 % erscheinen erst nach
+  vollständiger Speicherung einschließlich Prüfung; Fehler und Abbruch bleiben unterscheidbar.
+  Die Android-Benachrichtigung zeigt denselben Fortschritt. Automatische Aufträge öffnen keinen Dialog.
+  Auf dem Samsung-Gerät wurde Noma über die Videosuche erneut in MP3 umgewandelt: laufende
+  Prozentwerte und korrekter Zielpfad, anschließend 100 % mit bestätigter vorhandener Kopie.
+  Die private Ausgabe ist bytegleich mit der bisherigen öffentlichen 320-kbit/s-MP3. Diese war
+  bereits vorher in `Audio` vorhanden und ist auch im Android-Dateimanager sichtbar. Zusätzlich
+  wurde eine neue Originalaudio-Kopie mit erfolgreicher Veröffentlichung und Abschlussanzeige geprüft.
+  Nachtest vom 06.09.2026: × und beide Wischrichtungen geprüft. Die laufende Umwandlung von
+  „Sons Of Hidden - Nirvana“ wurde bei 53 % ausgeblendet, zeigte im Verlauf anschließend 59 %
+  und wurde erfolgreich im Audio-Ordner abgeschlossen. Kurze Wischgesten behalten die Karte;
+  vollständiges Ausblenden bleibt nach einem kalten App-Neustart bestehen. Der Verlauf bleibt
+  über das Zahnrad erreichbar, die Audio-Übersicht enthält einschließlich Nirvana fünf Dateien.
+- Download-Beschriftungen und Dateinamen verwenden Künstler und Titel, z. B.
+  `Noma - Sleepwalker.mp3`. Bei Videotiteln im entsprechenden Schema entfällt der Uploader;
+  normale Musikmetadaten und musikalische Versionsangaben bleiben erhalten. Technische IDs und
+  Format-Zusätze entfallen im Namen. Bekannte Altdateien werden unter Wahrung von Schreibrechten,
+  Inhalt und Namenskonflikten umbenannt; Format und Speicherpfad stehen separat in der Übersicht.
+  Auf dem Samsung-Gerät wurden sechs bestehende öffentliche Dateien bytegleich umbenannt;
+  `Audio/Noma - Sleepwalker.mp3`, Download-Anzeige und Kopierauswahl sind geprüft. Erneutes
+  MP3-Kopieren erkennt die umbenannte Datei und erzeugt keine zusätzliche Kopie. Debug-Update installiert.
+- MP3 nutzt Androids Decoder und den separat gebauten LAME-Encoder 3.100 (LGPL-2.0-or-later),
+  CBR 320, Qualität 0, Mono/Stereo ohne Normalisierung. Beste verfügbare Quelle bedeutet keine
+  Wiederherstellung bereits verlorener Audiodetails. Fertige Alt-Downloads werden weiterverwendet.
+- Prüfung dieses Arbeitsstands: nativer JNI-Encoder für 24/44,1/48 kHz einschließlich Dekodierung,
+  Bitrate, Kanalzahl und Dauer erfolgreich. Alle 133 App-Tests (darunter 45 neue Download-/Benennungs-/Fortschritts-/Lösch-/SAF-/MediaStore-Tests)
+  und 58 Innertube-Tests erfolgreich; Universal-Debug-APK gebaut. Release-Lint erfolgreich ohne
+  neue Fehler; zwei Versionshinweise betreffen die weiterhin einheitlich auf 1.10.1 gepinnten
+  Media3-Komponenten. Die Lint-Baseline wurde nicht verändert. APK-Lizenztext und 16-KiB-Ausrichtung
+  beider nativer Bibliotheken für alle vier ABIs wurden geprüft.
+- Gerätetest auf Samsung SM-S931B / Android 16: Debug-Update mit erhaltenen App-Daten installiert;
+  drei Speicheroptionen und Kopierauswahl geprüft. Video-Audio auf dem Gerät nach MP3 umgewandelt,
+  `Download/KruXx-Downloads` automatisch angelegt, Datei außerhalb der App ausgelesen und vollständig
+  dekodiert: 320 kbit/s, 48 kHz, Stereo, 94,8 Sekunden, Titel und Interpret erhalten. Erneutes Kopieren
+  überspringt die identische Datei. Video mit Ton (H.264 1080p / Opus Stereo) vollständig dekodiert,
+  lokale Videowiedergabe gestartet und eine über Androids Ordnerauswahl erzeugte Kopie per SHA-256
+  gegen die App-Datei geprüft. Weitere Gerätefälle und physisches USB/SD bleiben offen;
+  dies ist noch keine vollständige Gerätefreigabe.
+- Audiotitel-Ergänzung auf demselben Handy geprüft: Neuer Knopf in Titelsuche und Titelreiter;
+  vorhandenes Originalaudio nachträglich als MP3 in `KruXx-Downloads` gespeichert, extern mit
+  320 kbit/s / 48 kHz / Stereo und erhaltenen Metadaten vollständig dekodiert. Sammeldialog mit
+  51 Titeln und allen Speicheroptionen geöffnet und vor dem Start abgebrochen. Aktualisierte
+  Debug-App installiert; 103 App-Tests, Debug-Build und Release-Lint erneut erfolgreich.
+
+- Ordner-Nachtest: Vorhandene MP3s nach `Audio` übernommen und per SHA-256 unverändert bestätigt.
+  Originalaudio landet ebenfalls dort, Videokopien bytegleich unter `Video`; Öffnen in VLC geprüft.
+  Alte über die Ordnerauswahl erstellte Kopien bleiben über die bestehende Freigabe sichtbar.
+  Die neue Übersicht und die Richtungsanzeigen der Hauptleiste wurden auf dem Handy geprüft.
+
+Architektur, Grenzen und konkrete Abnahmematrix: [`DOWNLOADS.md`](DOWNLOADS.md).
+Diese Änderungen gehören zum vorbereiteten Kandidaten 1.2.0. Öffentliche APK und historische
+Release Notes der veröffentlichten Version 1.1.0 bleiben unverändert.
 
 ### In v1.0.2 veröffentlichte Änderungen
 

@@ -31,6 +31,10 @@ fun downloadedStateMedia(
     mediaId: String,
     cache: Cache = koinInject(CacheType.CACHE)
 ): DownloadedStateMedia {
+    if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) {
+        val saved by app.kreate.android.downloads.DownloadCenter.saved.collectAsState()
+        if (saved.any { it.track.id == mediaId }) return DownloadedStateMedia.DOWNLOADED
+    }
     val isDownloaded by remember( mediaId ) {
         MyDownloadHelper.getDownload( mediaId )
                         .map { it?.state == Download.STATE_COMPLETED }
@@ -85,7 +89,7 @@ fun manageDownload(
         MyDownloadHelper.removeDownload(mediaItem = mediaItem)
     }
     else {
-        if (isNetworkAvailable(context)) {
+        if (app.kreate.android.BuildConfig.INDEPENDENT_FORK || isNetworkAvailable(context)) {
             MyDownloadHelper.addDownload(mediaItem = mediaItem)
         }
     }
@@ -96,6 +100,10 @@ fun manageDownload(
 @UnstableApi
 @Composable
 fun getDownloadState(mediaId: String): Int {
+    if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) {
+        val saved by app.kreate.android.downloads.DownloadCenter.saved.collectAsState()
+        if (saved.any { it.track.id == mediaId }) return Download.STATE_COMPLETED
+    }
     val downloader = LocalDownloadHelper.current
     return downloader.getDownload(mediaId).collectAsState(initial = null).value?.state
         ?: Download.STATE_STOPPED

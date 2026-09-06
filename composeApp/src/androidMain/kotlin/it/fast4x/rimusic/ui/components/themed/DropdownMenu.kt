@@ -51,6 +51,7 @@ class DropdownMenu(
                     fallbackColor = if (hasExplicitContainer) containerColor else palette.background1,
                     shape = KruxxGlass.cardShape,
                     strong = true,
+                    backdropAlpha = KruxxGlass.modalBackdropAlpha,
                     opaqueBackdrop = hasExplicitContainer
                 )
             } else {

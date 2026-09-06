@@ -42,11 +42,20 @@ class DownloadAllDialog(
         @Composable
         get() = stringResource( messageId )
 
-    override fun getSongs(): List<Song> = getSongs.invoke()
+    public override fun getSongs(): List<Song> = getSongs.invoke()
 
-    override fun onShortClick() = showDialog()
+    override fun onShortClick() {
+        if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+            MyDownloadHelper.addDownloads(getSongs().map(Song::asMediaItem))
+        else showDialog()
+    }
 
     override fun onConfirm() {
+        if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) {
+            hideDialog()
+            MyDownloadHelper.addDownloads(getSongs().map(Song::asMediaItem))
+            return
+        }
         if( !isNetworkAvailable( context ) ) {
             // [MyDownloadHelper.addDownload] has checking in place
             // but this happens sooner to prevent toaster for every song

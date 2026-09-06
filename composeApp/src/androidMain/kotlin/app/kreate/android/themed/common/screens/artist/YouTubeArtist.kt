@@ -81,6 +81,7 @@ import it.fast4x.rimusic.ui.components.themed.FontSizeRange
 import it.fast4x.rimusic.ui.components.themed.PlayNext
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.utils.addNext
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.enqueue
@@ -173,6 +174,7 @@ private fun LazyListScope.renderSections(
                    ) {
                        SongItem.Render(
                            song = song.toSong,
+                           modifier = Modifier.kruxxTrackCard(),
                            hapticFeedback = hapticFeedback,
                            isPlaying = song.shallowCompare( currentMedia ),
                            values = songItemValues,
@@ -239,6 +241,7 @@ private fun LazyListScope.renderLibrarySongs(
         ) {
             SongItem.Render(
                 song = song,
+                modifier = Modifier.kruxxTrackCard(),
                 hapticFeedback = hapticFeedback,
                 isPlaying = song.shallowCompare( currentMedia ),
                 values = songItemValues,

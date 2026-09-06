@@ -56,6 +56,7 @@ import it.fast4x.rimusic.ui.components.tab.TabHeader
 import it.fast4x.rimusic.ui.components.themed.FloatingActionsContainerWithScrollToTop
 import it.fast4x.rimusic.ui.components.themed.HeaderInfo
 import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.kruxxGlassCard
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
@@ -230,7 +231,8 @@ fun HomeLibrary(
                             chips = buttonsList,
                             currentValue = playlistType,
                             onValueUpdate = { playlistType = it },
-                            modifier = Modifier.padding(start = 12.dp, end = 12.dp)
+                            modifier = if (isKruxxGlassEnabled) Modifier
+                                else Modifier.padding(horizontal = 12.dp)
                         )
                     }
 

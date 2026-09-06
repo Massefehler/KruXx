@@ -30,6 +30,7 @@ import it.fast4x.rimusic.utils.secondary
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.LocalKruxxGlassSheet
 import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.kruxxGlassSurface
 
@@ -41,11 +42,13 @@ inline fun Menu(
 ) {
     Column(
         modifier = modifier
-            .padding(top = 48.dp)
+            .padding(top = if (LocalKruxxGlassSheet.current) 0.dp else 48.dp)
             .verticalScroll(rememberScrollState())
             .fillMaxWidth()
             .then(
-                if (isKruxxGlassEnabled)
+                if (LocalKruxxGlassSheet.current)
+                    Modifier
+                else if (isKruxxGlassEnabled)
                     Modifier.kruxxGlassSurface(
                         fallbackColor = colorPalette().background1,
                         shape = KruxxGlass.menuShape,

@@ -44,7 +44,8 @@ class ExportCacheButton : MenuButton<MediaItem>(), KoinComponent {
     private lateinit var launcher: ManagedActivityResultLauncher<String, Uri?>
 
     override val iconId: Int = R.drawable.export_outline
-    override val tooltipMessageId: Int = R.string.info_export_cached_or_downloaded_song
+    override val tooltipMessageId: Int = if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+        R.string.kruxx_copy_files else R.string.info_export_cached_or_downloaded_song
     override val title: String
         @Composable
         get() {
@@ -55,7 +56,7 @@ class ExportCacheButton : MenuButton<MediaItem>(), KoinComponent {
                 onResult = { it?.also( ::onExport ) }
             )
 
-            return stringResource( R.string.export_cached )
+            return stringResource(if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) R.string.kruxx_copy_files else R.string.export_cached)
         }
 
     private fun onExport( destination: Uri ) = CoroutineScope(Dispatchers.IO).launch {
@@ -84,6 +85,10 @@ class ExportCacheButton : MenuButton<MediaItem>(), KoinComponent {
     }
 
     override fun onClick( menu: BottomMenu, item: MediaItem ) {
+        if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) {
+            app.kreate.android.downloads.DownloadCenter.copy(listOf(item))
+            return
+        }
         songId = item.mediaId
 
         try {
@@ -95,7 +100,7 @@ class ExportCacheButton : MenuButton<MediaItem>(), KoinComponent {
                 ContentMetadata.getContentLength( cacheMetadata )
             )
             val downloadMetadata = downloadCache.getContentMetadata( songId )
-            isDownloaded = cache.isCached(
+            isDownloaded = downloadCache.isCached(
                 songId,
                 0,
                 ContentMetadata.getContentLength( downloadMetadata )

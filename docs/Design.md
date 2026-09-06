@@ -1,7 +1,8 @@
 # KruXx Glass – Designkonzept
 
-Stand: 04.09.2026 · zwei Umsetzungsstufen implementiert · veröffentlicht als KruXx `1.1.0`
-„Glass Update“
+Stand: 06.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
+„Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen im vorbereiteten Kandidaten
+`1.2.0` „Downloads Update“, noch nicht veröffentlicht
 
 ## Ziel und Abgrenzung
 
@@ -207,6 +208,69 @@ Cover-Unschärfe des Vollbild-Players deshalb auf allen Versionen den sicheren G
 Transparenz, Verlauf, Kontur und Schatten. Echter Backdrop-Blur auf weiteren geeigneten ruhenden
 Oberflächen bleibt eine spätere, gesondert zu prüfende Verfeinerung.
 
+## Lokale Menü- und Listennacharbeit vom 06.09.2026
+
+Die Prüfung aller app-eigenen Dialog-, Dropdown- und Sheet-Einstiegspunkte hat fehlende Glasflächen
+bei der Künstlerauswahl, Darstellungsvorschau, den neuen Download-Dialogen und dem separaten
+Spiel-Dialog ergänzt. Die Material-Dialoge verwenden `ThemedAlertDialog`, einschließlich des
+Live-Hintergrund-Hinweises. Ihre Auswahlkreise, Checkboxen und Aktionen erhalten Farben passend zu
+Hell-/Dunkelmodus; die roten Entfernen-Aktionen bleiben erkennbar.
+
+Auf dem Samsung ließ sich außerdem ein abgeschnittenes Playlist-Überlaufmenü reproduzieren:
+Material3 verschiebt das Sheet erst nach seinem öffentlichen `modifier`. Die dort angebrachte
+Glasfläche samt Clip blieb deshalb am oberen Fensterrand stehen. `CustomModalBottomSheet` zeichnet
+Glasfläche und Griff jetzt innerhalb des bewegten Inhalts. Auch `BottomMenu` verwendet diese
+Komponente. `LocalKruxxGlassSheet` verhindert eine zweite Fläche und zusätzliche Kopfabstände in
+`Menu` und `GridMenu`. Navigationseinrückungen beachten bereits verbrauchte System-Inset-Flächen.
+
+Schwebende Menüs und Dialoge verwenden eine getönte Unterlage (`modalBackdropAlpha = 0.88f`), damit
+Schrift und Bilder dahinter die Menüeinträge nicht überlagern. Verlauf und Kontur bleiben erhalten.
+Das Queue-Sheet behält seine deckende Unterlage; Vollbild-Audio-/Video-Player behalten ihre eigene
+Hintergrunddarstellung. Androids Ordnerauswahl, Freigabe- und Berechtigungsdialoge bleiben System-UI.
+
+Tracks in Künstleransichten (Online/Bibliothek), lokalen und Online-Playlists, „Titel“ und
+Gerätetiteln verwenden `kruxxTrackCard()`: 8 dp Seitenrand, 3 dp oben und unten, 16-dp-Rundungen und
+feine Kontur. Es gibt keinen zusätzlichen Schatten oder Blur-Durchlauf je Track. Das vereinheitlicht
+die Listen, ohne die Karten optisch so stark zu gewichten wie Header oder Menüs. Diese Nacharbeit
+verwendet weiterhin den gemeinsamen Glas-Fallback; sie führt keinen neuen echten Backdrop-Blur ein.
+
+133 App-Unit-Tests sowie der abschließende Debug-Build und Release-Lint sind erfolgreich. Die finale
+Debug-APK ist auf dem Samsung SM-S931B/Android 16 installiert. Die praktische Stichprobe umfasst
+Listen-/Rastermenüs von Künstlern und Playlists, verschachtelte Playlist-/Eingabedialoge, Track-Kacheln
+und die Download-Auswahl für einzelne und mehrere Titel, Kopieren, Verlauf und Entfernen-Bestätigung.
+Auch die Download-Auswahl im Hellmodus bei Systemschriftfaktor 1,3 bleibt vollständig bedienbar.
+Die ursprünglichen Einstellungen (Systemmodus, Listenmenü, Schriftfaktor 0,8) sind wiederhergestellt.
+Die vollständige Geräte-/Darstellungsmatrix, insbesondere API 23–30, bleibt ein ergänzender Nachtest;
+Details stehen im
+[`IST-Stand`](KRUXX-IST-STAND.md#lokale-glass-nacharbeit-vom-06092026--noch-nicht-veröffentlicht).
+
+### Ergänzung: einheitliche Filterleisten
+
+Die Leisten mit „Titel/Favoriten/Zwischengespeichert“ beziehungsweise
+„Audio/Video/Nur in KruXx“ besaßen bislang nur transparente Material-Chips. Sie erhalten jetzt eine
+durchgehende leichte Glasfläche, 16-dp-Rundungen und eine blaue Auswahlfläche mit feiner Kontur.
+`ButtonsRow` verwendet dafür `kruxxFilterBar()` mit 8 dp Seitenrand und 4 dp vertikalem Abstand;
+zusätzliche Einrückungen der einzelnen Aufrufer entfallen. Das betrifft auch Künstler-, Alben-,
+Playlist-, Verlaufs- und Statistikfilter. Die Release-Änderungsreiter nutzen denselben Glasbaustein.
+
+Nur die Auswahlbuttons scrollen seitlich, die Glasfläche bleibt stehen. Quellenfilter bei
+Künstlern und Alben erhalten einen eigenen Platz rechts innerhalb der Leiste und können lange
+Reiter nicht überdecken. Es entsteht kein zusätzlicher Blur-Durchlauf pro Button.
+
+In der Statistik sind zusätzlich die Karte mit Titelanzahl/Wiedergabezeit und die Titel der
+Rangliste angeglichen. Die leichten Track-Kacheln gelten für jeden Zeitraum einschließlich „Gesamt“.
+Die Auswahl „Liste / Raster“ neben der Zeitraumüberschrift bietet einen Titel je Zeile oder
+zwei kompakte Karten nebeneinander. Liste ist die Voreinstellung; die Auswahl wird für alle
+Statistikzeiträume gespeichert. Im Raster stehen Cover/Rang, Dauer und Downloadknopf über Titel
+und Künstler, damit die Namen nicht zwischen Cover und Aktion eingequetscht werden. Beide
+Ansichten behalten die leichten Glasflächen und die vorhandenen Titelaktionen.
+Filterleisten und Statistik-Karten sind auf dem Samsung-Zielgerät nachgeprüft; Debug-Build und
+Release-Lint sind erfolgreich. Der ergänzende Prüfstand steht im
+[IST-Stand](KRUXX-IST-STAND.md#lokale-filterleisten-nacharbeit-vom-06092026--noch-nicht-veröffentlicht).
+Die Ansichtsauswahl ist einschließlich Wiederherstellung nach App-Neustart auf dem Samsung
+nachgeprüft. Die Nachweise stehen im
+[Statistik-Prüfstand](KRUXX-IST-STAND.md#auswählbare-statistikansicht-vom-06092026--noch-nicht-veröffentlicht).
+
 ## Bedingte Erweiterung der Hauptnavigation
 
 Die untere Hauptnavigation bleibt horizontal scrollbar. Solange alle Reiter vollständig in die
@@ -221,11 +285,35 @@ erreichbaren Inhalte:
 - wenn alle Reiter sichtbar sind, erscheinen keine Hinweise.
 
 Die Entscheidung richtet sich nach der verfügbaren Breite sowie dem tatsächlichen Scrollzustand,
-nicht nach einer fest angenommenen Reiterzahl. Die Hinweise dürfen keine Reiter überdecken und
-müssen bei einer späteren Umsetzung mit zugänglichen Inhaltsbeschreibungen versehen werden. Zu
-prüfen sind dann insbesondere kleine Displays, große Systemschrift und der geplante Podcast-Reiter.
-Diese Erweiterung ist vorgemerkt und derzeit bewusst noch nicht aktiv, weil alle vorhandenen Reiter
-vollständig in die Leiste passen.
+nicht nach einer fest angenommenen Reiterzahl. Die Hinweise haben eigene Randflächen und zugängliche Inhaltsbeschreibungen.
+Weitere Nachtests betreffen insbesondere kleine Displays, große Systemschrift und einen späteren Podcast-Reiter.
+Diese Erweiterung ist seit der lokalen Download-Weiterentwicklung vom 05.09.2026 aktiv, noch nicht
+im veröffentlichten 1.1.0: „Downloads“ ergänzt die Hauptleiste als sechster Reiter. Die Hinweise
+reservieren eigene Randflächen, lassen sich zusätzlich zum Wischen antippen und verschwinden
+richtungsabhängig an den Scrollgrenzen. Alle beschrifteten Reiter einer Leiste sind gleich breit:
+Die längste gerenderte Beschriftung bestimmt mit seitlichem Abstand die gemeinsame Breite
+(mindestens 76 dp). Symbole und Texte werden innerhalb dieser Flächen zentriert. Schriftwechsel,
+Schriftgröße und zusätzliche Reiter fließen in die Messung ein, auch der spätere Podcast-Reiter.
+„Interpreten“ heißt in der lokalen deutschen KruXx-Oberfläche jetzt „Künstler“.
+
+Die lokale Downloaderweiterung zeigt eine kompakte Fortschrittskarte mit 10-dp-Balken,
+vollständig gerundeten Enden, dezentem Farbverlauf und sanften Übergängen. Prozentzahl,
+Arbeitsschritt, Format und Speicherziel sind getrennt lesbar; Fehler verwenden zusätzlich zur
+Farbe einen erklärenden Text. Der Balken hat eine zugängliche Fortschrittssemantik. Seit dem lokalen
+Stand vom 06.09.2026 lassen sich Startanzeige und Übersichtskarte von Beginn an über ein dezentes
+rötliches Glas-× oder durch Wischen nach links/rechts ausblenden. Der 48-dp-Tippbereich enthält eine
+34-dp-Glasfläche mit feinem Rand und weichem roten Blur-Licht hinter dem scharfen Symbol;
+ältere Android-Versionen behalten den transparenten Verlauf ohne Blur-Pass. Das Ausblenden ist
+zusätzlich als Accessibility-Aktion verfügbar, stoppt keinen Auftrag und bleibt nach einem Neustart
+erhalten. Das Zahnrad im Downloads-Reiter öffnet den Statusverlauf. Erfolgreiche
+100 % stehen für die vollständig gespeicherte und geprüfte Ausgabe.
+
+Der Downloads-Reiter bietet außerdem ein Papierkorbsymbol mit 48-dp-Tippbereich je Datei.
+„Auswählen“ oder langes Drücken aktiviert Checkboxen; eine gemeinsame Auswahlleiste zeigt Anzahl,
+„Alle auswählen“, Entfernen und Schließen. Die Hauptnavigation erhält dafür keine weiteren Elemente.
+Ein Bestätigungsdialog zeigt Dateinamen und Speicherort vor der dauerhaften Entfernung. Die
+Ergebnisanzeige unterscheidet Erfolg und Fehler mit Text; Auswahlknöpfe verwenden den blauen
+App-Akzent, Entfernen zusätzlich Rot. Checkboxen und Dateiaktionen besitzen zugängliche Beschriftungen.
 
 ## Abnahmekriterien
 

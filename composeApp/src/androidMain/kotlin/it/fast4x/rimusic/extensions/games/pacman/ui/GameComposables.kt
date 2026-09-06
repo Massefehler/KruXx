@@ -67,6 +67,11 @@ import it.fast4x.rimusic.extensions.games.pacman.ui.theme.PacmanRed
 import it.fast4x.rimusic.extensions.games.pacman.ui.theme.PacmanWhite
 import it.fast4x.rimusic.extensions.games.pacman.ui.theme.PacmanYellow
 import it.fast4x.rimusic.extensions.games.pacman.utils.GameConstants
+import it.fast4x.rimusic.colorPalette
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxDialogSurface
 
 @Composable
 fun FullScreenDialog(showDialog: MutableState<Boolean>, text: String) {
@@ -79,9 +84,13 @@ fun FullScreenDialog(showDialog: MutableState<Boolean>, text: String) {
             ), onDismissRequest = {}
         ) {
             Surface(
-                modifier = Modifier.wrapContentSize(),
-                shape = RoundedCornerShape(16.dp),
-                color = PacmanYellow
+                modifier = Modifier.wrapContentSize()
+                    .kruxxDialogSurface(
+                        if (isKruxxGlassEnabled) colorPalette().background1 else PacmanYellow,
+                        RoundedCornerShape(16.dp)
+                    ),
+                shape = if (isKruxxGlassEnabled) KruxxGlass.dialogShape else RoundedCornerShape(16.dp),
+                color = kruxxContentColor(PacmanYellow)
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -101,7 +110,7 @@ fun FullScreenDialog(showDialog: MutableState<Boolean>, text: String) {
 
                             Text(
                                 text = text,
-                                color = PacmanPink,
+                                color = if (isKruxxGlassEnabled) colorPalette().text else PacmanPink,
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = HeaderFont,

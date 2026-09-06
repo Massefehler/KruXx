@@ -126,9 +126,27 @@ private fun innertubeDownloadNetworkDataSourceFactory(
  */
 private class PlaybackHintMediaSourceFactory(
     private val delegate: MediaSource.Factory,
+    private val local: MediaSource.Factory,
+    private val downloadCache: Cache,
 ) : MediaSource.Factory by delegate {
     override fun createMediaSource( mediaItem: MediaItem ): MediaSource {
         rememberPlaybackContentHint( mediaItem )
+        if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) {
+            val center = app.kreate.android.downloads.DownloadCenter
+            val asset = center.asset(mediaItem.mediaId, app.kreate.android.downloads.DownloadKind.MP3)
+                ?: center.asset(mediaItem.mediaId, app.kreate.android.downloads.DownloadKind.VIDEO)
+            if (asset != null) {
+                val length = androidx.media3.datasource.cache.ContentMetadata.getContentLength(
+                    downloadCache.getContentMetadata(mediaItem.mediaId))
+                if (length <= 0 || !downloadCache.isCached(mediaItem.mediaId, 0, length)) {
+                    // A rendered file is an independent source. Never mix its bytes with an
+                    // existing audio itag/cache key when the original download was evicted.
+                    return local.createMediaSource(mediaItem.buildUpon()
+                        .setUri(android.net.Uri.fromFile(center.file(asset)))
+                        .setCustomCacheKey(null).build())
+                }
+            }
+        }
         return delegate.createMediaSource( mediaItem )
     }
 }
@@ -224,7 +242,9 @@ val playerModule = module {
 
         StatefulPlayerImpl(
             ExoPlayer.Builder( get() )
-                .setMediaSourceFactory( PlaybackHintMediaSourceFactory(mediaSourceFactory) )
+                .setMediaSourceFactory( PlaybackHintMediaSourceFactory(
+                    mediaSourceFactory, DefaultMediaSourceFactory(get<Context>()), get(CacheType.DOWNLOAD)
+                ) )
                 .setHandleAudioBecomingNoisy( true )
                 .setWakeMode( C.WAKE_MODE_NETWORK )
                 .setAudioAttributes( audioAttributes, handleAudioFocus )

@@ -13,8 +13,8 @@ val KRUXX_APP_NAME = "KruXx"
 // KruXx has its own release line. Keep versionCode strictly increasing forever: Android uses
 // it (not versionName) to decide whether an APK is an update. 1_000_000 is deliberately above
 // every distributed 2.2.3-kruxx.x build (latest: 14_107).
-val KRUXX_VERSION_NAME = "1.1.0"
-val KRUXX_VERSION_CODE = 1_000_003
+val KRUXX_VERSION_NAME = "1.2.0"
+val KRUXX_VERSION_CODE = 1_000_004
 val KRUXX_REPOSITORY_OWNER = "Massefehler"
 val KRUXX_REPOSITORY_NAME = "KruXx"
 val KRUXX_SIGNING_CERT_SHA256 = "5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673"
@@ -101,6 +101,10 @@ kotlin {
 
             // Player implementations
             implementation( libs.media3.exoplayer )
+            implementation(libs.media3.muxer)
+            implementation(libs.media3.ui)
+            implementation(libs.workmanager)
+            implementation(libs.documentfile)
             implementation(libs.media3.session)
             implementation( libs.media3.datasource.okhttp )
             implementation( libs.androidyoutubeplayer )
@@ -161,7 +165,6 @@ kotlin {
 
             // Logging
             implementation( libs.kermit )
-            implementation( libs.kermit.io )
         }
         commonTest.dependencies {
             implementation( libs.kotlin.test )
@@ -195,6 +198,14 @@ android {
     }
 
     compileSdk = libs.versions.compileSdk.get().toInt()
+
+    ndkVersion = "27.3.13750724"
+    externalNativeBuild {
+        cmake {
+            path = file("src/androidMain/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
 
     defaultConfig {
         applicationId = "me.knighthat.kreate"

@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 04.09.2026 · öffentlicher Release KruXx `1.1.0` „Glass Update“ ·
+Stand: 06.09.2026 · öffentlicher Release KruXx `1.1.0` „Glass Update“ ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -9,6 +9,17 @@ Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 signierter und einschließlich des exakt archivierten APKs auf Gerät geprüfter öffentlicher Release.
 Der freigegebene Quellstand, beide Submodul-Pins, Tag und APK sind unter
 <https://github.com/Massefehler/KruXx/releases/tag/v1.1.0> veröffentlicht.
+
+Der nächste Kandidat `1.2.0` „Downloads Update“ (`1000004`) bündelt die Download-/Dateifunktionen
+und die weiteren Glass-Korrekturen. Die Release-Vorbereitung läuft; der IST-Stand hält die
+abschließenden Tests, Artefakte und noch offenen Gerätefälle fest.
+
+Die API-23-Abnahme für 1.2.0 fand außerdem einen ANR bei der bisherigen Kermit-IO-Log-Rotation.
+`RuntimeFileLogWriter` rotiert deshalb über Androids `Os.rename`; `NonBlockingLogWriter` hält
+Dateizugriffe in einem einzelnen Hintergrundthread mit höchstens 64 wartenden Einträgen.
+Bei Rückstau werden ältere wartende Dateilog-Einträge verworfen; der unabhängige Plattformlogger
+erhält weiterhin seine Meldungen. Vier Regressionstests und ein erneuter Start samt vollständigem
+MP3-Download auf Android 6 sind bestanden. Die bestehende Log-Größen-/Anzahleinstellung gilt weiter.
 
 KruXx ist ein eigenständiger, öffentlicher Fork von
 [Kreate](https://github.com/knighthat/Kreate) (RiMusic/ViMusic-Linie). Quellcode und Releases liegen
@@ -166,7 +177,8 @@ entsteht vor der geänderten Kotlin-Datei und ist kein Ersatz für den erfolgrei
 ## 3. Bauen, Signieren, Installieren
 
 Voraussetzungen (auf diesem Rechner vorhanden): JDK 21, Android SDK unter `/home/kruxx/android-sdk`
-(Platform 36, Build-Tools 36.0.0), `local.properties` mit `sdk.dir=/home/kruxx/android-sdk`,
+(Platform 36, Build-Tools 36.0.0, NDK 27.3.13750724 und CMake 3.22.1),
+`local.properties` mit `sdk.dir=/home/kruxx/android-sdk`,
 Python 3 + Pillow, ImageMagick (nur für SVG-Icons).
 
 ```bash
@@ -437,6 +449,67 @@ persönliche Uploads können weiterhin andere Treffer erzeugen. Bei einem verble
 exakten Titel, Interpret und möglichst die YTM-URL/`videoId` festhalten.
 
 ### 4.3 Downloads
+
+**Lokale Erweiterung, noch nicht veröffentlicht (05.09.2026):** Vor dem Einreihen der
+Media3-Audioqueue führt `DownloadCenter` alle manuellen Einzel- und Sammelaktionen durch dieselbe
+Format-/Speicherabfrage. `addDownloadsInternal()` ist ausschließlich der interne Queue-Einstieg
+nach Auswahl bzw. für Hintergrundaufträge. Neue UI-Aktionen müssen `addDownload(s)` verwenden.
+`SongItem.Render` bietet für nicht lokale Audiotitel in KruXx einen rechten `AudioDownloadButton`
+mit explizitem Audioformat-Dialog. Er bleibt für fertige Downloads verwendbar, ohne sie zu löschen
+oder vor der Auswahl Playback-Cache/Formatdaten zurückzusetzen. Videotreffer verwenden weiterhin
+`VideoDownloadButton` mit Video-/MP3-Auswahl.
+„Nur in KruXx“ bleibt die anfängliche Vorgabe. Zusätzlich kann in den automatisch angelegten
+öffentlichen Ordner `Download/KruXx-Downloads` oder einen anderen Ordner gespeichert werden.
+Der Standardordner trennt `Audio` (MP3 und Originalaudio) und `Video` nach MIME-Typ. `DownloadsScreen`
+ist KruXx-Hauptreiter 5 und liest die öffentlichen Dateien bei Änderungen/Rückkehr erneut ein;
+eine bestehende SAF-Freigabe ergänzt die sichtbaren Altdateien. Androids WebM-MIME-Fehler wird über
+Zielordner und generierten Dateinamen abgefangen. Eine weitere Kategorie zeigt interne Downloads.
+`DownloadRemovalViewModel` hält die bestätigte Dateiauswahl über Konfigurations- und Reiterwechsel
+und entfernt sie auf dem IO-Dispatcher. Einzelentfernung, Mehrfachauswahl und „Alle auswählen“
+verwenden dieselbe Bestätigung mit Dateiliste und Speicherort. Die Auswahl gilt nur für den
+aktuellen Bereich; Erfolge und Fehler werden je Datei erfasst und die Übersicht anschließend
+aktualisiert. `SharedDownloads.remove()` prüft URI, Pfad, Name, Größe und gegebenenfalls Pending-Status;
+MediaStore-Löschung, SAF-Dokumentlöschung und ältere Dateipfade bleiben auf den Standardordner
+und seine zwei Unterordner begrenzt. Verzeichnisse und geänderte Auswahlen werden abgewiesen.
+Bei fehlenden Schreibrechten kann der passende Standardordner über Android erneut freigegeben
+werden. Die neue interne Einzelentfernung verwendet `DownloadCenter.removeAsset()` für genau
+ein Format bzw. den Media3-Entfernungsbefehl für Originalaudio. Der bestehende Bibliothekshelfer
+zur titelweiten Entfernung bleibt davon getrennt. Beide internen Wege erhöhen die Generation
+des Titels, sodass ältere Dateiaufträge ihn nicht wiederherstellen; öffentliche Kopien bleiben erhalten.
+Die horizontale Navigation misst den tatsächlichen Überlauf und reserviert dafür Richtungshinweise.
+`UniformNavigationRow` ermittelt die maximale intrinsische Breite der beschrifteten Reiter und misst
+alle mit derselben Breite einschließlich seitlichem Abstand. Die umgebende Box gibt diese Breite
+an `TextIconButton` weiter, damit Text und Symbol zentriert werden. Die Messung verwendet die
+tatsächliche Schrift und Schriftgröße und setzt keine feste Reiterzahl voraus. Die deutsche
+KruXx-Ressource überschreibt `artists` mit „Künstler“.
+`DownloadProgressCard` zeigt einen animierten Verlaufsbalken samt Prozentwert, Phase, Format und
+Speicherziel direkt nach dem Start sowie später im Downloads-Reiter und in den Einstellungen.
+`SwipeableDownloadProgressCard` blendet Dialog/Karte in beide Wischrichtungen aus; das Glas-×
+ist bereits während des Downloads bedienbar. `DownloadCenter.hideStatus()` persistiert dafür die
+Auftrags-UUID in `hidden_status_jobs`, ohne den Worker oder seine Dateien anzufassen. Die Übersicht
+wählt zuerst den aktiven/neuesten Auftrag und prüft dann dessen Sichtbarkeit, damit ältere Ergebnisse
+nicht nachrücken. Die Download-Einstellungen zeigen weiterhin den vollständigen bisherigen Verlauf
+(bis zu 20 Aufträge). „App weiter nutzen“ schließt nur den Startdialog und behält die Übersichtskarte.
+Der Swipe-State nutzt wie die bestehenden App-Gesten den Konstruktor mit `confirmValueChange`:
+Der neuere Fling-Modus von Material3 1.4.0 ließ die Karte im Startdialog beim Loslassen zurückspringen.
+Die Details scrollen innerhalb der Karte; der Schließen-Button des Dialogs bleibt fest erreichbar.
+`FileProgressPlan` gewichtet die benötigten Schritte aus Byte-/Medienfortschritt. WorkManager
+persistiert die Abschlussdaten; erst nach fertiger, geprüfter Zieldatei sind 100 % möglich.
+Manuelle interne Originaldownloads verwenden ebenfalls den Worker, ohne zusätzliche Datei; für
+automatische Downloads öffnet sich kein Fortschrittsdialog. Details und Regressionstests stehen
+in `DOWNLOADS.md`.
+`DownloadNames` trennt sichtbare Künstler-/Titeldaten von Video-Kanalmetadaten. Dieselbe Auflösung
+versorgt Download-Dateinamen, Fortschritt, Kopierauswahl, interne Download-Zeilen und neue MP3-Tags.
+Technische IDs bleiben in privaten Dateipfaden; öffentliche Namen enthalten nur Künstler, Titel
+und Endung. Bekannte alte Namen werden mit kollisionssicherer Nummerierung umbenannt; dabei
+bleiben Mediendaten und bereits eingebettete Tags unverändert. Musikversionen bleiben erhalten,
+unbekannte Videokünstler werden nicht aus einem Kanalnamen geraten.
+`FileDownloadWorker` erzeugt MP3/Video und kopiert verifiziert über MediaStore (`SharedDownloads`,
+API 29+) beziehungsweise SAF für andere Ordner; API 23–28 verwendet für den öffentlichen Ordner
+die abgefragte Schreibberechtigung. Dieselben Dateiziele gibt es beim Kopieren. `OfflineFiles.snapshot()`
+darf keinen Netzwerk-Upstream haben. Der Videotransfer verwendet einen eigenen Reader außerhalb
+der Audio-Caches. Architektur, Native-Build, Tests und Geräteabnahme stehen in
+[`DOWNLOADS.md`](DOWNLOADS.md). Die nachstehende Audioqueue und ihre Qualitätsregeln gelten weiterhin.
 
 `DownloadAllDialog` übergibt die vollständige, aktuell geladene Songliste in einem Aufruf an
 `DownloadHelper.addDownloads()`. Dort werden lokale Titel, Dubletten sowie bereits fertige/laufende
@@ -712,6 +785,49 @@ Fehleingaben und Integer-Überlauf. Sie ersetzen nicht den Sicherheits-/Darstell
 Head Unit und echten Fahrzeug; dieser steht in §7.3 und bleibt Release-Gate.
 
 ---
+
+### 4.8 Gemeinsame Glasflächen für Menüs und Tracklisten
+
+Lokale Nacharbeit vom 06.09.2026, noch nicht Bestandteil von 1.1.0:
+
+- `CustomModalBottomSheet` ist der gemeinsame Host für ältere `Menu`-/`GridMenu`-Aufrufe und
+  `BottomMenu`. Der Glas-Modifier gehört an die innere Inhalts-Column einschließlich Griff:
+  Material3 setzt seine Sheet-Verschiebung erst hinter den öffentlichen Modifier. Ein Clip dort
+  schnitt auf dem Samsung die aufklappenden Playlist-Menüs ab. Der Host berücksichtigt bereits
+  verbrauchte Navigations-Inset-Flächen; Ausklappen, Wischen, Zurück und Griff-Semantik bleiben erhalten.
+- `LocalKruxxGlassSheet` lässt verschachtelte Menüs die Host-Fläche wiederverwenden. Außerhalb dieses
+  Hosts behalten `Menu` und `GridMenu` ihre eigene Glasfläche, einschließlich des separaten
+  Vollbild-Player-Menüs. Vollbild-Audio-/Video-Sheets und die deckende Queue bleiben gesondert behandelt.
+- `ThemedAlertDialog` verbindet das Material-Dialoglayout mit `kruxxDialogSurface` und einer lokal
+  angepassten Material-Farbpalette. Download-/Kopierauswahl, Verlauf, Fortschritt, Dateientfernen und
+  der Live-Hintergrund-Hinweis verwenden diesen Baustein. Die übrigen Dialogbasen, Künstlerauswahl,
+  Darstellungsvorschau, Dropdowns und der Spiel-Dialog sind ebenfalls auf gemeinsame Flächen geprüft.
+- `KruxxGlass.modalBackdropAlpha` (`0.88f`) hält schwebende Menüs und Dialoge über Bildern und Schrift
+  lesbar. `kruxxTrackCard()` liefert dagegen leichte Karten ohne Einzelschatten/Blur mit 8 dp
+  horizontalem und 3 dp vertikalem Außenabstand. Aufrufer sind Künstler-Online-/Bibliothekslisten,
+  lokale/Online-Playlists sowie Titel-/Geräte- und Statistiklisten. Den Modifier nicht global auf `SongItem.Render`
+  anwenden: andere Aufrufer wie Quick Picks besitzen bereits eigene Karten.
+- Die beiden `ButtonsRow`-Signaturen verwenden dieselbe Implementierung. `kruxxFilterBar()` gibt
+  Titel-, Künstler-, Alben-, Playlist-, Downloads-, Verlaufs- und Statistikfiltern eine gemeinsame
+  Glasfläche mit 8 dp horizontalem und 4 dp vertikalem Außenabstand. Nur die innere Chip-Row scrollt;
+  Kontur und optionales `trailingContent` bleiben stehen. Die Aufrufer setzen in KruXx keine weiteren
+  Seitenränder. Die separate `TabRow` im Release-Änderungsdialog verwendet denselben Modifier.
+  Quellenfilter in `HomeArtist` und `HomeAlbum` nutzen `trailingContent` mit begrenzter Breite statt
+  einer über den Chips liegenden Box. Beschriftungen bleiben einzeilig; bei Platzmangel wird die
+  Chip-Leiste horizontal gescrollt. Die Glasfläche erzeugt keinen zusätzlichen Blur oder Schatten.
+- `StatisticsPage` verwendet `kruxxCardSurface()` für Titelanzahl/Wiedergabezeit und
+  `kruxxTrackCard()` für die Rangliste in allen Zeiträumen. Die separate Boolean-Präferenz
+  `STATISTICS_GRID_VIEW` (`StatisticsGridView`, Vorgabe `false`) speichert die Ansicht unabhängig
+  von Bibliotheks- oder Menüoptionen. KruXx verwendet eine Spalte für die Liste und zwei für das
+  Raster; die übrigen Statistik-Kategorien behalten ihre bisherigen Raster.
+  `StatisticsViewSwitch` bietet beschriftete, auswählbare Schaltflächen mit mindestens 48 dp
+  Höhe. `StatisticsSongGridItem` ordnet Cover/Rang, Dauer und Downloadaktion in einer oberen Zeile
+  an, darunter Titel und Künstler. Thumbnail, Badges und Downloadknopf werden wiederverwendet;
+  Liste und Raster teilen dieselben Wiedergabe- und Kontextmenüaktionen.
+
+Der detaillierte Umfang steht in [`Design.md`](Design.md#lokale-menü--und-listennacharbeit-vom-06092026),
+der nachgewiesene Prüfstand in [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md). System-Dialoge und eingebettete
+Anmeldeseiten haben ihre eigene Darstellung.
 
 ## 5. Icon-Pipeline
 
@@ -1033,6 +1149,10 @@ InnerTubeX tokenfreie Clients (VISIONOS); PO-Token-Pfade lassen sich nur in der 
 ---
 
 ## 9. Offene Punkte, Ideen und Release-Nachweise
+
+- **Lokale Download-Erweiterung praktisch abnehmen:** Die Matrix in [`DOWNLOADS.md`](DOWNLOADS.md)
+  deckt Video mit Ton, Android-MP3-Konvertierung, alle Download-Einstiege, SD/USB, Abbruch,
+  Neustart und Dateiintegrität ab. Der bestehende Gerätetest von 1.1.0 gilt nicht für diese Änderungen.
 
 - **Nachtest zu 1.0.2 – Android Auto praktisch abnehmen:** Browse-/Queue-/Such-/Resumption-Logik ist
   im Arbeitsstand vom 04.09.2026 überarbeitet, durch sechs gezielte ID-/Paging-Tests abgesichert und

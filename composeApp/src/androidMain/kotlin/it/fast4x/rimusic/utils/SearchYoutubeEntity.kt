@@ -22,6 +22,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import app.kreate.android.R
+import app.kreate.android.downloads.forVideoDownload
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.themed.rimusic.component.song.SongItem
 import app.kreate.android.utils.shallowCompare
@@ -106,7 +107,9 @@ fun SearchYoutubeEntity (
                             player.addNext(video.asMediaItem)
                         },
                         onDownload = {
-                            Toaster.w( R.string.downloading_videos_not_supported )
+                            if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+                                        app.kreate.android.downloads.DownloadCenter.request(listOf(video.asMediaItem), video = true)
+                                    else Toaster.w(R.string.downloading_videos_not_supported)
                         },
                         onEnqueue = {
                             player.enqueue(video.asMediaItem)
@@ -131,7 +134,7 @@ fun SearchYoutubeEntity (
                                 menuState.display {
                                     NonQueuedMediaItemMenu(
                                         navController = rememberNavController(),
-                                        mediaItem = video.asMediaItem,
+                                        mediaItem = if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) video.asMediaItem.forVideoDownload() else video.asMediaItem,
                                         onDismiss = menuState::hide
                                     )
                                 };

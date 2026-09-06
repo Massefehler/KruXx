@@ -38,7 +38,9 @@ import app.kreate.android.themed.common.screens.settings.player.playerAppearance
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.enums.WallpaperType
+import it.fast4x.rimusic.ui.components.themed.ThemedAlertDialog
 import it.fast4x.rimusic.ui.styling.Dimensions
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.kruxxDialogSurface
 import it.fast4x.rimusic.utils.isAtLeastAndroid7
@@ -163,7 +165,15 @@ fun AppearanceSettings(paddingValues: PaddingValues) {
         }
     }
     if (wallpaperResetAlertVisible.value){
-        BasicAlertDialog(
+        if (isKruxxGlassEnabled) ThemedAlertDialog(
+            onDismissRequest = { wallpaperResetAlertVisible.value = false },
+            text = { Text(stringResource(R.string.settings_live_wallpaper_reset_warning)) },
+            confirmButton = {
+                TextButton(onClick = { wallpaperResetAlertVisible.value = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }
+        ) else BasicAlertDialog(
             onDismissRequest = {wallpaperResetAlertVisible.value = false},
         ) {
             Surface(

@@ -59,6 +59,8 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         // notification policy snapshot before KruXx starts a new playback session.
         PlaybackNotificationSilencer.restoreStaleState( this )
         Preferences.applyProductDefaults()
+        if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+            app.kreate.android.downloads.DownloadCenter.initialize(this)
         if( Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value &&
             !PlaybackNotificationSilencer.hasPolicyAccess( this ) )
             Preferences.AUDIO_SILENCE_NOTIFICATIONS_DURING_PLAYBACK.value = false

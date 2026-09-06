@@ -63,9 +63,12 @@ import it.fast4x.rimusic.ui.components.ButtonsRow
 import it.fast4x.rimusic.ui.components.LocalMenuState
 import it.fast4x.rimusic.ui.components.themed.HeaderWithIcon
 import it.fast4x.rimusic.ui.components.themed.NonQueuedMediaItemMenu
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxCardSurface
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.ui.styling.shimmer
 import it.fast4x.rimusic.utils.UpdateYoutubeAlbum
 import it.fast4x.rimusic.utils.UpdateYoutubeArtist
@@ -156,6 +159,7 @@ fun StatisticsPage(
     val navigationBarPosition by Preferences.NAVIGATION_BAR_POSITION
 
     var statisticsCategory by Preferences.STATISTIC_PAGE_CATEGORY
+    var statisticsGridView by Preferences.STATISTICS_GRID_VIEW
     val buttonsList = listOf(
         StatisticsCategory.Songs to StatisticsCategory.Songs.text,
         StatisticsCategory.Artists to StatisticsCategory.Artists.text,
@@ -194,9 +198,12 @@ fun StatisticsPage(
             val lazyGridState = rememberLazyGridState()
             LazyVerticalGrid(
                 state = lazyGridState,
-                columns = GridCells.Adaptive(
-                    if(statisticsCategory == StatisticsCategory.Songs) 200.dp else PlaylistItem.thumbnailSize().width
-                ),
+                columns = when {
+                    statisticsCategory != StatisticsCategory.Songs ->
+                        GridCells.Adaptive(PlaylistItem.thumbnailSize().width)
+                    isKruxxGlassEnabled -> GridCells.Fixed(if (statisticsGridView) 2 else 1)
+                    else -> GridCells.Adaptive(200.dp)
+                },
                 modifier = Modifier
                     .background(kruxxContentColor(colorPalette().background0))
                     .fillMaxSize()
@@ -206,14 +213,24 @@ fun StatisticsPage(
                     key = "header",
                     span = { GridItemSpan(maxLineSpan) }
                 ) {
-                    HeaderWithIcon(
-                        title = statisticsType.text,
-                        iconId = statisticsType.androidIconId,
-                        enabled = true,
-                        showIcon = true,
-                        modifier = Modifier,
-                        onClick = {}
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.weight(1f)) {
+                            HeaderWithIcon(
+                                title = statisticsType.text,
+                                iconId = statisticsType.androidIconId,
+                                enabled = true,
+                                showIcon = true,
+                                modifier = Modifier,
+                                onClick = {}
+                            )
+                        }
+                        if (isKruxxGlassEnabled && statisticsCategory == StatisticsCategory.Songs)
+                            StatisticsViewSwitch(
+                                grid = statisticsGridView,
+                                onGridChange = { statisticsGridView = it },
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                    }
                 }
 
                 item(
@@ -225,7 +242,8 @@ fun StatisticsPage(
                         chips = buttonsList,
                         currentValue = statisticsCategory,
                         onValueUpdate = { statisticsCategory = it },
-                        modifier = Modifier.padding(horizontal = 12.dp)
+                        modifier = if (isKruxxGlassEnabled) Modifier
+                            else Modifier.padding(horizontal = 12.dp)
                     )
 
                 }
@@ -252,8 +270,8 @@ fun StatisticsPage(
                                                        bottom = 8.dp
                                                    )
                                                    .fillMaxWidth()
-                                                   .background(
-                                                       color = colorPalette().background4,
+                                                   .kruxxCardSurface(
+                                                       fallbackColor = colorPalette().background4,
                                                        shape = thumbnailRoundness.shape
                                                    )
                                                    .padding( all =  12.dp )
@@ -290,38 +308,49 @@ fun StatisticsPage(
                         items = songs,
                         key = { i, s -> "${System.identityHashCode(s)}-$i"}
                     ) { index, song ->
-                        SongItem.Render(
-                            song = song,
-                            hapticFeedback = hapticFeedback,
-                            values = songItemValues,
-                            isPlaying = song.shallowCompare( currentMediaItem ),
-                            thumbnailOverlay = {
-                                BasicText(
-                                    text = "${index + 1}",
-                                    style = typography().s.semiBold.center.color(colorPalette().text),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.width( SongItem.thumbnailSize().width )
-                                                       .align( Alignment.Center )
-                                )
-                            },
-                            onLongClick = {
-                                menuState.display {
-                                    NonQueuedMediaItemMenu(
-                                        navController = navController,
-                                        mediaItem = song.asMediaItem,
-                                        onDismiss = menuState::hide
-                                    )
-                                }
-                            },
-                            onClick = {
-                                player.stopRadio()
-                                player.forcePlayAtIndex(
-                                    songs.map(Song::asMediaItem),
-                                    index
+                        val onSongLongClick: () -> Unit = {
+                            menuState.display {
+                                NonQueuedMediaItemMenu(
+                                    navController = navController,
+                                    mediaItem = song.asMediaItem,
+                                    onDismiss = menuState::hide
                                 )
                             }
-                        )
+                        }
+                        val onSongClick: () -> Unit = {
+                            player.stopRadio()
+                            player.forcePlayAtIndex(songs.map(Song::asMediaItem), index)
+                        }
+                        if (isKruxxGlassEnabled && statisticsGridView) {
+                            StatisticsSongGridItem(
+                                song = song,
+                                rank = index + 1,
+                                isPlaying = song.shallowCompare(currentMediaItem),
+                                values = songItemValues,
+                                onClick = onSongClick,
+                                onLongClick = onSongLongClick
+                            )
+                        } else {
+                            SongItem.Render(
+                                song = song,
+                                modifier = Modifier.kruxxTrackCard(),
+                                hapticFeedback = hapticFeedback,
+                                values = songItemValues,
+                                isPlaying = song.shallowCompare( currentMediaItem ),
+                                thumbnailOverlay = {
+                                    BasicText(
+                                        text = "${index + 1}",
+                                        style = typography().s.semiBold.center.color(colorPalette().text),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.width( SongItem.thumbnailSize().width )
+                                                           .align( Alignment.Center )
+                                    )
+                                },
+                                onLongClick = onSongLongClick,
+                                onClick = onSongClick
+                            )
+                        }
                     }
                 }
 

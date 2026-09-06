@@ -28,6 +28,7 @@ import app.kreate.android.BuildConfig
 import app.kreate.android.R
 import app.kreate.android.themed.common.component.dialog.Dialog
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxFilterBar
 import it.fast4x.rimusic.utils.bold
 import kotlinx.coroutines.launch
 
@@ -81,6 +82,7 @@ open class ChangelogsDialog(context: Context): Dialog() {
             )
 
             TabRow(
+                modifier = Modifier.kruxxFilterBar(),
                 selectedTabIndex = pagerState.targetPage,
                 containerColor = Color.Transparent,
                 contentColor = colorPalette.text,

@@ -107,6 +107,8 @@ import it.fast4x.rimusic.ui.components.themed.ThumbnailPicker
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
+import it.fast4x.rimusic.ui.styling.kruxxCardSurface
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.ui.styling.onOverlay
 import it.fast4x.rimusic.ui.styling.overlay
 import it.fast4x.rimusic.utils.DeletePlaylist
@@ -440,8 +442,8 @@ fun LocalPlaylistSongs(
                     modifier = Modifier
                         //.background(colorPalette().background4)
                         .fillMaxSize(0.99F)
-                        .background(
-                            color = colorPalette().background1,
+                        .kruxxCardSurface(
+                            fallbackColor = colorPalette().background1,
                             shape = thumbnailRoundness.shape
                         )
                 ) {
@@ -655,6 +657,7 @@ fun LocalPlaylistSongs(
                     ) {
                         SongItem.Render(
                             song = song,
+                            modifier = Modifier.kruxxTrackCard(),
                             hapticFeedback = hapticFeedback,
                             isPlaying = song.shallowCompare( currentMediaItem ),
                             values = songItemValues,

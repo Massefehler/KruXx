@@ -312,6 +312,24 @@ object InnerTubeXPlayer {
             isExplicit = isExplicit,
         )
 
+    /** Direct video transfer has its own bounded-range reader and never enters the audio cache. */
+    suspend fun videoForDownload(videoId: String, isExplicit: Boolean?): ExtractedStream {
+        syncSession()
+        ensureVisitorData()
+        val stream = checkNotNull(bundle().extractor.extract(
+            videoId = videoId,
+            hints = ContentHints(isExplicit = isExplicit, wantVideo = true, maxVideoHeight = 2160)
+                .withStreamCapabilities(allowHls = false, allowSabr = false, allowBoundedRange = true),
+            excludedClients = emptySet(),
+            audioQuality = InnerTubeXAudioQuality.HIGH,
+            clientPlaybackNonce = generateClientPlaybackNonce(),
+        )) { "No downloadable video stream" }
+        require(stream.videoUrl?.startsWith("https://") == true && stream.mediaMetadata?.isLive != true) {
+            "No complete video file available"
+        }
+        return stream
+    }
+
     /** Remember that the WEB_REMIX URL of [videoId] was rejected by the CDN (e.g. HTTP 403). */
     fun markWebRemixFailed( videoId: String ) {
         webRemixFailures[videoId] = System.currentTimeMillis()

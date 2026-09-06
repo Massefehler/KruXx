@@ -211,6 +211,10 @@ MainActivity :
     @ExperimentalComposeUiApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (BuildConfig.INDEPENDENT_FORK && intent.getBooleanExtra("kruxxDownloadJobs", false)) {
+            app.kreate.android.downloads.DownloadCenter.settings()
+            intent.removeExtra("kruxxDownloadJobs")
+        }
 
         UpdatePlugins.execute( this )
 
@@ -295,7 +299,7 @@ MainActivity :
         // Used in QuickPics for load data from remote instead of last saved in SharedPreferences
         Preferences.IS_DATA_KEY_LOADED.value = false
 
-        if ( !Preferences.CLOSE_APP_ON_BACK.value )
+        if ( !Preferences.CLOSE_APP_ON_BACK.value ) {
             if (Build.VERSION.SDK_INT >= 33) {
                 onBackInvokedDispatcher.registerOnBackInvokedCallback(
                     OnBackInvokedDispatcher.PRIORITY_DEFAULT
@@ -303,6 +307,8 @@ MainActivity :
                     //Log.d("onBackPress", "yeah")
                 }
             }
+
+        }
 
         /*
             Instead of checking getBoolean() individually, we can use .let() to express condition.
@@ -467,141 +473,140 @@ MainActivity :
                 mutableStateOf(player.currentMediaItem, referentialEqualityPolicy())
             }
             DisposableEffect(player, !lightTheme) {
-                val listener =
-                    SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-                        when (key) {
-                            Preferences.Key.MAIN_THEME,
-                            Preferences.Key.NAVIGATION_BAR_POSITION,
-                            Preferences.Key.NAVIGATION_BAR_TYPE,
-                            Preferences.Key.MINI_PLAYER_TYPE -> {
-                                this@MainActivity.recreate()
-                                println("MainActivity.recreate()")
-                            }
+                val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+                    when (key) {
+                        Preferences.Key.MAIN_THEME,
+                        Preferences.Key.NAVIGATION_BAR_POSITION,
+                        Preferences.Key.NAVIGATION_BAR_TYPE,
+                        Preferences.Key.MINI_PLAYER_TYPE -> {
+                            this@MainActivity.recreate()
+                            println("MainActivity.recreate()")
+                        }
 
-                            Preferences.Key.COLOR_PALETTE,
-                            Preferences.Key.THEME_MODE,
-                            Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_0,
-                            Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_1,
-                            Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_2,
-                            Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_3,
-                            Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_4,
-                            Preferences.Key.CUSTOM_LIGHT_TEXT,
-                            Preferences.Key.CUSTOM_LIGHT_TEXT_SECONDARY,
-                            Preferences.Key.CUSTOM_LIGHT_TEXT_DISABLED,
-                            Preferences.Key.CUSTOM_LIGHT_PLAY_BUTTON,
-                            Preferences.Key.CUSTOM_LIGHT_ACCENT,
-                            Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_0,
-                            Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_1,
-                            Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_2,
-                            Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_3,
-                            Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_4,
-                            Preferences.Key.CUSTOM_DARK_TEXT,
-                            Preferences.Key.CUSTOM_DARK_TEXT_SECONDARY,
-                            Preferences.Key.CUSTOM_DARK_TEXT_DISABLED,
-                            Preferences.Key.CUSTOM_DARK_PLAY_BUTTON,
-                            Preferences.Key.CUSTOM_DARK_ACCENT -> {
-                                val colorPaletteName = sharedPreferences.getEnum( Preferences.Key.COLOR_PALETTE, Preferences.COLOR_PALETTE.defaultValue )
-                                val colorPaletteMode = sharedPreferences.getEnum( Preferences.Key.THEME_MODE, Preferences.THEME_MODE.defaultValue )
+                        Preferences.Key.COLOR_PALETTE,
+                        Preferences.Key.THEME_MODE,
+                        Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_0,
+                        Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_1,
+                        Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_2,
+                        Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_3,
+                        Preferences.Key.CUSTOM_LIGHT_THEME_BACKGROUND_4,
+                        Preferences.Key.CUSTOM_LIGHT_TEXT,
+                        Preferences.Key.CUSTOM_LIGHT_TEXT_SECONDARY,
+                        Preferences.Key.CUSTOM_LIGHT_TEXT_DISABLED,
+                        Preferences.Key.CUSTOM_LIGHT_PLAY_BUTTON,
+                        Preferences.Key.CUSTOM_LIGHT_ACCENT,
+                        Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_0,
+                        Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_1,
+                        Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_2,
+                        Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_3,
+                        Preferences.Key.CUSTOM_DARK_THEME_BACKGROUND_4,
+                        Preferences.Key.CUSTOM_DARK_TEXT,
+                        Preferences.Key.CUSTOM_DARK_TEXT_SECONDARY,
+                        Preferences.Key.CUSTOM_DARK_TEXT_DISABLED,
+                        Preferences.Key.CUSTOM_DARK_PLAY_BUTTON,
+                        Preferences.Key.CUSTOM_DARK_ACCENT -> {
+                            val colorPaletteName = sharedPreferences.getEnum( Preferences.Key.COLOR_PALETTE, Preferences.COLOR_PALETTE.defaultValue )
+                            val colorPaletteMode = sharedPreferences.getEnum( Preferences.Key.THEME_MODE, Preferences.THEME_MODE.defaultValue )
 
-                                var colorPalette = colorPaletteOf(
-                                    colorPaletteName,
-                                    colorPaletteMode,
-                                    !lightTheme
-                                )
+                            var colorPalette = colorPaletteOf(
+                                colorPaletteName,
+                                colorPaletteMode,
+                                !lightTheme
+                            )
 
-                                if (colorPaletteName == ColorPaletteName.Dynamic) {
-                                    val artworkUri =
-                                        (player.currentMediaItem?.mediaMetadata?.artworkUri.thumbnail(1200)
-                                            ?: "").toString()
-                                    artworkUri.let {
-                                        if (it.isNotEmpty())
-                                            setDynamicPalette(it)
-                                        else {
+                            if (colorPaletteName == ColorPaletteName.Dynamic) {
+                                val artworkUri =
+                                    (player.currentMediaItem?.mediaMetadata?.artworkUri.thumbnail(1200)
+                                        ?: "").toString()
+                                artworkUri.let {
+                                    if (it.isNotEmpty())
+                                        setDynamicPalette(it)
+                                    else {
 
-                                            setSystemBarAppearance(colorPalette.isDark)
-                                            appearance = appearance.copy(
-                                                colorPalette = if (!isPicthBlack) colorPalette else colorPalette.copy(
-                                                    background0 = Color.Black,
-                                                    background1 = Color.Black,
-                                                    background2 = Color.Black,
-                                                    background3 = Color.Black,
-                                                    background4 = Color.Black,
-                                                    // text = Color.White
-                                                ),
-                                                typography = appearance.typography.copy(
-                                                    colorPalette.text
-                                                ),
-                                            )
-                                        }
-
-                                    }
-
-                                } else {
-
-                                    if (colorPaletteName == ColorPaletteName.MaterialYou) {
-                                        colorPalette = dynamicColorPaletteOf(
-                                            Color(monet.getAccentColor(this@MainActivity)),
-                                            !lightTheme
+                                        setSystemBarAppearance(colorPalette.isDark)
+                                        appearance = appearance.copy(
+                                            colorPalette = if (!isPicthBlack) colorPalette else colorPalette.copy(
+                                                background0 = Color.Black,
+                                                background1 = Color.Black,
+                                                background2 = Color.Black,
+                                                background3 = Color.Black,
+                                                background4 = Color.Black,
+                                                // text = Color.White
+                                            ),
+                                            typography = appearance.typography.copy(
+                                                colorPalette.text
+                                            ),
                                         )
                                     }
 
-                                    if (colorPaletteName == ColorPaletteName.Customized) {
-                                        colorPalette = customColorPalette(
-                                            colorPalette,
-                                            this@MainActivity,
-                                            isSystemInDarkTheme
-                                        )
-                                    }
-                                    if (colorPaletteName == ColorPaletteName.CustomColor) {
-                                        colorPalette = dynamicColorPaletteOf(
-                                            customColor,
-                                            !lightTheme
-                                        )
-                                    }
+                                }
 
-                                    setSystemBarAppearance(colorPalette.isDark)
+                            } else {
 
-                                    appearance = appearance.copy(
-                                        colorPalette = if (!isPicthBlack) colorPalette else colorPalette.copy(
-                                            background0 = Color.Black,
-                                            background1 = Color.Black,
-                                            background2 = Color.Black,
-                                            background3 = Color.Black,
-                                            background4 = Color.Black,
-                                            text = Color.White
-                                        ),
-                                        typography = appearance.typography.copy(if (!isPicthBlack) colorPalette.text else Color.White),
+                                if (colorPaletteName == ColorPaletteName.MaterialYou) {
+                                    colorPalette = dynamicColorPaletteOf(
+                                        Color(monet.getAccentColor(this@MainActivity)),
+                                        !lightTheme
                                     )
                                 }
-                            }
 
-                            Preferences.Key.THUMBNAIL_BORDER_RADIUS -> {
-                                val thumbnailRoundness =
-                                    sharedPreferences.getEnum(key, ThumbnailRoundness.Heavy)
+                                if (colorPaletteName == ColorPaletteName.Customized) {
+                                    colorPalette = customColorPalette(
+                                        colorPalette,
+                                        this@MainActivity,
+                                        isSystemInDarkTheme
+                                    )
+                                }
+                                if (colorPaletteName == ColorPaletteName.CustomColor) {
+                                    colorPalette = dynamicColorPaletteOf(
+                                        customColor,
+                                        !lightTheme
+                                    )
+                                }
+
+                                setSystemBarAppearance(colorPalette.isDark)
 
                                 appearance = appearance.copy(
-                                    thumbnailShape = thumbnailRoundness.shape
-                                )
-                            }
-
-                            Preferences.Key.USE_SYSTEM_FONT,
-                            Preferences.Key.APPLY_FONT_PADDING,
-                            Preferences.Key.FONT -> {
-                                val useSystemFont = sharedPreferences.getBoolean( Preferences.Key.USE_SYSTEM_FONT, Preferences.USE_SYSTEM_FONT.defaultValue )
-                                val applyFontPadding = sharedPreferences.getBoolean( Preferences.Key.APPLY_FONT_PADDING, Preferences.APPLY_FONT_PADDING.defaultValue )
-                                val fontType = sharedPreferences.getEnum( Preferences.Key.FONT, Preferences.FONT.defaultValue )
-
-                                appearance = appearance.copy(
-                                    typography = typographyOf(
-                                        appearance.colorPalette.text,
-                                        useSystemFont,
-                                        applyFontPadding,
-                                        fontType
+                                    colorPalette = if (!isPicthBlack) colorPalette else colorPalette.copy(
+                                        background0 = Color.Black,
+                                        background1 = Color.Black,
+                                        background2 = Color.Black,
+                                        background3 = Color.Black,
+                                        background4 = Color.Black,
+                                        text = Color.White
                                     ),
+                                    typography = appearance.typography.copy(if (!isPicthBlack) colorPalette.text else Color.White),
                                 )
                             }
                         }
+
+                        Preferences.Key.THUMBNAIL_BORDER_RADIUS -> {
+                            val thumbnailRoundness =
+                                sharedPreferences.getEnum(key, ThumbnailRoundness.Heavy)
+
+                            appearance = appearance.copy(
+                                thumbnailShape = thumbnailRoundness.shape
+                            )
+                        }
+
+                        Preferences.Key.USE_SYSTEM_FONT,
+                        Preferences.Key.APPLY_FONT_PADDING,
+                        Preferences.Key.FONT -> {
+                            val useSystemFont = sharedPreferences.getBoolean( Preferences.Key.USE_SYSTEM_FONT, Preferences.USE_SYSTEM_FONT.defaultValue )
+                            val applyFontPadding = sharedPreferences.getBoolean( Preferences.Key.APPLY_FONT_PADDING, Preferences.APPLY_FONT_PADDING.defaultValue )
+                            val fontType = sharedPreferences.getEnum( Preferences.Key.FONT, Preferences.FONT.defaultValue )
+
+                            appearance = appearance.copy(
+                                typography = typographyOf(
+                                    appearance.colorPalette.text,
+                                    useSystemFont,
+                                    applyFontPadding,
+                                    fontType
+                                ),
+                            )
+                        }
                     }
+                }
 
                 with(preferences) {
                     registerOnSharedPreferenceChangeListener(listener)
@@ -767,6 +772,8 @@ MainActivity :
                                 }
                             )
 
+
+                            app.kreate.android.downloads.DownloadDialogs(player)
 
                             val thumbnailRoundness by Preferences.THUMBNAIL_BORDER_RADIUS
 
@@ -1088,6 +1095,8 @@ MainActivity :
     @UnstableApi
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (BuildConfig.INDEPENDENT_FORK && intent.getBooleanExtra("kruxxDownloadJobs", false))
+            app.kreate.android.downloads.DownloadCenter.settings()
         intentUriData = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
 
     }

@@ -36,6 +36,7 @@ import app.kreate.database.models.Song
 import co.touchlab.kermit.Logger
 import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.colorPalette
+import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.enums.MenuStyle
 import it.fast4x.rimusic.ui.components.LocalMenuState
 import it.fast4x.rimusic.ui.components.MenuState
@@ -195,11 +196,11 @@ class SongItemMenu private constructor(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(colorPalette().background0)
+                .background(kruxxContentColor(colorPalette().background0))
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.background( colorPalette().background1 )
+                modifier = Modifier.background( kruxxContentColor(colorPalette().background1) )
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,

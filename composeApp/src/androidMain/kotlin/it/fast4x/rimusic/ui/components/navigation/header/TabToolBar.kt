@@ -1,3 +1,5 @@
+@file:androidx.media3.common.util.UnstableApi
+
 package it.fast4x.rimusic.ui.components.navigation.header
 
 import androidx.annotation.DrawableRes
@@ -36,6 +38,11 @@ object TabToolBar {
         verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
         modifier: Modifier = Modifier
     ) {
+        val allButtons = if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) buttons.flatMap {
+            if (it is app.kreate.android.themed.common.component.tab.DownloadAllDialog)
+                listOf(it, app.kreate.android.downloads.CopyDownloadsButton(it))
+            else listOf(it)
+        } else buttons
         val density = LocalDensity.current.density
         var availableWidth by remember { mutableStateOf(0.dp) }
 
@@ -54,13 +61,13 @@ object TabToolBar {
         var canDisplay by remember { mutableIntStateOf(0) }
         var isClustered by remember { mutableStateOf(false) }
 
-        LaunchedEffect( availableWidth ) {
+        LaunchedEffect( availableWidth, allButtons.size ) {
             canDisplay = (availableWidth / sizeWithSpacing).toInt()
-            isClustered = buttons.size > canDisplay
+            isClustered = allButtons.size > canDisplay
         }
 
         val ellipsisMenu = EllipsisMenuComponent.init {
-            buttons.takeLast(
+            allButtons.takeLast(
                 /*
                  * Take what isn't displayed, or 0 if [canDisplay]
                  * is equal or larger than [button]'s size.
@@ -69,7 +76,7 @@ object TabToolBar {
                  * therefore, `1` is added to include that last icon
                  * back to the menu
                  */
-                (buttons.size - canDisplay + 1).coerceAtLeast( 0 )
+                (allButtons.size - canDisplay + 1).coerceAtLeast( 0 )
             )
         }
 
@@ -102,12 +109,12 @@ object TabToolBar {
             // is properly calculated before showing
             if( canDisplay == 0 ) return@Row
 
-            buttons.take(
+            allButtons.take(
                 if( isClustered )
                 // Last item is reserved for ellipsis menu's icon
                     canDisplay - 1
                 else
-                    buttons.size
+                    allButtons.size
             ).forEach { it.ToolBarButton() }
 
             if( isClustered )

@@ -49,6 +49,8 @@ fun HomeScreen(
             Item(2, stringResource(R.string.artists), R.drawable.people)
             Item(3, stringResource(R.string.albums), R.drawable.album)
             Item(4, stringResource(R.string.tab_playlists), R.drawable.library)
+            if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+                Item(5, stringResource(R.string.kruxx_downloads_tab), R.drawable.download)
         }
     ) { currentTabIndex ->
         saveableStateHolder.SaveableStateProvider(key = currentTabIndex) {
@@ -100,6 +102,8 @@ fun HomeScreen(
                     }
 
                 )
+                5 -> if (app.kreate.android.BuildConfig.INDEPENDENT_FORK)
+                    app.kreate.android.downloads.DownloadsScreen()
             }
         }
     }

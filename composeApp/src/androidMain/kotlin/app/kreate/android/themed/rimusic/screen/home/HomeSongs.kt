@@ -64,7 +64,7 @@ import it.fast4x.rimusic.ui.components.SwipeablePlaylistItem
 import it.fast4x.rimusic.ui.components.tab.toolbar.Button
 import it.fast4x.rimusic.ui.styling.Dimensions
 import it.fast4x.rimusic.ui.styling.LocalAppearance
-import it.fast4x.rimusic.ui.styling.kruxxGlassCard
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.ui.styling.onOverlay
 import it.fast4x.rimusic.ui.styling.overlay
 import it.fast4x.rimusic.utils.addNext
@@ -161,19 +161,16 @@ fun HomeSongs(
                                            }
 
             BuiltInPlaylist.Downloaded -> {
-                // [MyDownloadHelper] provide a list of downloaded songs, which is faster to retrieve
-                // than using `Cache.isCached()` call
-                val downloaded: List<String> = MyDownloadHelper.instance
-                                                               .downloads
-                                                               .value
-                                                               .values
-                                                               .filter { it.state == Download.STATE_COMPLETED }
-                                                               .fastMap { it.request.id }
-                Database.songTable
-                        .sortAll( songSort.sortBy, songSort.sortOrder )
-                        .map { list ->
-                            list.fastFilter { it.id in downloaded }
-                        }
+                kotlinx.coroutines.flow.combine(
+                    Database.songTable.sortAll(songSort.sortBy, songSort.sortOrder),
+                    MyDownloadHelper.instance.downloads,
+                    app.kreate.android.downloads.DownloadCenter.saved,
+                ) { songs, downloads, files ->
+                    val ids = downloads.values.filter { it.state == Download.STATE_COMPLETED }
+                        .map { it.request.id }.toMutableSet()
+                    if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) ids += files.map { it.track.id }
+                    songs.filter { it.id in ids }
+                }
             }
 
             BuiltInPlaylist.Offline -> Database.formatTable
@@ -292,7 +289,7 @@ fun HomeSongs(
                     values = songItemValues,
                     itemSelector = itemSelector,
                     modifier = Modifier.animateItem()
-                                       .kruxxGlassCard(),
+                                       .kruxxTrackCard(),
                     thumbnailOverlay = {
                         if ( songSort.sortBy == SongSortBy.TOTAL_PLAY_TIME || builtInPlaylist == BuiltInPlaylist.Top ) {
                             var text = song.formattedTotalPlayTime

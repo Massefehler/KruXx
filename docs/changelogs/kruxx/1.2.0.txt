@@ -1,0 +1,19 @@
+Downloads and MP3:
+- Adds one shared format and storage choice to single downloads, Download all tracks, albums, artists, playlists and selected tracks
+- Downloads videos with sound or converts their audio to MP3; ordinary audio tracks offer original audio or MP3 at 320 kbit/s
+- Uses the best available compatible source and LAME encoding while preserving mono or stereo; conversion cannot restore detail missing from the source
+- Keeps app-only storage as the initial default and lets you remember or reset your choice
+
+Files and progress:
+- Optionally saves accessible copies in Download/KruXx-Downloads, separated into Audio and Video folders, or in a folder selected through Android, including supported SD and USB providers
+- Adds a Downloads tab for viewing, opening, copying and removing saved files, with separate control over public copies and internal formats
+- Confirms individual and bulk removal before deleting files and reports partial failures for retry
+- Shows an animated progress bar with percentage, current step and destination; 100% means that saving and verification have finished
+- Lets you hide progress with a subtle red glass close button or a sideways swipe while the job continues; status remains available in Downloads settings
+- Names files using artist and track title, verifies copied contents and skips identical existing copies
+
+Navigation and glass:
+- Fixed a startup freeze during log rotation on Android 6 and 7; file logging no longer blocks the interface when storage stops responding.
+- Gives all navigation tabs equal widths based on the longest label and shows left or right scroll hints when more tabs are hidden
+- Unifies glass surfaces in artist and playlist submenus, dialogs, track lists and filter rows, and fixes clipped expanding menus
+- Adds glass cards to listening statistics and a saved choice between a full-width list and a compact two-column grid

@@ -88,9 +88,40 @@ crash report is uploaded automatically or offered to the Kreate project.
 The [documentation index](docs/README.md) links the current status, detailed architecture, build
 steps, test matrix, release process and immutable version history.
 
+### 1.2.0 — Downloads Update (release preparation)
+
+The upcoming 1.2.0 release adds a shared storage/format choice for every single and bulk download,
+video downloads, MP3 at 320 kbit/s, and optional verified copies to an automatically created
+`Download/KruXx-Downloads` folder or a folder selected through Android (including supported SD/USB
+providers). The public folder separates `Audio` and `Video`; a Downloads tab lists saved files,
+supports confirmed removal of individual or selected files from the displayed storage, and scroll
+hints keep the main navigation accessible. Public copies and internal formats can be removed
+separately. An animated progress bar shows the current
+step, percentage and destination, reaching 100% after the requested files are fully saved and
+verified. A subtle red glass close button or a sideways swipe hides the status while transfers
+continue; the history stays available through the Downloads settings. Download labels and filenames
+use artist and track title without uploader names or
+technical IDs; known older exports are renamed without changing their contents. App-only storage
+remains the initial default.
+See [download architecture and device checks](docs/DOWNLOADS.md).
+
+Further local visual fixes unify artist and playlist submenus, download dialogs and floating glass
+surfaces, fix clipped expanding menus, and give artist and playlist tracks the same subtle cards and
+spacing as the Songs tab. Filter rows across Songs, Artists, Albums, Playlists, Downloads, History
+and Statistics share a stationary glass surface with scrollable choices and a clear selection.
+Statistics also use glass cards for listening totals and tracks, with enough row width for artist
+names and download controls on phones. A saved List/Grid choice switches the track statistics
+between full-width rows and compact two-column cards.
+See the [design implementation notes](docs/Design.md).
+The candidate also fixes a startup freeze during log rotation on Android 6 and 7 and keeps
+file logging from blocking the interface when storage stops responding.
+These changes are not part of the published 1.1.0 APK. The 1.2.0 candidate is undergoing final
+build and device checks; its [release notes](docs/changelogs/kruxx/1.2.0.txt) describe the scope.
+
 ## Build from source
 
-Prerequisites are JDK 21 and an Android SDK configured in `local.properties`.
+Prerequisites are JDK 21 and an Android SDK configured in `local.properties`, including
+NDK `27.3.13750724` and CMake `3.22.1` for the MP3 encoder.
 
 ```bash
 git clone --recurse-submodules https://github.com/Massefehler/KruXx.git

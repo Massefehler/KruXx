@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,6 +52,19 @@ fun YoutubePlayer(
 ) {
 
     if (!showPlayer) return
+
+    if (app.kreate.android.BuildConfig.INDEPENDENT_FORK) {
+        val assets by app.kreate.android.downloads.DownloadCenter.saved.collectAsState()
+        val savedVideo = assets.firstOrNull {
+            it.track.id == ytVideoId && it.kind == app.kreate.android.downloads.DownloadKind.VIDEO &&
+                app.kreate.android.downloads.DownloadCenter.file(it).isFile
+        }
+        if (savedVideo != null) {
+            app.kreate.android.downloads.OfflineVideoPlayer(savedVideo, lifecycleOwner, startSeconds,
+                onCurrentSecond, onSwitchToAudioPlayer, onPlaybackActiveChanged, onPlaybackError)
+            return
+        }
+    }
 
     val context = LocalContext.current
     val currentStartSeconds = rememberUpdatedState(startSeconds.coerceAtLeast(0f))

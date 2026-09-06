@@ -120,6 +120,10 @@ import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
 import it.fast4x.rimusic.ui.styling.ColorPalette
 import it.fast4x.rimusic.ui.styling.favoritesIcon
 import it.fast4x.rimusic.ui.styling.kruxxDialogSurface
+import it.fast4x.rimusic.ui.styling.KruxxGlass
+import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
+import it.fast4x.rimusic.ui.styling.kruxxCardSurface
+import it.fast4x.rimusic.ui.styling.kruxxGlassCard
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asSong
 import it.fast4x.rimusic.utils.bold
@@ -533,8 +537,8 @@ inline fun SelectorArtistsDialog(
         Box(
             modifier = modifier
                 .requiredSize(if (isLandscape) (0.85 * screenHeight) else (0.85 * screenWidth))
-                .clip(thumbnailRoundness.shape)
-                .background(color = colorPalette().background1)
+                .clip(if (isKruxxGlassEnabled) KruxxGlass.dialogShape else thumbnailRoundness.shape)
+                .kruxxDialogSurface(colorPalette().background1, thumbnailRoundness.shape)
         ) {
             if (values != null) {
                 val pagerState = rememberPagerState(pageCount = { values.size })
@@ -591,28 +595,31 @@ inline fun SelectorArtistsDialog(
                                 )
                             }
                             values[idArtist].name?.let { it1 ->
-                                BasicText(
-                                    text = cleanPrefix(it1),
-                                    maxLines = 3,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = typography().xs.medium,
-                                    modifier = Modifier
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.align(Alignment.BottomCenter)
                                         .padding(bottom = 20.dp)
-                                        .align(Alignment.BottomCenter)
-                                )
-                                BasicText(
-                                    text = cleanPrefix(it1),
-                                    style = typography().xs.medium.merge(TextStyle(
-                                        drawStyle = Stroke(width = 1.0f, join = StrokeJoin.Round),
-                                        color = if (colorPaletteMode == ColorPaletteMode.Light || (colorPaletteMode == ColorPaletteMode.System && (!isSystemInDarkTheme()))) Color.White.copy(0.5f)
-                                        else Color.Black
-                                    )),
-                                    maxLines = 3,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .padding(bottom = 20.dp)
-                                        .align(Alignment.BottomCenter)
-                                )
+                                        .padding(horizontal = if (isKruxxGlassEnabled) 12.dp else 0.dp)
+                                        .kruxxGlassCard()
+                                        .padding(if (isKruxxGlassEnabled) 8.dp else 0.dp)
+                                ) {
+                                    BasicText(
+                                        text = cleanPrefix(it1),
+                                        maxLines = 3,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = typography().xs.medium
+                                    )
+                                    BasicText(
+                                        text = cleanPrefix(it1),
+                                        style = typography().xs.medium.merge(TextStyle(
+                                            drawStyle = Stroke(width = 1.0f, join = StrokeJoin.Round),
+                                            color = if (colorPaletteMode == ColorPaletteMode.Light || (colorPaletteMode == ColorPaletteMode.System && (!isSystemInDarkTheme()))) Color.White.copy(0.5f)
+                                            else Color.Black
+                                        )),
+                                        maxLines = 3,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
 
@@ -1525,7 +1532,7 @@ fun AppearancePresetDialog(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .background(color = colorPalette().background1)
+                .kruxxDialogSurface(colorPalette().background1)
         ){
             Box(
                 modifier = Modifier
@@ -1550,12 +1557,12 @@ fun AppearancePresetDialog(
                     modifier = Modifier
                         .padding(bottom = 30.dp)
                         .padding(end = 15.dp)
-                        .background(colorPalette().accent, CircleShape)
+                        .kruxxCardSurface(colorPalette().accent, CircleShape)
                         .align(Alignment.BottomEnd),
                 ) {
                     IconButton(
                         icon = R.drawable.checkmark,
-                        color = colorPalette().background0,
+                        color = if (isKruxxGlassEnabled) colorPalette().text else colorPalette().background0,
                         indication = ripple(false),
                         onClick = if (pagerStateAppearance.settledPage == 0) onClick0
                         else if (pagerStateAppearance.settledPage == 1) onClick1

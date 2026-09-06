@@ -68,6 +68,7 @@ import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.UiType
 import it.fast4x.rimusic.typography
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import it.fast4x.rimusic.ui.components.LocalMenuState
 import it.fast4x.rimusic.ui.components.Skeleton
 import it.fast4x.rimusic.ui.components.SwipeablePlaylistItem
@@ -370,7 +371,7 @@ fun YouTubePlaylist(
                                 isPlaying = song.shallowCompare( currentMediaItem ),
                                 values = songItemValues,
                                 itemSelector = itemSelector,
-                                modifier = Modifier.animateItem(),
+                                modifier = Modifier.animateItem().kruxxTrackCard(),
                                 onClick = {
                                     player.stopRadio()
 
