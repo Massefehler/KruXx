@@ -128,7 +128,27 @@ Abnahme des ersten signierten 1.2.0-Kandidaten vor der Such-/Blur-Nacharbeit:
   Diagnose-APK-Inhalt liefert mit `interpret-only` korrekte Zahlenwerte und öffnet die Suche.
   Die Emulator-Einstellung wurde anschließend zurückgesetzt. Ausnahmen für R8 an Wisch- oder
   Float-Zustandsklassen waren wirkungslos und werden nicht übernommen; die Wisch-Komponente
-  bleibt unverändert. Ein zweites, unverändertes API-23-Systemabbild wird zur Abnahme ergänzt.
+  bleibt unverändert. Ein zweites, unverändertes API-23-Systemabbild (x86_64) bestätigt den Fehler.
+  Der erzeugte Maschinencode (`UCOMISS` / `JNE` ohne Berücksichtigung des Unordered-Flags)
+  überspringt bei `NaN` fälschlich die Float-Zuweisung. Ein Entwurf für einen semantisch gleichen
+  Vergleich der IEEE-754-Bits wurde ausschließlich als Diagnose gesichert; sein Build wurde
+  auf Nutzerwunsch abgebrochen. Dieser ungeprüfte Entwurf ist nicht im App-Quellbaum enthalten.
+
+Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
+
+- Die Such-/Dialog-Korrekturen und die R8-Werkzeuganpassung sind in `b917ba14a` eingecheckt.
+  Dieser Stand besteht im sauberen Release-Clone alle 137 App- und 58 Innertube-Tests;
+  Release-Lint: keine Fehler, 34 Versionshinweise und zwei Baseline-Hinweise.
+- Die Glass-Korrekturen sind mit Debug auf dem Samsung geprüft. Die installierte stabile
+  Release-App und das bisherige Archiv-APK stammen weiterhin aus `b6cda8025`; die korrigierte
+  endgültige Release-APK wurde noch nicht erstellt oder installiert. `1.2.0` ist nicht veröffentlicht.
+- Zur Fortsetzung zuerst den Android-6-Vergleichsfehler beheben und mit normal optimierten
+  signierten Builds prüfen. Danach aus einem sauberen Clone beide endgültigen APKs bauen,
+  Herkunft und Signatur prüfen und die archivierte Release-APK auf dem Samsung nachtesten.
+- Diagnosequellen, das reproduzierende Diagnose-APK und die Maschinencode-Auswertung liegen lokal
+  unter `/home/kruxx/Schreibtisch/Android/KruXx-release-diagnostics-20260906`.
+  Das Diagnose-APK enthält Prüfcode und darf nicht veröffentlicht werden. Die Android-6-Emulatoren
+  wurden beendet; Downloads und Daten auf dem Samsung bleiben erhalten.
 
 ### Technische Release-Vorprüfung vom 06.09.2026
 
