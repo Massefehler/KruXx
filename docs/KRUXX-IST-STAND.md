@@ -44,10 +44,9 @@ Installationen können ihn weiter verwenden, erhalten aber keine weiteren unters
 Der unten dokumentierte Android-6-Float-/NaN-Vergleichsfehler wird für KruXx nicht weiter behoben.
 Die Diagnose und bisherigen API-23-Testergebnisse bleiben historische Nachweise. Das Supportende
 ist keine technische Behebung des Fehlers und keine Freigabe der übrigen Funktionskonflikte.
-Die Such-/Dialogkorrekturen benötigen weiterhin ihre Prüfung mit der endgültigen signierten APK.
-Zur weiteren Abnahme gehören Android 7 / API 24 als neue Untergrenze und das Samsung-Zielgerät;
-Suche, Dialoge, Wiedergabe, Downloads und ihr Zusammenspiel sind dort mit normal optimierten Builds
-zu prüfen. Die weiteren offenen Gerätefälle aus `DOWNLOADS.md` bleiben bestehen.
+Der anschließende signierte Gerätetest unten prüft die Such-/Dialogkorrekturen, Wiedergabe und
+Downloads auf Android 7 / API 24 und dem Samsung-Zielgerät mit optimierter Release-Ausführung.
+Die weiteren offenen Gerätefälle aus `DOWNLOADS.md` bleiben bestehen.
 
 Lokale Prüfung der Supportumstellung am 07.09.2026:
 
@@ -61,8 +60,72 @@ Lokale Prüfung der Supportumstellung am 07.09.2026:
   der geerbten Varianten bleibt erhalten. Die Lint-Baseline wurde nicht erweitert.
 - Die Release Notes stimmen zwischen Dokumentation, generierter Ressource und gebauter
   Release-APK bytegenau überein.
-- Kein Gerät verbunden; keine neue signierte APK erstellt oder installiert. Die praktische
-  API-24-/Samsung-Abnahme und die endgültige Release-Freigabe bleiben offen.
+- Zu diesem ersten Prüflauf war kein Gerät verbunden und noch keine neue signierte APK erstellt.
+  Der nachfolgende Prüflauf ergänzt die signierten Artefakte und die API-24-/Samsung-Kernabnahme.
+
+### Signierte Geräteprüfung vom 07.09.2026
+
+Der Support-Commit `f195aed1b80348f5355ea129ee4c15e1b1d89bf7` wurde in einem frischen, sauberen
+normalen Clone einschließlich der gepinnten Submodule geprüft und mit
+`scripts/build-local-release.sh kruxx` gebaut. Alle 137 App- und 58 Innertube-Tests sind bestanden;
+Metrolist besitzt weiterhin keine eigenen Tests (`NO-SOURCE`). Der vollständige Release-Lint ist
+erfolgreich, ohne Erweiterung der Baseline: Im frischen Lauf erscheinen 48 Warnungen, davon
+34 Versionshinweise und 14 vorhandene `ObsoleteSdkInt`-Befunde im gemeinsamen Flavor-Code.
+
+Beide Universal-APKs liegen im lokalen Archiv als `KruXx-1.2.0-debug.apk` und
+`KruXx-1.2.0-release.apk`; beide benötigen API 24. Die exakt archivierte Release-APK wurde auf
+beiden Testgeräten installiert. Ihre Prüfung bestätigt Paket `de.kruxx.music`, Version
+`1.2.0` / `1000004`, Target-SDK 36, vier ABIs, ZIP-Integrität, 16-KiB-Zipalignment,
+gültige v2-/v3-Signaturen und die oben genannte eingebettete Quellrevision. Die Release Notes
+stimmen bytegleich mit dem Changelog überein.
+
+- Release-APK: **23.669.671 Bytes**.
+- SHA-256: `bc0d6d6b1f88b470965fa86f3b87a52475e11a088f56667631e523e3d8304a3d`.
+- Zertifikat-SHA-256: `5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673`;
+  identisch mit der vorher installierten Release-App.
+
+**Samsung SM-S931B, Android 16 / API 36, arm64:**
+
+- Update über den zuvor installierten 1.2.0-Kandidaten `b6cda8025`, ohne Löschen der App-Daten.
+  Erstinstallationszeit, Darstellung und der zuvor sichtbare Favoritenfilter mit 112 Titeln
+  bleiben erhalten. Das ist kein erneuter direkter Samsung-Upgrade-Test von 1.1.0.
+- Online- und Bibliothekssuche zeigen die korrigierten Track-Kacheln. Der Wechsel im selben
+  Bibliotheksreiter von „Maddix“ (vier Treffer) zu „Whitechapel“ und zurück aktualisiert die
+  Ergebnisse sofort. Der Download-Dialog verwischt den Hintergrund; nach Abbrechen und Zurück
+  wird die Liste wieder scharf. Erneutes Öffnen funktioniert.
+- „Cipher“ läuft online und wird während der Wiedergabe als MP3 nach
+  `Download/KruXx-Downloads/Audio` exportiert: 100 %, eine neue Datei. MediaStore bestätigt
+  `owner_package_name=de.kruxx.music` und `is_pending=0`.
+- Nach Prozessende und Kaltstart bei deaktiviertem WLAN und mobilen Daten findet die
+  Bibliothekssuche den Titel; lokale Wiedergabe und Vorspulen funktionieren ohne Standardnetz.
+  Die ursprünglichen Netzwerkzustände sind wiederhergestellt, die Wiedergabe ist pausiert.
+- Alle 13 vor dem Update erfassten öffentlichen Mediendateien bleiben auch nach den Tests
+  per SHA-256 unverändert. Die neue Testdatei „Kevin MacLeod - Cipher.mp3“ bleibt zusätzlich erhalten.
+
+**Android-7.0-Emulator, API 24, x86_64:**
+
+- Zuerst die signierte stabile 1.1.0 installiert und eine lokale Playlist „API24 Upgradecheck“
+  angelegt. Das Update auf die archivierte 1.2.0 behält diese Playlist und die Erstinstallationszeit.
+- Die Release-App wurde mit `cmd package compile -m speed -f de.kruxx.music` vollständig
+  optimiert; Android bestätigt `compilation_filter=speed`, `kOatUpToDate`. Kein Interpreter-Zwang
+  und keine geänderte JIT-Einstellung. Suche, Online-Treffer, Player und Download-Dialog funktionieren.
+- „Monkeys Spinning Monkeys“ spielt online. Der Download durchläuft Speicherberechtigung,
+  native MP3-Umwandlung und öffentlichen Export. Nach einem Hintergrundwechsel endet er bei
+  100 % mit einer gespeicherten Datei. Auch nach App-Neustart funktionieren lokale Wiedergabe
+  ohne Standardnetz und Vorspulen. Der eigens gestartete Emulator wurde danach beendet.
+
+Beide exportierten Dateien wurden außerhalb der App vollständig mit ffmpeg dekodiert, ohne Fehler.
+ffprobe bestätigt MP3, 48 kHz, Stereo, etwa 320 kbit/s sowie korrekte Titel-/Interpret-Tags;
+Laufzeiten: Samsung 231,360 Sekunden, API 24 125,064 Sekunden. In den geprüften App-Prozessen
+vor und nach dem Neustart sowie den verfügbaren ANR-/Crash-Ereignissen gab es keine Treffer
+für das Release-Paket.
+
+**Bewertung:** Die gezielt nachgeprüften Such-/Dialogkonflikte und die Kernabläufe ab Android 7
+sind mit dieser signierten Release-APK bestanden. Der Entwicklungsstand kann zur CI gepusht werden;
+ein öffentlicher Release ist damit noch nicht vollständig abgenommen. Offen bleiben insbesondere
+Android Auto in DHU und Fahrzeug, physische SD-/USB-Anbieter und die übrigen nicht belegten
+Kombinationen der Download-/Gerätematrix sowie der subjektive Hör-/Bild-Ton-Synchronitätstest.
+Ein Tag, Push oder GitHub-Release wurde in diesem Prüflauf nicht erstellt.
 
 ### Release-Kandidat 1.2.0 „Downloads Update“
 
@@ -81,7 +144,7 @@ meldet systemweiten Fenster-Blur als nicht unterstützt. Der getönte Fallback f
 bleibt erhalten. Der Debug-Nachtest auf dem Samsung bestätigt die Suchkacheln, die echte
 Unschärfe hinter der Download-Auswahl und die wieder scharfe Liste nach Abbrechen beziehungsweise
 Zurück; erneutes Öffnen funktioniert ebenfalls. Debug-Build und Release-Lint sind bestanden.
-Die Korrekturen sind vor Veröffentlichung noch mit der neu signierten APK zu prüfen.
+Der signierte Nachtest dieser Korrekturen ist in der Geräteprüfung vom 07.09.2026 oben dokumentiert.
 
 Die Bibliothekssuche bindet ihre Datenbankabfrage jetzt an den aktuellen Suchtext. Zuvor blieb
 die beim ersten Öffnen erzeugte Abfrage durch ein schlüsselloses `remember` unverändert, auch
@@ -89,9 +152,9 @@ wenn anschließend ein anderer Text eingegeben wurde. Der Samsung-Debugtest best
 laufende Aktualisierung: von drei Maddix-Treffern zu „Noma – Sleepwalker“, ohne den Bibliotheksreiter
 zu verlassen; beide Listen tragen die gemeinsamen Track-Kacheln.
 
-Die zusätzliche Geräteabnahme, der Release-Commit, der signierte Build und dessen Updateprüfung
-werden im Rahmen dieser Vorbereitung durchgeführt. Noch nicht verfügbare USB-/SD-Medien und
-weitere Geräte werden nicht als geprüft gewertet; der abschließende Nachweis wird hier ergänzt.
+Die zusätzliche Kernabnahme, der Quellcommit, der signierte Build und dessen Updateprüfung
+sind in der Geräteprüfung vom 07.09.2026 oben belegt. Noch nicht verfügbare USB-/SD-Medien und
+weitere Geräte werden nicht als geprüft gewertet.
 
 Bei der zusätzlichen Abnahme auf Android 6 / API 23 wurde ein Start-ANR gefunden: Die
 Dateiprotokollierung beendet ihren Leser bei einer nicht unterstützten atomaren Log-Rotation;
@@ -173,9 +236,9 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   Release-App und das bisherige Archiv-APK stammen weiterhin aus `b6cda8025`; die korrigierte
   endgültige Release-APK wurde noch nicht erstellt oder installiert. `1.2.0` ist nicht veröffentlicht.
 - Der damalige Fortsetzungsplan sah zuerst die Behebung des Android-6-Vergleichsfehlers vor.
-  Dieser Schritt entfällt durch die Supportentscheidung vom 07.09.2026. Weiter erforderlich sind
-  die Abnahme ab API 24 mit normal optimierten Builds, beide endgültigen APKs aus einem sauberen
-  Clone, Herkunfts-/Signaturprüfung und der Nachtest der archivierten Release-APK auf dem Samsung.
+  Dieser Schritt entfällt durch die Supportentscheidung vom 07.09.2026. Der anschließende
+  Prüflauf oben ergänzt die Kernabnahme ab API 24 mit optimierten Builds, beide archivierten APKs
+  aus einem sauberen Clone, Herkunfts-/Signaturprüfung und den Samsung-Nachtest.
 - Diagnosequellen, das reproduzierende Diagnose-APK und die Maschinencode-Auswertung liegen lokal
   unter `/home/kruxx/Schreibtisch/Android/KruXx-release-diagnostics-20260906`.
   Das Diagnose-APK enthält Prüfcode und darf nicht veröffentlicht werden. Die Android-6-Emulatoren

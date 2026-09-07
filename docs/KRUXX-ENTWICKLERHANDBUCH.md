@@ -1146,7 +1146,10 @@ zwischen „Maddix“ (drei Treffer) und „Noma“ (ein Treffer).
 `ThemedAlertDialog` setzt `KruxxDialogBackdrop` innerhalb des Dialogfensters ein. Auf dem Samsung
 ist der systemweite Fenster-Blur nicht unterstützt; der lokale `RenderEffect` der Activity
 verwischt trotzdem die darunterliegende Liste. Abbrechen, Zurück und erneutes Öffnen sind mit der
-Debug-App geprüft. Die signierte Endfassung wird separat abgenommen.
+Debug-App geprüft. Der signierte Nachtest vom 07.09.2026 bestätigt diese Abläufe ebenfalls;
+im selben Bibliotheksreiter wechseln die Ergebnisse zwischen „Maddix“ und „Whitechapel“ korrekt.
+Die [signierte Geräteprüfung](KRUXX-IST-STAND.md#signierte-geräteprüfung-vom-07092026)
+belegt zusätzlich Update, optimierte API-24-Ausführung, Wiedergabe und MP3-Export auf beiden Geräten.
 
 Bei der damaligen API-23-Abnahme war Debug-Erfolg allein kein ausreichender Nachweis.
 Die Android-6-x86-Testlaufzeit ließ in der maschinenoptimierten Release-Ausführung bereits eine

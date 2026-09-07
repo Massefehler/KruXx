@@ -262,7 +262,12 @@ scharfe App-Ansicht wieder frei. Ältere Geräte behalten die getönte Glasunter
 [systemweiter Fenster-Blur](https://source.android.com/docs/core/display/window-blurs) benötigt
 dieser Effekt keine gesonderte WindowManager-Unterstützung; diese ist auf dem Samsung nicht verfügbar.
 Diese Ergänzung ist auf die gemeinsamen Material-Dialoge begrenzt; scrollende Kacheln erhalten
-weiterhin keinen eigenen Blur-Durchlauf. Der signierte Nachtest ist im IST-Stand zu ergänzen.
+weiterhin keinen eigenen Blur-Durchlauf. Der
+[signierte Nachtest vom 07.09.2026](KRUXX-IST-STAND.md#signierte-geräteprüfung-vom-07092026)
+bestätigt auf dem Samsung die Track-Kacheln, den Dialog-Blur und dessen Entfernung nach
+Abbrechen beziehungsweise Zurück. Auf API 24 funktionieren Suche und Download-Dialog mit dem
+Fallback auch bei vollständig optimierter Release-Ausführung; die breitere Darstellungsmatrix
+bleibt offen.
 
 ### Ergänzung: einheitliche Filterleisten
 

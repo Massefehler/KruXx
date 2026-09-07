@@ -254,9 +254,9 @@ alle vier ABIs, ihre nativen DEX-Schnittstellen und der unveränderte LAME-Lizen
 ELF-/APK-Ausrichtung sind mit 16 KiB geprüft. Die 133 App-Tests wurden erneut bestanden, die
 58 Innertube-Tests waren bei unverändertem Stand `UP-TO-DATE`. Das APK trägt weiterhin die alte
 Version `1.1.0` / `1000003` und wurde für diese Vorprüfung weder signiert noch installiert.
-Die unten aufgeführten offenen Gerätetests und der Test des finalen signierten Updates bleiben
-erforderlich; die [Release-Vorprüfung im IST-Stand](KRUXX-IST-STAND.md#technische-release-vorprüfung-vom-06092026)
-hält die verbleibenden Freigabeschritte fest.
+Die damals noch offene signierte Kernabnahme ist inzwischen in der
+[Geräteprüfung vom 07.09.2026](KRUXX-IST-STAND.md#signierte-geräteprüfung-vom-07092026) belegt.
+Die übrigen unten aufgeführten offenen Gerätefälle bleiben erforderlich.
 
 `DownloadNamesTest` prüft in sieben Fällen Uploader-Abgrenzung, normale Musikmetadaten,
 Bindestriche/Versionen, fehlende Künstlerangaben, Persistenz/Kopierrundläufe, Art-Tracks und alte
@@ -398,6 +398,15 @@ Der [IST-Stand](KRUXX-IST-STAND.md#release-kandidat-120-downloads-update) dokume
 
 Die API-23-Ergebnisse bleiben historische Nachweise. Sie ersetzen keinen praktischen Test auf der
 neuen Untergrenze Android 7 / API 24 mit einer optimierten Release-APK.
+
+Der [signierte Nachtest vom 07.09.2026](KRUXX-IST-STAND.md#signierte-geräteprüfung-vom-07092026)
+ergänzt diese Prüfung: Die archivierte 1.2.0 aus `f195aed1b` erzeugt auf Samsung / Android 16
+und im vollständig optimierten API-24-Emulator neue MP3-Dateien einschließlich öffentlichem Export.
+Beide Dateien sind vollständig dekodierbar (48 kHz, Stereo, etwa 320 kbit/s, korrekte ID3-Tags).
+Download und Wiedergabe funktionieren zusammen; auf API 24 endet der Export nach einem
+Hintergrundwechsel. Auf beiden Geräten funktionieren lokale Wiedergabe und Vorspulen nach
+App-Neustart ohne Standardnetz. Alle 13 vorher vorhandenen öffentlichen Samsung-Dateien bleiben
+unverändert. Die unten aufgeführten übrigen Kombinationen sind dadurch nicht vollständig abgedeckt.
 
 Abnahmematrix (oben belegte Fälle sind teilweise abgedeckt, übrige Kombinationen bleiben Nachtests):
 
