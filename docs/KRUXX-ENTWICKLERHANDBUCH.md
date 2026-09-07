@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 06.09.2026 · öffentlicher Release KruXx `1.1.0` „Glass Update“ ·
+Stand: 07.09.2026 · öffentlicher Release KruXx `1.1.0` „Glass Update“ ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -13,6 +13,13 @@ Der freigegebene Quellstand, beide Submodul-Pins, Tag und APK sind unter
 Der nächste Kandidat `1.2.0` „Downloads Update“ (`1000004`) bündelt die Download-/Dateifunktionen
 und die weiteren Glass-Korrekturen. Die Release-Vorbereitung läuft; der IST-Stand hält die
 abschließenden Tests, Artefakte und noch offenen Gerätefälle fest.
+
+Seit der Supportentscheidung vom 07.09.2026 benötigt KruXx ab `1.2.0` Android 7.0 / API 24.
+`composeApp/build.gradle.kts` setzt dafür `minSdk = 24` im Flavor `kruxx`; die gemeinsame Vorgabe
+im Versionskatalog bleibt für geerbte Flavors und Bibliotheksmodule bei API 23. Der letzte
+veröffentlichte Android-6-kompatible Release ist `1.1.0`. Die API-23-Diagnose bleibt historisch;
+der dortige Float-/NaN-Fehler wird nicht weiter für KruXx umgangen. Die aktuelle Geräteabnahme
+beginnt mit API 24 und muss insbesondere die optimierte Release-Ausführung prüfen.
 
 Die API-23-Abnahme für 1.2.0 fand außerdem einen ANR bei der bisherigen Kermit-IO-Log-Rotation.
 `RuntimeFileLogWriter` rotiert deshalb über Androids `Os.rename`; `NonBlockingLogWriter` hält
@@ -217,8 +224,15 @@ zu unbekannten Kotlin-Metadaten entfallen damit. Bei einem künftigen AGP-Update
 Der separate Lint-Analysator von AGP 8.13 kann weiterhin Diagnosezeilen zur erwarteten
 Metadatenversion 2.2 statt 2.4 ausgeben. Maßgeblich ist der separat ausgeführte vollständige
 `:composeApp:lintKruxxUniversalProdRelease`: Die versionierte `composeApp/lint-baseline.xml` friert
-nur geerbte Altbefunde ein, jeder neue Befund lässt den Gate fehlschlagen. Für 1.0.1 lief dieser Gate
-ohne neue Befunde durch; der Release-Build endete anschließend mit `>> done:`.
+nur geerbte Altbefunde ein. Neue Fehler lassen den Gate fehlschlagen; zusätzliche Warnungen sind
+inhaltlich zu prüfen. Für 1.0.1 lief dieser Gate ohne neue Befunde durch; der Release-Build endete
+anschließend mit `>> done:`.
+
+Mit KruXx-Minimum API 24 meldet Lint zusätzliche `ObsoleteSdkInt`-Warnungen für bereits vorhandene
+Prüfungen und Annotationen im gemeinsamen Flavor-Code. Insbesondere API-24-Prüfungen bleiben für
+geerbte API-23-Varianten erforderlich; sie dürfen nicht allein anhand des KruXx-Lints entfernt
+werden. Der konkrete Prüflauf und die Warnungszahlen stehen im
+[IST-Stand](KRUXX-IST-STAND.md#supportentscheidung-vom-07092026-android-7-als-neue-untergrenze).
 
 **Signatur / Keystore**
 
@@ -518,7 +532,7 @@ und Endung. Bekannte alte Namen werden mit kollisionssicherer Nummerierung umben
 bleiben Mediendaten und bereits eingebettete Tags unverändert. Musikversionen bleiben erhalten,
 unbekannte Videokünstler werden nicht aus einem Kanalnamen geraten.
 `FileDownloadWorker` erzeugt MP3/Video und kopiert verifiziert über MediaStore (`SharedDownloads`,
-API 29+) beziehungsweise SAF für andere Ordner; API 23–28 verwendet für den öffentlichen Ordner
+API 29+) beziehungsweise SAF für andere Ordner; API 24–28 verwendet für den öffentlichen Ordner
 die abgefragte Schreibberechtigung. Dieselben Dateiziele gibt es beim Kopieren. `OfflineFiles.snapshot()`
 darf keinen Netzwerk-Upstream haben. Der Videotransfer verwendet einen eigenen Reader außerhalb
 der Audio-Caches. Architektur, Native-Build, Tests und Geräteabnahme stehen in
@@ -1134,13 +1148,16 @@ ist der systemweite Fenster-Blur nicht unterstützt; der lokale `RenderEffect` d
 verwischt trotzdem die darunterliegende Liste. Abbrechen, Zurück und erneutes Öffnen sind mit der
 Debug-App geprüft. Die signierte Endfassung wird separat abgenommen.
 
-Bei der zusätzlichen API-23-Abnahme ist Debug-Erfolg allein kein ausreichender Nachweis.
+Bei der damaligen API-23-Abnahme war Debug-Erfolg allein kein ausreichender Nachweis.
 Die Android-6-x86-Testlaufzeit ließ in der maschinenoptimierten Release-Ausführung bereits eine
 isolierte `MutableFloatState`-Zuweisung von `NaN` auf `0f` wirkungslos; daraus folgte der
 `AnchoredDraggableState.requireOffset`-Absturz. Derselbe APK-Inhalt funktioniert im Interpreter.
 Ein solcher Diagnoselauf ersetzt die Abnahme unter unveränderten Laufzeiteinstellungen nicht.
 Details und der nachfolgende Gerätevergleich stehen im IST-Stand; keine der wirkungslosen
 Wisch-/Float-Keep-Regeln und keine Diagnoseausgabe gehören zum ausgelieferten App-Code.
+Seit dem Supportende für Android 6 wird dieser Fehler nicht mehr für KruXx behoben. Der
+Unterschied zwischen Debug- und Release-Nachweis bleibt für die unterstützten Versionen relevant;
+Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisch abzuprüfen.
 
 ## 8. Release-Checkliste
 
@@ -1169,7 +1186,11 @@ Wisch-/Float-Keep-Regeln und keine Diagnoseausgabe gehören zum ausgelieferten A
 - [ ] `scripts/build-local-release.sh kruxx` → `>> done:` und
       „Signer #1 certificate DN: CN=Kreate local build …“
 - [ ] `aapt2 dump badging …/KruXx-release-signed.apk` → erwartete Paket-ID, exakter
-      `versionCode` und `versionName`; `apksigner verify --print-certs` → erwarteter Fingerabdruck
+      `versionCode` und `versionName`, `minSdkVersion:'24'` für Release und Debug;
+      `apksigner verify --print-certs` → erwarteter Fingerabdruck
+- [ ] Optimierte Release-Ausführung auf Android 7 / API 24 und dem aktuellen Zielgerät prüfen:
+      Suche, Dialoge, Wiedergabe und Downloads einschließlich ihrer Wechselwirkungen. API 23 ist
+      seit `1.2.0` nicht mehr Teil des Support- oder Freigabeumfangs
 - [ ] Im Archiv `/home/kruxx/Schreibtisch/Android/Kreate-APKs/` prüfen, dass das Build-Skript Release und
       passende Debug-APK als `KruXx-<versionName>-release.apk` / `-debug.apk` abgelegt hat (LocalSend)
 - [ ] Annotiertes Tag `v<versionName>` auf exakt dem gebauten Commit; Push ausschließlich zu `origin`.
@@ -1293,7 +1314,7 @@ Wisch-/Float-Keep-Regeln und keine Diagnoseausgabe gehören zum ausgelieferten A
   Startseiten-Scrolltest ergab 5 von 675 als ruckelig bewertete Frames (0,74 %), ein 95. Perzentil
   von 14 ms und keine verpassten VSync-Ereignisse. Die gemeinsame Sichtabnahme auf dem
   Samsung-Zielgerät ist erfolgt. Als erweiterte Nachtests nach der Veröffentlichung bleiben
-  Hellmodus, große Systemschrift, API 23 bis 30, eine breitere Performanceprüfung
+  Hellmodus, große Systemschrift, API 24 bis 30 für den 1.2.0-Kandidaten, eine breitere Performanceprüfung
   und echter Backdrop-Blur auf weiteren geeigneten ruhenden Oberflächen offen. Die zu großen
   Vorschlagskarten, die überhöhten und überlappenden „Top Artists“-Zeilen sowie das Durchscheinen
   der Startseiten-Kopfzeile hinter dem Vollbild-Player wurden auf dem Gerät reproduziert. Die

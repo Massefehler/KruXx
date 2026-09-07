@@ -1,9 +1,12 @@
 # KruXx-Dokumentation
 
-Stand: 06.09.2026 · öffentlicher Release `1.1.0` „Glass Update“
+Stand: 07.09.2026 · öffentlicher Release `1.1.0` „Glass Update“
 
 Der nächste Kandidat ist `1.2.0` „Downloads Update“. Release-Vorbereitung und zusätzliche Prüfungen
 laufen; der verbindliche Status steht in `KRUXX-IST-STAND.md`. Der Kandidat ist noch nicht veröffentlicht.
+Ab `1.2.0` setzt KruXx Android 7.0 / API 24 voraus. Android 6 wird nicht mehr unterstützt;
+der letzte dafür veröffentlichte Release bleibt `1.1.0`. Die historischen API-23-Prüfungen bleiben
+nachvollziehbar dokumentiert, gehören aber nicht mehr zur aktuellen Abnahmematrix.
 
 Diese Übersicht legt fest, welche Dokumente den aktuellen KruXx-Stand beschreiben und welche Dateien
 bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.

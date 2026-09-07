@@ -296,6 +296,8 @@ android {
             dimension = "platform"
 
             applicationId = "de.kruxx.music"
+            // KruXx 1.2.0+ supports Android 7 and newer; inherited flavors keep their own minimum.
+            minSdk = 24
             buildConfigField( "String", "APP_NAME", "\"$KRUXX_APP_NAME\"" )
             buildConfigField( "String", "REPO_OWNER", "\"$KRUXX_REPOSITORY_OWNER\"" )
             buildConfigField( "String", "REPO_NAME", "\"$KRUXX_REPOSITORY_NAME\"" )

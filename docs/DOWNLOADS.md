@@ -1,7 +1,9 @@
 # Downloads, MP3 und Dateikopien
 
-Stand: 06.09.2026. Bestandteil des vorbereiteten KruXx-1.2.0-Kandidaten, noch nicht veröffentlicht.
+Stand: 07.09.2026. Bestandteil des vorbereiteten KruXx-1.2.0-Kandidaten, noch nicht veröffentlicht.
 Der verbindliche Prüfstatus steht in [KRUXX-IST-STAND.md](KRUXX-IST-STAND.md).
+KruXx `1.2.0` setzt Android 7.0 / API 24 voraus; Android 6 gehört seit der Supportentscheidung
+vom 07.09.2026 nicht mehr zur aktuellen Abnahmematrix.
 
 ## Bedienung
 
@@ -69,7 +71,7 @@ keinen Netzabruf. App-Dateien bleiben erhalten.
 Auch beim Kopieren kann zwischen „KruXx-Downloads“ und einem anderen Ordner gewählt werden.
 
 Für „KruXx-Downloads“ verwendet Android 10+ die eigene MediaStore-Downloads-Sammlung ohne
-Ordnerfreigabe oder allgemeine Speicherberechtigung. Android 6–9 benötigt dafür die beim Start
+Ordnerfreigabe oder allgemeine Speicherberechtigung. Android 7–9 benötigt dafür die beim Start
 des Auftrags abgefragte Schreibberechtigung. Dateien werden erst nach vollständiger Prüfung
 öffentlich sichtbar. Die öffentliche Kopie bleibt auch bei Entfernen des App-Downloads erhalten.
 Auf Android 10+ werden frühere fertige KruXx-Dateien im Stammordner anhand von App-Eigentümer und
@@ -77,7 +79,7 @@ generiertem Namen in den passenden Unterordner verschoben. Fremde oder unfertige
 nicht verschoben. Eine bestehende Android-Ordnerfreigabe für `KruXx-Downloads`, `Audio` oder `Video`
 wird zusätzlich zum Lesen genutzt; dadurch erscheinen auch ältere, über die Ordnerauswahl erstellte
 Kopien. Nicht verschiebbare zugängliche Altdateien bleiben mit ihrem tatsächlichen Pfad sichtbar;
-auf Android 6–9 werden Altdateien weiterhin im Stammordner gefunden. Dort benötigt die Übersicht
+auf Android 7–9 werden Altdateien weiterhin im Stammordner gefunden. Dort benötigt die Übersicht
 die Leseberechtigung. Öffnen verwendet eine einzelne URI-Freigabe; der FileProvider ist auf den
 KruXx-Downloadordner begrenzt.
 
@@ -394,6 +396,9 @@ Dabei fiel ein ANR in der bisherigen Dateiprotokollierung auf, der vor dem Relea
 wurde. Erneuter Start und Bedienung sowie insgesamt 137 App-Tests und Release-Lint sind bestanden.
 Der [IST-Stand](KRUXX-IST-STAND.md#release-kandidat-120-downloads-update) dokumentiert die Details.
 
+Die API-23-Ergebnisse bleiben historische Nachweise. Sie ersetzen keinen praktischen Test auf der
+neuen Untergrenze Android 7 / API 24 mit einer optimierten Release-APK.
+
 Abnahmematrix (oben belegte Fälle sind teilweise abgedeckt, übrige Kombinationen bleiben Nachtests):
 
 | Fall | Erwartung |
@@ -401,7 +406,7 @@ Abnahmematrix (oben belegte Fälle sind teilweise abgedeckt, übrige Kombination
 | Einzeltrack, „Alle Tracks“, Album, Künstler, Playlist, Mehrfachauswahl | Ein Speicher-/Formatdialog je Auftrag; richtige Titelanzahl und Reihenfolge |
 | Vorgabe merken, Neustart, zurücksetzen, automatischer Download | Vorgabe greift; ohne Vorgabe keine Hintergrunddialoge; Änderung wieder möglich |
 | Video → MP3 und Video mit Ton | MP3 320, Ton vorhanden, Laufzeit vollständig, Bild/Ton synchron |
-| Android 23 und aktuelles Android; Mono/Stereo; AAC/Opus | Dekodierbarer Ton, korrekte Kanäle, keine Effekte oder Lautheitsänderung |
+| Android 7 / API 24 und aktuelles Android; Mono/Stereo; AAC/Opus | Dekodierbarer Ton, korrekte Kanäle, keine Effekte oder Lautheitsänderung |
 | Fertiges Video/MP3 im Flugmodus öffnen | Lokale Wiedergabe, Suche/Download-Kennzeichnung und Positionswechsel korrekt |
 | Interner Ordner, SD, USB/FAT/exFAT | Dateien außerhalb der App abspielbar; Namen, Endungen und ID3 korrekt |
 | Identische Kopie und gleiche Namen mit anderen Inhalten | Überspringen beziehungsweise neue Nummer; keine fremden Dateien überschrieben |

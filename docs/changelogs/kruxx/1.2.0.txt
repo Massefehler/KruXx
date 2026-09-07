@@ -1,3 +1,6 @@
+Android support:
+- Requires Android 7.0 (API 24) or newer; Android 6 is no longer supported. Version 1.1.0 remains the last published Android-6-compatible release.
+
 Downloads and MP3:
 - Adds one shared format and storage choice to single downloads, Download all tracks, albums, artists, playlists and selected tracks
 - Downloads videos with sound or converts their audio to MP3; ordinary audio tracks offer original audio or MP3 at 320 kbit/s
@@ -13,7 +16,7 @@ Files and progress:
 - Names files using artist and track title, verifies copied contents and skips identical existing copies
 
 Navigation and glass:
-- Fixed a startup freeze during log rotation on Android 6 and 7; file logging no longer blocks the interface when storage stops responding.
+- Fixed a startup freeze during log rotation on Android 7; file logging no longer blocks the interface when storage stops responding.
 - Gives all navigation tabs equal widths based on the longest label and shows left or right scroll hints when more tabs are hidden
 - Unifies glass surfaces in artist and playlist submenus, dialogs, track lists and filter rows, and fixes clipped expanding menus
 - Adds the same track cards to song and video searches, and blurs the background behind download dialogs on supported devices

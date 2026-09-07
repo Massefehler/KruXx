@@ -1,6 +1,6 @@
 # KruXx Glass – Designkonzept
 
-Stand: 06.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
+Stand: 07.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
 „Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen im vorbereiteten Kandidaten
 `1.2.0` „Downloads Update“, noch nicht veröffentlicht
 
@@ -52,8 +52,9 @@ sind bereits ausreichend zentral aufgebaut. Auch der vorhandene Blur-Code des Pl
 wiederverwendet werden. Neue Glasflächen sollen als gemeinsame Compose-Komponenten beziehungsweise
 Modifier entstehen, damit Transparenz, Kontur, Form und Fallback nicht pro Screen dupliziert werden.
 
-KruXx unterstützt weiterhin API 23 / Android 6. Echter Backdrop-Blur wird deshalb nur eingesetzt,
-wenn Plattform und Gerät ihn zuverlässig unterstützen. Android 6 bis 11 erhalten einen
+KruXx setzt ab `1.2.0` API 24 / Android 7 voraus; `1.1.0` bleibt der letzte veröffentlichte
+Android-6-kompatible Release. Echter Backdrop-Blur wird nur eingesetzt,
+wenn Plattform und Gerät ihn zuverlässig unterstützen. Android 7 bis 11 erhalten einen
 performanten Fallback aus Transparenz, Farbverlauf, Kontur und Schatten. Rechenintensiver Blur bleibt
 auf wenige ruhende Oberflächen begrenzt; scrollende Listen dürfen dadurch nicht ruckeln.
 
@@ -202,7 +203,8 @@ ein 95. Perzentil von 14 ms und keine verpassten VSync-Ereignisse. Das ist ein p
 auf diesem Gerät, ersetzt aber keine breitere Performance- und Geräteprüfung.
 
 Die gemeinsame Sichtabnahme auf dem Samsung-Zielgerät ist erfolgt. Als erweiterte Nachtests bleiben
-Hellmodus, große Systemschrift, API 23 bis 30 und eine breitere Geräte-/Performanceprüfung offen.
+Hellmodus, große Systemschrift, API 24 bis 30 für den 1.2.0-Kandidaten und eine breitere
+Geräte-/Performanceprüfung offen.
 Der veröffentlichte Stand verwendet außerhalb der vorhandenen echten
 Cover-Unschärfe des Vollbild-Players deshalb auf allen Versionen den sicheren Glas-Fallback aus
 Transparenz, Verlauf, Kontur und Schatten. Echter Backdrop-Blur auf weiteren geeigneten ruhenden
@@ -240,7 +242,8 @@ Listen-/Rastermenüs von Künstlern und Playlists, verschachtelte Playlist-/Eing
 und die Download-Auswahl für einzelne und mehrere Titel, Kopieren, Verlauf und Entfernen-Bestätigung.
 Auch die Download-Auswahl im Hellmodus bei Systemschriftfaktor 1,3 bleibt vollständig bedienbar.
 Die ursprünglichen Einstellungen (Systemmodus, Listenmenü, Schriftfaktor 0,8) sind wiederhergestellt.
-Die vollständige Geräte-/Darstellungsmatrix, insbesondere API 23–30, bleibt ein ergänzender Nachtest;
+Die vollständige Geräte-/Darstellungsmatrix, für den 1.2.0-Kandidaten insbesondere API 24–30,
+bleibt ein ergänzender Nachtest;
 Details stehen im
 [`IST-Stand`](KRUXX-IST-STAND.md#lokale-glass-nacharbeit-vom-06092026--noch-nicht-veröffentlicht).
 
@@ -336,7 +339,7 @@ App-Akzent, Entfernen zusätzlich Rot. Checkboxen und Dateiaktionen besitzen zug
 
 - Keine funktionale Änderung oder Regression in Navigation, Wiedergabe und Datenanzeige.
 - Flüssiges Scrollen und stabile Animationen auf dem Zielgerät.
-- Konsistenter Fallback ab Android 6 und echter Blur nur auf unterstützten Geräten.
+- Konsistenter Fallback ab Android 7 und echter Blur nur auf unterstützten Geräten.
 - Lesbare Darstellung in Hell- und Dunkelmodus sowie mit großer Systemschrift.
 - Bestehende Appearance-Einstellungen bleiben bedienbar und führen nicht zu unlesbaren Flächen.
 - Eine Frischinstallation zeigt im Vollbild-Player das vollständige Cover vor dem unscharfen

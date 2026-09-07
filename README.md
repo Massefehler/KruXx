@@ -18,6 +18,10 @@ implementation, verification status and remaining extended device checks are rec
 [`docs/changelogs/kruxx/1.1.0.txt`](docs/changelogs/kruxx/1.1.0.txt). The planned dedicated podcast
 section remains outside this release and is tracked as a separate future feature.
 
+**KruXx 1.2.0 and later require Android 7.0 (API 24) or newer.** Android 6 support has ended;
+1.1.0 is the last published version compatible with it. Existing Android 6 installations can
+remain on 1.1.0, but cannot install 1.2.0 or receive further supported KruXx updates.
+
 ## Install and update
 
 Download only the signed APK attached to the
@@ -115,7 +119,7 @@ Statistics also use glass cards for listening totals and tracks, with enough row
 names and download controls on phones. A saved List/Grid choice switches the track statistics
 between full-width rows and compact two-column cards.
 See the [design implementation notes](docs/Design.md).
-The candidate also fixes a startup freeze during log rotation on Android 6 and 7 and keeps
+The candidate also fixes a startup freeze during log rotation on Android 7 and keeps
 file logging from blocking the interface when storage stops responding.
 These changes are not part of the published 1.1.0 APK. The 1.2.0 candidate is undergoing final
 build and device checks; its [release notes](docs/changelogs/kruxx/1.2.0.txt) describe the scope.

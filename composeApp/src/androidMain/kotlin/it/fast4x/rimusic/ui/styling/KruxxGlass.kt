@@ -132,7 +132,7 @@ fun Modifier.kruxxAppBackground(
 /**
  * Central glass surface used by static chrome such as headers, navigation and
  * the mini player. It normally uses transparency, contour and shadow rather
- * than a blur pass per component, which keeps the API 23 fallback fast.
+ * than a blur pass per component, which keeps the fallback fast on older supported devices.
  * [backdropAlpha] adds a subtle base beneath the glass gradient when a surface
  * needs slightly more separation from its underlying content. [opaqueBackdrop]
  * uses a fully solid base for sheets whose underlying content must not remain

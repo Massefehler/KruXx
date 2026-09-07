@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 06.09.2026 · maßgeblich für den lokalen Entwicklungsstand
+Stand: 07.09.2026 · maßgeblich für den lokalen Entwicklungsstand
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -16,7 +16,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Nächster Release | `1.2.0` „Downloads Update“, Versionscode `1_000_004`; Release-Vorbereitung läuft, noch nicht veröffentlicht |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
-| Android-Untergrenze | API 23 / Android 6.0 |
+| Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
 | Compile-/Target-SDK | API 36 / Android 16 |
 | App-Repository | `Massefehler/KruXx` |
 | Innertube-Spiegel | `Massefehler/KruXx-innertube` für den bewusst gepinnten Modul-Fix |
@@ -33,6 +33,36 @@ veröffentlicht. Das exakt archivierte Release-APK wurde als Upgrade über `1.0.
 gestartet; die App-Daten blieben erhalten. Tag, Submodul-Pins, APK-Größe und APK-Digest wurden
 anschließend noch einmal gegen den veröffentlichten Stand abgeglichen. Dadurch bleibt die APK
 eindeutig ihrem Quellcode zugeordnet.
+
+### Supportentscheidung vom 07.09.2026: Android 7 als neue Untergrenze
+
+Auf Nutzerentscheidung endet die Unterstützung für Android 6 / API 23 mit dem nächsten Release.
+Der KruXx-Flavor setzt ab `1.2.0` `minSdk = 24`, für Debug und Release sowie alle Architekturen.
+Der veröffentlichte Release `1.1.0` bleibt die letzte Android-6-kompatible Version; bestehende
+Installationen können ihn weiter verwenden, erhalten aber keine weiteren unterstützten Updates.
+
+Der unten dokumentierte Android-6-Float-/NaN-Vergleichsfehler wird für KruXx nicht weiter behoben.
+Die Diagnose und bisherigen API-23-Testergebnisse bleiben historische Nachweise. Das Supportende
+ist keine technische Behebung des Fehlers und keine Freigabe der übrigen Funktionskonflikte.
+Die Such-/Dialogkorrekturen benötigen weiterhin ihre Prüfung mit der endgültigen signierten APK.
+Zur weiteren Abnahme gehören Android 7 / API 24 als neue Untergrenze und das Samsung-Zielgerät;
+Suche, Dialoge, Wiedergabe, Downloads und ihr Zusammenspiel sind dort mit normal optimierten Builds
+zu prüfen. Die weiteren offenen Gerätefälle aus `DOWNLOADS.md` bleiben bestehen.
+
+Lokale Prüfung der Supportumstellung am 07.09.2026:
+
+- Alle 137 App-Unit-Tests bestanden, ohne Fehler oder übersprungene Tests.
+- Universal-Debug und die mit R8 optimierte, unsignierte Universal-Release-APK erfolgreich gebaut.
+  Beide APKs bestätigen `minSdkVersion:'24'`, Target-SDK 36 und Version `1.2.0` / `1000004`.
+- Vollständiger Release-Lint erfolgreich: keine Fehler außerhalb der bestehenden Baseline,
+  16 Warnungen. Davon betreffen zwei neuere Media3-Versionen und 14 vorhandene Versionsprüfungen
+  beziehungsweise API-Annotationen (`ObsoleteSdkInt`), die mit der höheren KruXx-Untergrenze
+  überflüssig werden. Sie liegen im gemeinsamen Code der Flavors; die API-23-Kompatibilität
+  der geerbten Varianten bleibt erhalten. Die Lint-Baseline wurde nicht erweitert.
+- Die Release Notes stimmen zwischen Dokumentation, generierter Ressource und gebauter
+  Release-APK bytegenau überein.
+- Kein Gerät verbunden; keine neue signierte APK erstellt oder installiert. Die praktische
+  API-24-/Samsung-Abnahme und die endgültige Release-Freigabe bleiben offen.
 
 ### Release-Kandidat 1.2.0 „Downloads Update“
 
@@ -113,8 +143,8 @@ Abnahme des ersten signierten 1.2.0-Kandidaten vor der Such-/Blur-Nacharbeit:
   Die Datei hat 2.696.732 Bytes, 67,416 Sekunden, 320 kbit/s, 48 kHz, zwei Kanäle und korrekte
   Künstler-/Titel-Metadaten; die vollständige Dekodierung ist fehlerfrei. Bestehende Debug-Dateien
   wurden dafür nicht gelöscht.
-- Ein Suchaufruf auf API 23 beendet den ersten signierten Kandidaten. Der Fehler wird vor der
-  Freigabe mit einem ausschließlich lokalen Diagnose-Build eingegrenzt; ein Erfolg mit der
+- Ein Suchaufruf auf API 23 beendete den ersten signierten Kandidaten. Der Fehler wurde mit einem
+  ausschließlich lokalen Diagnose-Build eingegrenzt; ein Erfolg mit der
   Debug-App wird hier nicht als bestandener Release-Test gewertet.
 - Bei der Diagnose wurde eine unpassende Werkzeugkombination erkannt: Kotlin 2.4 benötigt
   laut Google mindestens R8 9.1.29; AGP 8.13.2 bringt noch R8 8.13.19 mit. Der Build verwendet
@@ -142,9 +172,10 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
 - Die Glass-Korrekturen sind mit Debug auf dem Samsung geprüft. Die installierte stabile
   Release-App und das bisherige Archiv-APK stammen weiterhin aus `b6cda8025`; die korrigierte
   endgültige Release-APK wurde noch nicht erstellt oder installiert. `1.2.0` ist nicht veröffentlicht.
-- Zur Fortsetzung zuerst den Android-6-Vergleichsfehler beheben und mit normal optimierten
-  signierten Builds prüfen. Danach aus einem sauberen Clone beide endgültigen APKs bauen,
-  Herkunft und Signatur prüfen und die archivierte Release-APK auf dem Samsung nachtesten.
+- Der damalige Fortsetzungsplan sah zuerst die Behebung des Android-6-Vergleichsfehlers vor.
+  Dieser Schritt entfällt durch die Supportentscheidung vom 07.09.2026. Weiter erforderlich sind
+  die Abnahme ab API 24 mit normal optimierten Builds, beide endgültigen APKs aus einem sauberen
+  Clone, Herkunfts-/Signaturprüfung und der Nachtest der archivierten Release-APK auf dem Samsung.
 - Diagnosequellen, das reproduzierende Diagnose-APK und die Maschinencode-Auswertung liegen lokal
   unter `/home/kruxx/Schreibtisch/Android/KruXx-release-diagnostics-20260906`.
   Das Diagnose-APK enthält Prüfcode und darf nicht veröffentlicht werden. Die Android-6-Emulatoren
@@ -196,7 +227,7 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   wurden abgebrochen; dafür wurden keine Medien heruntergeladen, kopiert oder entfernt.
   Die Download-Auswahl ist auch im Hellmodus mit Systemschriftfaktor 1,3 lesbar und bedienbar.
   Systemmodus, Listenmenü und ursprünglicher Schriftfaktor 0,8 wurden wiederhergestellt.
-  API 23–30 sowie weitere Kombinationen aus Gerät, Darstellung und seltenen Dialogwegen bleiben
+  API 24–30 sowie weitere Kombinationen aus Gerät, Darstellung und seltenen Dialogwegen bleiben
   ergänzende Nachtests; der Quellcode-Audit ist umfassender als die praktische Stichprobe.
 
 ### Lokale Filterleisten-Nacharbeit vom 06.09.2026 – noch nicht veröffentlicht
@@ -227,7 +258,7 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   Im aktuellen App-Prozess gab es während dieser Stichprobe keinen Fatal-/ANR-Eintrag.
   Schriftfaktor 0,8, Themenmodus „System“ und ursprüngliche Bibliotheksfilter sind wiederhergestellt.
   Die Release-Änderungsreiter sind im Debug-Build nicht erreichbar und nur im Quellcode/Build
-  geprüft. API 23–30 und weitere Geräte-/Darstellungskombinationen bleiben ergänzende Nachtests.
+  geprüft. API 24–30 und weitere Geräte-/Darstellungskombinationen bleiben ergänzende Nachtests.
 
 ### Auswählbare Statistikansicht vom 06.09.2026 – noch nicht veröffentlicht
 
@@ -736,7 +767,7 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   auf dem Zielgerät genau ein solcher Zustand und kein Unterschied zwischen Quellstand und GitHub-APK.
   Nach dem Wiedereinschalten blieb die Basisdarstellung beim Verkleinern und erneuten Öffnen erhalten.
   Als erweiterte Nachtests nach der Veröffentlichung bleiben Hellmodus, große Systemschrift,
-  API 23 bis 30, breitere
+  API 24 bis 30 für den 1.2.0-Kandidaten, breitere
   Performanceprüfung sowie echter Backdrop-Blur für weitere geeignete ruhende Oberflächen offen.
   Die zu großen Vorschlagskarten, die überhöhten und überlappenden „Top Artists“-Zeilen sowie das
   Durchscheinen der Startseiten-Kopfzeile hinter dem Vollbild-Player wurden auf dem Zielgerät
