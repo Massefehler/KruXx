@@ -11,9 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | `1.1.0` „Glass Update“ |
-| Öffentlicher Android-Versionscode | `1_000_003` |
-| Nächster Release | `1.2.0` „Downloads Update“, Versionscode `1_000_004`; Release-Vorbereitung läuft, noch nicht veröffentlicht |
+| Öffentlicher Release | [`1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0) |
+| Öffentlicher Android-Versionscode | `1_000_004` |
+| Nächster Release | Noch nicht festgelegt; offene Nachtests und Roadmap siehe unten |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -28,15 +28,79 @@ keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, 
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
 
-Der veröffentlichte Stand 1.1.0 wurde vollständig automatisiert getestet, gelintet, gebaut, signiert und als `v1.1.0`
-veröffentlicht. Das exakt archivierte Release-APK wurde als Upgrade über `1.0.2` installiert und
-gestartet; die App-Daten blieben erhalten. Tag, Submodul-Pins, APK-Größe und APK-Digest wurden
-anschließend noch einmal gegen den veröffentlichten Stand abgeglichen. Dadurch bleibt die APK
-eindeutig ihrem Quellcode zugeordnet.
+### Veröffentlichung von 1.2.0 am 07.09.2026
+
+KruXx `1.2.0` ist seit **13:13 Uhr MESZ** als neuester stabiler GitHub-Release veröffentlicht.
+Nach den unten dokumentierten Kernprüfungen, grünem CI und Offenlegung der übrigen Gerätefälle
+wurde die Veröffentlichung ausdrücklich beauftragt. Das ist keine nachträgliche vollständige
+Abnahme der noch offenen Matrix; Release-Beschreibung und diese Dokumentation nennen deren Grenzen.
+
+- Annotiertes Tag `v1.2.0` zeigt exakt auf den gebauten und in der APK eingebetteten Commit
+  `f195aed1b80348f5355ea129ee4c15e1b1d89bf7`. Die nachfolgenden Commits auf `main` ändern nur Dokumentation.
+- [CI-Lauf 34113950567](https://github.com/Massefehler/KruXx/actions/runs/34113950567) für
+  `4410fda407aa03647bba4f83b6401c3b8d9c884b` ist bestanden. Der signierte Build und alle 195 Tests
+  sind in der Geräteprüfung unten belegt.
+- GitHub-Release zuerst als Entwurf erstellt; Tagobjekt, Quellcommit, Beschreibung und genau ein
+  vollständig hochgeladenes Asset vor Veröffentlichung über die API geprüft.
+- Öffentliche Latest-API bestätigt `v1.2.0`, weder Entwurf noch Vorabversion, Asset
+  `KruXx-1.2.0-release.apk`, **23.669.671 Bytes** und
+  SHA-256 `bc0d6d6b1f88b470965fa86f3b87a52475e11a088f56667631e523e3d8304a3d`.
+  Ein erneuter anonymer Download ist bytegleich mit dem getesteten Archiv; seine Signatur ist gültig
+  und das Zertifikat stimmt mit 1.1.0 überein. Die Debug-APK bleibt im lokalen Archiv.
+- Kein Crashbericht, Schlüsselmaterial oder Geräteexport wurde veröffentlicht; offene
+  Secret-Scanning-Alarme in App-, Innertube- und Metrolist-Spiegel waren vor Veröffentlichung leer.
+
+Die detaillierten Vorprüfungen und historischen Kandidatenbefunde folgen unverändert in ihrer
+zeitlichen Einordnung. Android Auto in DHU/Fahrzeug, physische SD-/USB-Anbieter, die übrigen
+unbelegten Funktionskombinationen und subjektive Hör-/Synchronitätsprüfungen bleiben Nachtests.
+
+### Self-Updater-Nachtest nach Veröffentlichung
+
+Zwei eigens angelegte API-24-Emulatoren verwenden jeweils die unveränderte signierte 1.1.0 mit
+Standard „Nachfragen“; weder Samsung-Daten noch bestehende Testinstallationen wurden gelöscht.
+
+- Beim unmittelbar nach Veröffentlichung ausgeführten Online-Erststart lag der Changelog-Dialog
+  oben. Ein erfolgreicher Prüfzeitpunkt wurde gespeichert, ein automatischer Updatehinweis wurde
+  dabei nicht separat beobachtet. Dieser Versuch zählt daher nicht als eindeutiger Online-Nachweis.
+- „Jetzt überprüfen“ findet 1.2.0 mit korrektem Asset trotz bereits gesetztem Prüfzeitpunkt.
+  Ein Vordergrundwechsel bei offenem Hinweis zeigt weiterhin genau einen Dialog. Nach „Später“
+  öffnet der nächste Vordergrundwechsel keinen neuen Hinweis.
+- Ohne Standardnetz meldet „Jetzt überprüfen“ sichtbar „No Connection“. Nach Netzrückkehr findet
+  die manuelle Prüfung wieder 1.2.0; der Fehler setzt keinen neuen erfolgreichen Prüfzeitpunkt.
+- Auf dem zweiten Emulator wurde 1.1.0 offline gestartet und der erste Changelog geschlossen.
+  Vor Netzrückkehr existiert kein erfolgreicher Prüfzeitpunkt. Nach Verbinden bei sichtbarer
+  Oberfläche erscheint 1.2.0 automatisch ohne „Jetzt überprüfen“. Nach „Später“ und Rückkehr
+  bleibt derselbe Prüfzeitpunkt erhalten und kein weiterer Dialog erscheint.
+- **Belegte Einschränkung:** Der System-Downloadmanager des API-24-Emulators kann das APK nicht
+  herunterladen. Wiederholte Versuche melden `CertPathValidatorException: Trust anchor for
+  certification path not found`; Status 194 (`WAITING_TO_RETRY`), null empfangene Bytes.
+  Die Zertifikatsprüfung wurde nicht umgangen. Der schon bestandene manuelle API-24-Upgrade-Test
+  bleibt gültig. Als veröffentlichter Ausweichweg: signierte APK auf einem aktuellen Rechner
+  laden, übertragen und über die bestehende App installieren. Die beiden Emulatoren wurden beendet.
+- Ein gezielt injizierter HTTP-5xx-Fehler und die vollständige 24-Stunden-Grenze sind hier nicht
+  praktisch geprüft; dafür bleiben die vorhandenen Policy-Tests und weitere Geräte-Nachtests.
+
+**Vollständiger Updateweg auf Android 16 / API 36:**
+
+- Ein weiterer frischer Emulator mit unveränderter signierter 1.1.0 wurde offline eingerichtet:
+  ersten Changelog geschlossen und leere lokale Playlist „Self-Updater 1.2.0“ angelegt.
+  Der Modus „Nachfragen“ blieb unverändert. Anschließend Prozess beendet, Netz verbunden und
+  die App kalt gestartet. 1.2.0 erscheint automatisch ohne „Jetzt überprüfen“.
+- „Download and install“ lädt die öffentliche APK erfolgreich über Androids Downloadmanager.
+  Die auf dem Gerät heruntergeladene Datei hat exakt den oben genannten SHA-256. Die App durchläuft
+  Digest-, Paket-, Versionscode- und Signaturprüfung und öffnet den Systemzugriff „Install unknown apps“.
+- Diesen Zugriff nur für die Testinstallation erteilt, in KruXx „Install“ und im Android-Installer
+  „Update“ gewählt. Android bestätigt „App installed“, Version `1.2.0` / `1000004`, `minSdk=24`.
+  Erstinstallationszeit bleibt **13:21:39**, Updatezeit **13:24:55** am 07.09.2026.
+- Nach Öffnen zeigt die App die eingebetteten 1.2.0-Release-Notes. Die Playlist
+  „Self-Updater 1.2.0“ ist weiterhin sichtbar. Auch die vom installierten Paket erneut gelesene
+  APK ist bytegleich mit dem Release-Asset. Keine App-Crash-/ANR-Ereignisse im geprüften Zeitraum.
+- Der eigens gestartete Emulator wurde nach Abschluss beendet. Das angeschlossene Samsung wurde
+  für diesen Nachtest nicht heruntergestuft oder verändert.
 
 ### Supportentscheidung vom 07.09.2026: Android 7 als neue Untergrenze
 
-Auf Nutzerentscheidung endet die Unterstützung für Android 6 / API 23 mit dem nächsten Release.
+Auf Nutzerentscheidung endet die Unterstützung für Android 6 / API 23 mit Release `1.2.0`.
 Der KruXx-Flavor setzt ab `1.2.0` `minSdk = 24`, für Debug und Release sowie alle Architekturen.
 Der veröffentlichte Release `1.1.0` bleibt die letzte Android-6-kompatible Version; bestehende
 Installationen können ihn weiter verwenden, erhalten aber keine weiteren unterstützten Updates.
@@ -120,18 +184,18 @@ Laufzeiten: Samsung 231,360 Sekunden, API 24 125,064 Sekunden. In den geprüften
 vor und nach dem Neustart sowie den verfügbaren ANR-/Crash-Ereignissen gab es keine Treffer
 für das Release-Paket.
 
-**Bewertung:** Die gezielt nachgeprüften Such-/Dialogkonflikte und die Kernabläufe ab Android 7
+**Bewertung vor Push und Veröffentlichung:** Die gezielt nachgeprüften Such-/Dialogkonflikte und die Kernabläufe ab Android 7
 sind mit dieser signierten Release-APK bestanden. Der Entwicklungsstand kann zur CI gepusht werden;
 ein öffentlicher Release ist damit noch nicht vollständig abgenommen. Offen bleiben insbesondere
 Android Auto in DHU und Fahrzeug, physische SD-/USB-Anbieter und die übrigen nicht belegten
 Kombinationen der Download-/Gerätematrix sowie der subjektive Hör-/Bild-Ton-Synchronitätstest.
 Ein Tag, Push oder GitHub-Release wurde in diesem Prüflauf nicht erstellt.
 
-### Release-Kandidat 1.2.0 „Downloads Update“
+### Vorbereitung von 1.2.0 „Downloads Update“ – historische Prüffolge
 
-Der nächste Feature-Release bündelt Downloads, MP3 und Dateikopien mit den nachfolgenden
-Glass-Korrekturen und der auswählbaren Statistikansicht. Version und Release Notes sind auf
-`1.2.0` / `1000004` vorbereitet. Der öffentliche Release bleibt bis zur Veröffentlichung `1.1.0`.
+Die Vorbereitung bündelte Downloads, MP3 und Dateikopien mit den nachfolgenden Glass-Korrekturen
+und der auswählbaren Statistikansicht unter `1.2.0` / `1000004`. Während dieser Prüfungen blieb
+`1.1.0` öffentlich; die spätere Veröffentlichung von `1.2.0` ist oben dokumentiert.
 Der eigenständige Podcast-Bereich bleibt ein separates späteres Vorhaben.
 
 Nach dem ersten signierten Updatekandidaten wurden Titel-Suchergebnisse und Downloadauswahl
@@ -265,7 +329,7 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   1.2.0 ist oben separat beschrieben; physische USB-/SD-Medien und die übrigen Fehlerkombinationen
   sind weiterhin nicht pauschal als geprüft gewertet.
 
-### Lokale Glass-Nacharbeit vom 06.09.2026 – noch nicht veröffentlicht
+### Lokale Glass-Nacharbeit vom 06.09.2026 – veröffentlicht mit 1.2.0
 
 - Alle app-eigenen Dialog-, Dropdown- und Bottom-Sheet-Einstiegspunkte sind im Quellcode auf
   Glasflächen und verdeckende Hintergrundflächen geprüft. Künstlerauswahl, Darstellungsvorschau,
@@ -293,7 +357,7 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   API 24–30 sowie weitere Kombinationen aus Gerät, Darstellung und seltenen Dialogwegen bleiben
   ergänzende Nachtests; der Quellcode-Audit ist umfassender als die praktische Stichprobe.
 
-### Lokale Filterleisten-Nacharbeit vom 06.09.2026 – noch nicht veröffentlicht
+### Lokale Filterleisten-Nacharbeit vom 06.09.2026 – veröffentlicht mit 1.2.0
 
 - Die horizontalen Auswahlleisten hatten bisher nur transparente Standard-Chips. `ButtonsRow`
   verwendet jetzt eine gemeinsame Glasfläche mit 8 dp Seitenrand und 4 dp vertikalem Außenabstand.
@@ -323,7 +387,7 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   Die Release-Änderungsreiter sind im Debug-Build nicht erreichbar und nur im Quellcode/Build
   geprüft. API 24–30 und weitere Geräte-/Darstellungskombinationen bleiben ergänzende Nachtests.
 
-### Auswählbare Statistikansicht vom 06.09.2026 – noch nicht veröffentlicht
+### Auswählbare Statistikansicht vom 06.09.2026 – veröffentlicht mit 1.2.0
 
 - Die KruXx-Titelstatistik bietet neben der Zeitraumüberschrift die Auswahl „Liste / Raster“.
   Liste zeigt einen Titel je Zeile und ist die Voreinstellung; Raster zeigt zwei kompakte
@@ -342,7 +406,7 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   Themenmodus „System“ und Bibliotheksfilter sind unverändert. Der aktuelle App-Prozess zeigt
   während der Stichprobe keine Fatal-/ANR-Einträge. Weitere Gerätegrößen bleiben Nachtests.
 
-### Lokale Weiterentwicklung vom 05.09.2026 – noch nicht veröffentlicht
+### Lokale Weiterentwicklung vom 05.09.2026 – veröffentlicht mit 1.2.0
 
 - Alle manuellen Downloadaktionen einschließlich „Alle Tracks downloaden“, Album, Künstler,
   Playlist und Auswahl verwenden einen gemeinsamen Dialog einmal je Auftrag: „Nur in KruXx“,
@@ -440,7 +504,7 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   Die neue Übersicht und die Richtungsanzeigen der Hauptleiste wurden auf dem Handy geprüft.
 
 Architektur, Grenzen und konkrete Abnahmematrix: [`DOWNLOADS.md`](DOWNLOADS.md).
-Diese Änderungen gehören zum vorbereiteten Kandidaten 1.2.0. Öffentliche APK und historische
+Diese Änderungen sind mit 1.2.0 veröffentlicht. Öffentliche APK und historische
 Release Notes der veröffentlichten Version 1.1.0 bleiben unverändert.
 
 ### In v1.0.2 veröffentlichte Änderungen

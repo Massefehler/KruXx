@@ -8,15 +8,17 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-The current stable release is KruXx `1.1.0` (`versionCode 1000003`, Android 6.0+), titled
-**KruXx Glass Update**. Its 146 unit tests, full release lint, signed release build and in-place
-upgrade/cold-start check of the exact archived APK have passed. The signed APK, source, submodule
-pins and matching tag are published in the
-[KruXx 1.1.0 release](https://github.com/Massefehler/KruXx/releases/tag/v1.1.0). The exact
-implementation, verification status and remaining extended device checks are recorded in the
-[KruXx status report](docs/KRUXX-IST-STAND.md); the immutable in-app notes are available in
-[`docs/changelogs/kruxx/1.1.0.txt`](docs/changelogs/kruxx/1.1.0.txt). The planned dedicated podcast
-section remains outside this release and is tracked as a separate future feature.
+The current stable release is KruXx `1.2.0` (`versionCode 1000004`, Android 7.0+), titled
+**Downloads Update**. All 195 unit tests, full release lint and CI passed. The exact signed APK
+passed core search, dialog, playback, MP3 export and offline checks on Android 7 and Android 16;
+the Android 7 upgrade from 1.1.0 retained its test playlist. The signed APK, matching source tag,
+submodule pins and artifact hashes are published in the
+[KruXx 1.2.0 release](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Verification details and the remaining extended device checks are recorded in the
+[KruXx status report](docs/KRUXX-IST-STAND.md); immutable in-app notes are available in
+[`docs/changelogs/kruxx/1.2.0.txt`](docs/changelogs/kruxx/1.2.0.txt). Android Auto in a real vehicle,
+physical SD/USB providers and the broader interaction matrix still require testing. The dedicated
+podcast section remains a separate future feature.
 
 **KruXx 1.2.0 and later require Android 7.0 (API 24) or newer.** Android 6 support has ended;
 1.1.0 is the last published version compatible with it. Existing Android 6 installations can
@@ -40,10 +42,46 @@ versioned KruXx release (`1.0.0` or newer) because those builds did not yet cont
 updater. The package ID, signing key and higher Android version code are retained, so the
 installation updates in place; later KruXx versions can then be installed through the app.
 
+On older Android systems, the system download manager may reject the download's TLS certificate
+chain. This was reproduced in the Android 7 emulator: update detection worked, but the download
+waited to retry. If this happens, download the signed APK on a current computer, transfer it to the
+phone and install it over KruXx. The manual Android 7 upgrade is verified; keep the existing app data.
+
 Update checks can be changed or disabled under **Settings → General → Update**. No
 crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
+
+### New in 1.2.0 — Downloads Update
+
+The 1.2.0 release adds a shared storage/format choice for every single and bulk download,
+video downloads, MP3 at 320 kbit/s, and optional verified copies to an automatically created
+`Download/KruXx-Downloads` folder or a folder selected through Android (including supported SD/USB
+providers). The public folder separates `Audio` and `Video`; a Downloads tab lists saved files,
+supports confirmed removal of individual or selected files from the displayed storage, and scroll
+hints keep the main navigation accessible. Public copies and internal formats can be removed
+separately. An animated progress bar shows the current
+step, percentage and destination, reaching 100% after the requested files are fully saved and
+verified. A subtle red glass close button or a sideways swipe hides the status while transfers
+continue; the history stays available through the Downloads settings. Download labels and filenames
+use artist and track title without uploader names or
+technical IDs; known older exports are renamed without changing their contents. App-only storage
+remains the initial default.
+See [download architecture and device checks](docs/DOWNLOADS.md).
+
+Further visual fixes unify artist and playlist submenus, download dialogs and floating glass
+surfaces, fix clipped expanding menus, and give artist and playlist tracks the same subtle cards and
+spacing as the Songs tab. Song/video search results and library search use those cards too;
+library results update with each edited query. Shared download dialogs blur the underlying app
+view on Android 12 and newer, with tinted glass on older versions. Filter rows across Songs, Artists, Albums, Playlists, Downloads, History
+and Statistics share a stationary glass surface with scrollable choices and a clear selection.
+Statistics also use glass cards for listening totals and tracks, with enough row width for artist
+names and download controls on phones. A saved List/Grid choice switches the track statistics
+between full-width rows and compact two-column cards.
+See the [design implementation notes](docs/Design.md).
+File logging also keeps the interface responsive when storage stops responding.
+These changes are included in the published 1.2.0 APK;
+its [release notes](docs/changelogs/kruxx/1.2.0.txt) describe the scope.
 
 ### New in 1.1.0 — Glass Update
 
@@ -91,38 +129,6 @@ crash report is uploaded automatically or offered to the Kreate project.
 
 The [documentation index](docs/README.md) links the current status, detailed architecture, build
 steps, test matrix, release process and immutable version history.
-
-### 1.2.0 — Downloads Update (release preparation)
-
-The upcoming 1.2.0 release adds a shared storage/format choice for every single and bulk download,
-video downloads, MP3 at 320 kbit/s, and optional verified copies to an automatically created
-`Download/KruXx-Downloads` folder or a folder selected through Android (including supported SD/USB
-providers). The public folder separates `Audio` and `Video`; a Downloads tab lists saved files,
-supports confirmed removal of individual or selected files from the displayed storage, and scroll
-hints keep the main navigation accessible. Public copies and internal formats can be removed
-separately. An animated progress bar shows the current
-step, percentage and destination, reaching 100% after the requested files are fully saved and
-verified. A subtle red glass close button or a sideways swipe hides the status while transfers
-continue; the history stays available through the Downloads settings. Download labels and filenames
-use artist and track title without uploader names or
-technical IDs; known older exports are renamed without changing their contents. App-only storage
-remains the initial default.
-See [download architecture and device checks](docs/DOWNLOADS.md).
-
-Further local visual fixes unify artist and playlist submenus, download dialogs and floating glass
-surfaces, fix clipped expanding menus, and give artist and playlist tracks the same subtle cards and
-spacing as the Songs tab. Song/video search results and library search use those cards too;
-library results update with each edited query. Shared download dialogs blur the underlying app
-view on Android 12 and newer, with tinted glass on older versions. Filter rows across Songs, Artists, Albums, Playlists, Downloads, History
-and Statistics share a stationary glass surface with scrollable choices and a clear selection.
-Statistics also use glass cards for listening totals and tracks, with enough row width for artist
-names and download controls on phones. A saved List/Grid choice switches the track statistics
-between full-width rows and compact two-column cards.
-See the [design implementation notes](docs/Design.md).
-The candidate also fixes a startup freeze during log rotation on Android 7 and keeps
-file logging from blocking the interface when storage stops responding.
-These changes are not part of the published 1.1.0 APK. The 1.2.0 candidate is undergoing final
-build and device checks; its [release notes](docs/changelogs/kruxx/1.2.0.txt) describe the scope.
 
 ## Build from source
 

@@ -1,8 +1,9 @@
 # KruXx Glass – Designkonzept
 
 Stand: 07.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
-„Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen im vorbereiteten Kandidaten
-`1.2.0` „Downloads Update“, noch nicht veröffentlicht
+„Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen veröffentlicht mit
+[KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Die vollständige Darstellungsmatrix bleibt als Nachtest dokumentiert.
 
 ## Ziel und Abgrenzung
 

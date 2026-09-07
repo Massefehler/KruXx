@@ -1,6 +1,7 @@
 # Downloads, MP3 und Dateikopien
 
-Stand: 07.09.2026. Bestandteil des vorbereiteten KruXx-1.2.0-Kandidaten, noch nicht veröffentlicht.
+Stand: 07.09.2026. Veröffentlicht mit [KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Die unten aufgeführten offenen Gerätefälle bleiben Nachtests und gelten nicht als bestanden.
 Der verbindliche Prüfstatus steht in [KRUXX-IST-STAND.md](KRUXX-IST-STAND.md).
 KruXx `1.2.0` setzt Android 7.0 / API 24 voraus; Android 6 gehört seit der Supportentscheidung
 vom 07.09.2026 nicht mehr zur aktuellen Abnahmematrix.

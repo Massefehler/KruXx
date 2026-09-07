@@ -1,18 +1,21 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 07.09.2026 · öffentlicher Release KruXx `1.1.0` „Glass Update“ ·
+Stand: 07.09.2026 · öffentlicher Release KruXx `1.2.0` „Downloads Update“ ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx 1.1.0 ist derzeit ein lokal vollständig getesteter, gelinteter,
-signierter und einschließlich des exakt archivierten APKs auf Gerät geprüfter öffentlicher Release.
-Der freigegebene Quellstand, beide Submodul-Pins, Tag und APK sind unter
-<https://github.com/Massefehler/KruXx/releases/tag/v1.1.0> veröffentlicht.
+[`README.md`](README.md). KruXx `1.2.0` „Downloads Update“ (`1000004`) ist veröffentlicht.
+Alle 195 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
+signierte APK ist in den Kernabläufen auf Android 7 / API 24 und dem Samsung mit Android 16 geprüft.
+Quellcommit `f195aed1b80348f5355ea129ee4c15e1b1d89bf7`, annotiertes Tag `v1.2.0`, Submodul-Pins
+und die bytegenau geprüfte öffentliche APK sind unter
+<https://github.com/Massefehler/KruXx/releases/tag/v1.2.0> verfügbar.
 
-Der nächste Kandidat `1.2.0` „Downloads Update“ (`1000004`) bündelt die Download-/Dateifunktionen
-und die weiteren Glass-Korrekturen. Die Release-Vorbereitung läuft; der IST-Stand hält die
-abschließenden Tests, Artefakte und noch offenen Gerätefälle fest.
+Der Release bündelt Download-/Dateifunktionen und weitere Glass-Korrekturen. Die Veröffentlichung
+ist nach Offenlegung der übrigen Gerätefälle ausdrücklich beauftragt; insbesondere Android Auto,
+physische SD-/USB-Anbieter und die breitere Interaktionsmatrix gelten dadurch nicht als bestanden.
+Der IST-Stand hält Freigabeentscheidung, Artefakte und konkrete Nachweise fest.
 
 Seit der Supportentscheidung vom 07.09.2026 benötigt KruXx ab `1.2.0` Android 7.0 / API 24.
 `composeApp/build.gradle.kts` setzt dafür `minSdk = 24` im Flavor `kruxx`; die gemeinsame Vorgabe
@@ -477,7 +480,7 @@ exakten Titel, Interpret und möglichst die YTM-URL/`videoId` festhalten.
 
 ### 4.3 Downloads
 
-**Lokale Erweiterung, noch nicht veröffentlicht (05.09.2026):** Vor dem Einreihen der
+**Download-Erweiterung vom 05.09.2026, veröffentlicht mit 1.2.0:** Vor dem Einreihen der
 Media3-Audioqueue führt `DownloadCenter` alle manuellen Einzel- und Sammelaktionen durch dieselbe
 Format-/Speicherabfrage. `addDownloadsInternal()` ist ausschließlich der interne Queue-Einstieg
 nach Auswahl bzw. für Hintergrundaufträge. Neue UI-Aktionen müssen `addDownload(s)` verwenden.
@@ -1213,9 +1216,10 @@ Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisc
 
 ## 9. Offene Punkte, Ideen und Release-Nachweise
 
-- **Lokale Download-Erweiterung praktisch abnehmen:** Die Matrix in [`DOWNLOADS.md`](DOWNLOADS.md)
-  deckt Video mit Ton, Android-MP3-Konvertierung, alle Download-Einstiege, SD/USB, Abbruch,
-  Neustart und Dateiintegrität ab. Der bestehende Gerätetest von 1.1.0 gilt nicht für diese Änderungen.
+- **1.2.0 – verbleibende Download-Gerätefälle:** Die Matrix in [`DOWNLOADS.md`](DOWNLOADS.md)
+  umfasst Video mit Ton, Android-MP3-Konvertierung, alle Download-Einstiege, SD/USB, Abbruch,
+  Neustart und Dateiintegrität. Signierte MP3-Exporte und Offline-Neustarts auf API 24 und 36 sind
+  belegt; insbesondere physische SD-/USB-Anbieter und die übrigen unbelegten Kombinationen bleiben offen.
 
 - **Nachtest zu 1.0.2 – Android Auto praktisch abnehmen:** Browse-/Queue-/Such-/Resumption-Logik ist
   im Arbeitsstand vom 04.09.2026 überarbeitet, durch sechs gezielte ID-/Paging-Tests abgesichert und
@@ -1229,9 +1233,15 @@ Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisc
   reagiert auf Netzrückkehr und neue Vordergrundstarts, wiederholt transiente Fehler zweimal,
   dedupliziert Job/Dialog und setzt das 24-Stunden-Intervall erst nach erfolgreicher
   Releasevalidierung. Vier Policy-Tests sichern Intervallgrenze, korrigierte Systemzeit, Retrybudget
-  und HTTP-Klassifikation. Offen bleibt der echte Erkennungstest vom vorherigen Release zu 1.0.2
-  aus §7.3 Nr. 20. Er muss Online-Kaltstart, Offline→Online, Vordergrundwechsel, manuellen Bypass und
-  den vollständigen verifizierten Installationspfad abdecken.
+  und HTTP-Klassifikation. Der Nachtest `1.1.0` → `1.2.0` am 07.09.2026 belegt auf API 24
+  Offline→Online-Erkennung, manuellen Intervall-Bypass, Offline-Fehlermeldung und Dialog-Deduplizierung.
+  Dabei lehnt Androids System-Downloadmanager die TLS-Zertifikatskette des APK-Downloads ab und
+  wartet auf Wiederholung. Der manuelle APK-Upgrade-Test auf API 24 ist bestanden; bei diesem
+  Fehler das APK auf einem aktuellen Rechner herunterladen und übertragen, ohne App-Daten zu löschen.
+  Auf einem frischen API-36-Emulator ist auch der Online-Kaltstart mit automatischem Hinweis und
+  der vollständige Download-/Prüf-/Installerpfad bestanden; Playlist und Erstinstallationszeit bleiben
+  erhalten, die installierte APK ist bytegleich mit dem öffentlichen Asset. Der IST-Stand dokumentiert
+  Einzelversuche und Grenzen; HTTP-5xx-Injektion und die volle 24-Stunden-Grenze bleiben Nachtests.
 - **Nachtest zu 1.0.2 – Wiedergabe-Härtung breiter abnehmen:** Die technische Umsetzung ist abgeschlossen:
   HTTP 403/410/416 umgehen die Wiederholung derselben signierten URL, der Explicit-Hint steht schon
   beim ersten Auflösen bereit und Änderungen an Qualität/Datensparen invalidieren den Playback-URL-

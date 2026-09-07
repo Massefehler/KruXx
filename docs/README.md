@@ -1,9 +1,10 @@
 # KruXx-Dokumentation
 
-Stand: 07.09.2026 · öffentlicher Release `1.1.0` „Glass Update“
+Stand: 07.09.2026 · öffentlicher Release `1.2.0` „Downloads Update“
 
-Der nächste Kandidat ist `1.2.0` „Downloads Update“. Release-Vorbereitung und zusätzliche Prüfungen
-laufen; der verbindliche Status steht in `KRUXX-IST-STAND.md`. Der Kandidat ist noch nicht veröffentlicht.
+[KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0)
+ist veröffentlicht. Der verbindliche Artefakt-, Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`;
+offene Gerätefälle bleiben ausdrücklich dokumentiert.
 Ab `1.2.0` setzt KruXx Android 7.0 / API 24 voraus. Android 6 wird nicht mehr unterstützt;
 der letzte dafür veröffentlichte Release bleibt `1.1.0`. Die historischen API-23-Prüfungen bleiben
 nachvollziehbar dokumentiert, gehören aber nicht mehr zur aktuellen Abnahmematrix.
@@ -15,9 +16,9 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 
 | Dokument | Zweck |
 |---|---|
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus des öffentlichen KruXx-Releases 1.1.0 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus des öffentlichen KruXx-Releases 1.2.0 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
-| [`DOWNLOADS.md`](DOWNLOADS.md) | Lokale Download-/MP3-/Dateikopier-Erweiterung, Architektur und ausstehende Geräteabnahme |
+| [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
 | [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |
 | [`../README.md`](../README.md) | Öffentliche Projektübersicht, Installation, Kernfunktionen und Einstieg in den Build |
 | [`../NOTICE.md`](../NOTICE.md) | Herkunft, Lizenzen, Abgrenzung und Danksagungen |
@@ -38,9 +39,9 @@ Roadmap und Produktstatus stehen in `KRUXX-IST-STAND.md` §4 und im Entwicklerha
 Designkonzept konkretisiert Implementierungsstand, Abgrenzung und Abnahmekriterien. Historische
 Release Notes werden dafür nicht nachträglich geändert.
 
-Die lokale Weiterentwicklung ergänzt Downloads/MP3/Dateikopien sowie weitere Glass-Korrekturen an
-Menüs, Untermenüs, Dialogen, Tracklisten und horizontalen Filterleisten. Sie ist noch nicht
-veröffentlicht; Umfang und konkrete Nachweise stehen im IST-Stand sowie in `DOWNLOADS.md` und `Design.md`.
+Der veröffentlichte Release `1.2.0` ergänzt Downloads/MP3/Dateikopien sowie weitere Glass-Korrekturen
+an Menüs, Untermenüs, Dialogen, Tracklisten, Statistiken und horizontalen Filterleisten.
+Umfang und konkrete Nachweise stehen im IST-Stand sowie in `DOWNLOADS.md` und `Design.md`.
 
 ## Bewusst nicht als aktueller KruXx-Stand behandeln
 
