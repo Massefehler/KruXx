@@ -92,7 +92,7 @@ Wichtige Pfade:
 | `scripts/build-local-release.sh` | Release bauen **und** signieren |
 | `scripts/make-kruxx-icon.py` | Alle Icon-Ressourcen aus dem Quellbild erzeugen |
 | `patches/innertube/` | Sicherung und nachvollziehbarer Diff der KruXx-Änderung im Submodul (§2.3) |
-| `docs/changelogs/kruxx/<versionName>.txt` | Release-Notes je KruXx-Version; landen als `release_notes` im Flavor `kruxx` (Changelog-Dialog nach dem Update). Format: Abschnitt als `Überschrift:`, Einträge als `- Text` |
+| `docs/changelogs/kruxx/<versionName>.txt` | Versionshinweise der KruXx-Release-App; werden nach `androidKruxx/res/raw/release_notes.txt` kopiert. Debug überlagert diese Ressource mit eigenen Platzhalterhinweisen. Format: Abschnitt als `Überschrift:`, Einträge als `- Text`; Details im [Changelog-Verzeichnis](changelogs/kruxx/README.md) |
 | `docs/KRUXX-IST-STAND.md` | verbindlicher aktueller Funktions-, Prüf-, Artefakt- und Freigabestatus |
 | `docs/KRUXX-ENTWICKLERHANDBUCH.md` | diese Datei |
 | `docs/README.md` | Dokumentationsindex und Abgrenzung zu historischen/geerbten Dateien |
@@ -261,7 +261,7 @@ importieren, danach YouTube neu anmelden (Anmeldedaten sind vom Export ausgeschl
 ### 3.1 Eigener Updatekanal
 
 - API: `https://api.github.com/repos/Massefehler/KruXx/releases/latest`
-- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, z. B. `v1.0.1`
+- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.0`
 - APK: exakt `KruXx-MAJOR.MINOR.PATCH-release.apk`
 - Standard: nachfragen; alternativ automatische Installation oder vollständig deaktiviert
 - automatische Prüfung: bei foreground-bereiter Oberfläche und validiertem Netzwerk; Netzrückkehr
@@ -281,9 +281,19 @@ Die bisher verteilten Builds `2.2.3-kruxx.x` enthalten noch keinen funktionsfäh
 Sie benötigen deshalb genau einmal die manuelle Installation eines eigenständig versionierten
 KruXx-Releases (`1.0.0` oder neuer). Weil Paket-ID und Signaturschlüssel gleich bleiben und dessen
 `versionCode` mindestens `1_000_000` beträgt, aktualisiert Android die bestehende Installation ohne
-Löschen der App-Daten. Alle danach veröffentlichten Releases können über den eigenen Updatekanal
-installiert werden; ein Gerät kann den manuellen Zwischenschritt `1.0.0` überspringen, wenn bereits
-eine neuere, korrekt signierte 1.x-APK verfügbar ist.
+Löschen der App-Daten. Danach steht der eigene Updatekanal zur Verfügung, sofern die neue APK
+die Android-Version des Geräts unterstützt. Ein Gerät kann den manuellen Zwischenschritt `1.0.0`
+überspringen, wenn bereits eine neuere, kompatible und korrekt signierte 1.x-APK verfügbar ist.
+Android 6 bleibt bei 1.1.0; ab 1.2.0 gilt API 24 als Untergrenze.
+
+**Prüfstand 1.1.0 → 1.2.0:** Der vollständige automatische Erkennungs-, Download- und Installerweg
+ist auf API 36 mit Datenerhalt bestanden. Auf API 24 funktionieren Erkennung und manuelle Prüfung;
+der System-Downloadmanager des Testemulators lehnt jedoch die TLS-Zertifikatskette des APK-Downloads
+ab (`CertPathValidatorException: Trust anchor for certification path not found`). Bei diesem
+Fehler die signierte APK auf einem aktuellen Rechner herunterladen, übertragen und über die
+bestehende App installieren. Dieser manuelle Upgrade-Weg ist auf API 24 bestanden. Einzelversuche
+und verbleibende Nachtests stehen im
+[Self-Updater-Prüfstand](KRUXX-IST-STAND.md#self-updater-nachtest-nach-veröffentlichung).
 
 GitHub Actions baut nur eine **unsignierte Debug-APK** und führt die App- sowie Innertube-Tests aus. Der Produktionsschlüssel
 bleibt ausschließlich lokal. Ein Release wird erst nach lokalem signiertem Build, Prüfung und Tag
@@ -818,7 +828,7 @@ Head Unit und echten Fahrzeug; dieser steht in §7.3 und bleibt Release-Gate.
 
 ### 4.8 Gemeinsame Glasflächen für Menüs und Tracklisten
 
-Lokale Nacharbeit vom 06.09.2026, noch nicht Bestandteil von 1.1.0:
+Nacharbeit vom 06.09.2026, veröffentlicht mit 1.2.0:
 
 - `CustomModalBottomSheet` ist der gemeinsame Host für ältere `Menu`-/`GridMenu`-Aufrufe und
   `BottomMenu`. Der Glas-Modifier gehört an die innere Inhalts-Column einschließlich Griff:
@@ -983,6 +993,7 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
 | „Top Artists“ reagiert nicht auf Tippen | Rangzeile hatte keine Navigation | Seit 1.0.1 navigiert die ganze Zeile über `NavRoutes.YT_ARTIST`; bei erneutem Auftreten Artist-ID und überlagernde Modifier prüfen (§4.5) |
 | Android Auto zeigt eine leere Bibliothek, startet einen anderen Titel oder nur einen einzelnen Titel statt der gewählten Liste | Root/Leaf war nicht browsbar beziehungsweise Media-ID, Suchergebnis und Wiedergabe-Queue wurden unterschiedlich interpretiert | Seit 1.0.2 zentralisieren `MediaLibraryId` und `loadSongsForParent` ID-Auflösung, Reihenfolge und Startindex (§4.7). Im DHU Parent-/Leaf-ID und `onSetMediaItems` prüfen; Suchtexte oder Kontodaten nicht loggen |
 | Automatischer Updatehinweis erscheint nicht | Debug-Build (Self-Updater absichtlich aus), Modus deaktiviert, noch kein validiertes Netz oder erfolgreicher Abruf liegt weniger als 24 Stunden zurück | Mit signiertem Release-Build prüfen. Seit 1.0.2 wartet KruXx im Vordergrund auf Netz, reagiert auf Netzrückkehr, wiederholt transiente Fehler begrenzt und speichert das Intervall erst nach erfolgreicher Validierung. Bleibt der Hinweis aus: Modus, `last_successful_check` und Log-Tag `KruXxUpdater` prüfen, keine URL-/Kontogeheimnisse kopieren (§3.1, §7.3 Nr. 20) |
+| Update wird erkannt, APK-Download bleibt auf Android 7 bei null Bytes und wartet auf Wiederholung | Auf dem API-24-Testemulator lehnt Androids Downloadmanager die Zertifikatskette ab: `CertPathValidatorException: Trust anchor for certification path not found`, Status 194 (`WAITING_TO_RETRY`) | Signierte APK auf einem aktuellen Rechner herunterladen, übertragen und über die bestehende App installieren; App-Daten erhalten. API-24-Upgrade per APK und vollständiger Self-Updater auf API 36 sind bestanden (§3.1) |
 | „From your Library“ zeigt nur YTM-/YT-Listen, im Reiter „Playlists“ fehlen dagegen alle Konto-Listen | Die Startseite zeigte eine reine YTM-Home-Sektion; der Reiter kombinierte Room mit einem einmaligen, für diesen Zweck falschen `FEmusic_library_landing`-Abruf | Seit 1.0.2 ergänzt Home fehlende lokale Listen und der Reiter lädt `FEmusic_liked_playlists` samt Continuations. `VL`-IDs werden dedupliziert; Login-/Sync-Wechsel lösen automatisch neu aus. Der eingeblendete Leertext unterscheidet Anmeldung, Sync-Schalter und Abruffehler (§4.5) |
 | Von mehreren YTM-Playlists lädt nur eine; die übrigen öffnen leer oder melden HTTP 401 | Synchronisierte Konto-Playlist wurde als lokale DB-ID behandelt oder der angemeldete Abruf lief fälschlich über `me.knighthat.innertube`. Enthaltene Videos/`mp4` verhindern nicht das Laden der Playlistseite | Seit 1.0.1: Online-ID `-1`, `isYoutubePlaylist=true`; angemeldete Seite samt Continuation über Metrolists `YouTube.playlist()`, anonyme Listen über `me.knighthat.innertube`. Bleibt eine einzelne Liste leer: dieselbe Playlist im YTM-Konto prüfen und normalisierte Browse-ID/Session untersuchen (§4.5) |
 | Interpreten sind sichtbar, Pull-to-refresh zeigt trotzdem das rote Banner „Synchronisation … fehlgeschlagen“ | Ein YTM-Eintrag ohne `thumbnail.thumbnails` ließ die gesamte neue Antwort beim Deserialisieren scheitern; sichtbar blieb die lokale/alte Liste | Seit 1.0.1 wird die Thumbnail-Liste optional als leer behandelt. Das Banner darf nur bei echtem Browse-/Parserfehler kommen; Log-Tag `HomeArtists` prüfen (§4.5) |
@@ -1227,7 +1238,7 @@ Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisc
   vollständige Matrix aus §7.3 im Desktop Head Unit und danach in einem realen Fahrzeug. Erst wenn
   Auswahlposition, Vor/Zurück, Sprachsuche, Custom Controls, Wiederverbinden und leere persistente
   Queue dort fehlerfrei sind, darf die Steuerung als freigegeben gelten.
-- **Nachtest zu 1.0.2 – automatische Updateprüfung praktisch abnehmen:** Ein Praxistest auf einem
+- **Self-Updater – geprüfter Weg von 1.1.0 zu 1.2.0 und verbleibende Grenzen:** Ein früherer Praxistest auf einem
   zweiten Gerät zeigte nach frischer Installation von `1.0.0` keinen automatischen Hinweis auf das bereits
   veröffentlichte `1.0.1`. Seit 1.0.2 ist der Pfad foreground-/netzgebunden,
   reagiert auf Netzrückkehr und neue Vordergrundstarts, wiederholt transiente Fehler zweimal,
@@ -1296,8 +1307,8 @@ Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisc
   „Wiedergabelisten“ verwenden. Das verhindert abgeschnittene Randreiter und reserviert Breite für
   den geplanten Podcast-Reiter. Die vorhandene horizontale `HorizontalNavigationBar` bleibt ohne
   Zusatzhinweise, solange alle Reiter passen. Erst wenn der gemessene Scrollbereich einen Überlauf
-  ausweist, soll sie abhängig von aktueller Position und Scrollgrenzen `<<` beziehungsweise `>>`
-  anzeigen: nur links bei verborgenem Inhalt links, nur rechts bei verborgenem Inhalt rechts und
+  ausweist, zeigt sie seit 1.2.0 abhängig von aktueller Position und Scrollgrenzen `<<` beziehungsweise
+  `>>` an: nur links bei verborgenem Inhalt links, nur rechts bei verborgenem Inhalt rechts und
   beide zwischen den Grenzen. Die Logik darf nicht an eine feste Reiterzahl gekoppelt werden.
   `SongItem` reicht seinen Zeilen-Modifier nicht mehr an den Vorschlags-Downloadbutton durch.
   Vorschläge und „Top Artists“ verwenden im Hochformat
@@ -1327,8 +1338,10 @@ Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisc
   Startseiten-Scrolltest ergab 5 von 675 als ruckelig bewertete Frames (0,74 %), ein 95. Perzentil
   von 14 ms und keine verpassten VSync-Ereignisse. Die gemeinsame Sichtabnahme auf dem
   Samsung-Zielgerät ist erfolgt. Als erweiterte Nachtests nach der Veröffentlichung bleiben
-  Hellmodus, große Systemschrift, API 24 bis 30 für den 1.2.0-Kandidaten, eine breitere Performanceprüfung
-  und echter Backdrop-Blur auf weiteren geeigneten ruhenden Oberflächen offen. Die zu großen
+  die breitere Darstellungsmatrix für 1.2.0 mit Hellmodus, großer Systemschrift und API 24 bis 30
+  sowie weitere Performanceprüfungen offen. Dialog-Backdrop-Blur ab API 31 und der API-24-Fallback
+  sind inzwischen mit der signierten 1.2.0 geprüft (siehe §4.8 und IST-Stand); weitere ruhende
+  Oberflächen bleiben mögliche Designnacharbeiten. Die zu großen
   Vorschlagskarten, die überhöhten und überlappenden „Top Artists“-Zeilen sowie das Durchscheinen
   der Startseiten-Kopfzeile hinter dem Vollbild-Player wurden auf dem Gerät reproduziert. Die
   Korrekturen kompilieren und sind automatisiert geprüft; „Top Artists“ und die Abgrenzung des
@@ -1366,8 +1379,9 @@ Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisc
   einschließlich schneller Downloads sowie Konto-Playlist-, App-Start- und Interpretenprüfungen
   war ebenfalls ohne Auffälligkeit.
 - Release und Debug werden im selben normalen Lauf des gehärteten Build-Skripts aus demselben
-  Quellbaum erzeugt. Signatur, Paket, Version und eingebettete Git-Revision werden automatisch
-  geprüft; der erst danach feststehende finale APK-Hash wurde im GitHub-Release und über dessen API
+  Quellbaum erzeugt. Signatur, Paket, Version und eingebettete Git-Revision der Release-APK werden
+  automatisch geprüft; die Debug-APK enthält keinen entsprechenden Git-Revisionsnachweis.
+  Der erst danach feststehende finale Release-APK-Hash wurde im GitHub-Release und über dessen API
   verifiziert.
 - Die GitHub-API meldete am 03.09.2026 nach der Veröffentlichung in allen drei Spiegeln null offene
   Secret-Scanning-Alarme. Im übernommenen Metrolist-Verlauf

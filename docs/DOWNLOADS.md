@@ -395,7 +395,7 @@ Speicherberechtigungsdialog, nativer MP3-Umwandlung und öffentlichem Export vol
 „The Emptiness Machine“, 200,52 Sekunden, MP3 / 320 kbit/s / 48 kHz / Stereo, vollständig dekodierbar.
 Dabei fiel ein ANR in der bisherigen Dateiprotokollierung auf, der vor dem Release-Build korrigiert
 wurde. Erneuter Start und Bedienung sowie insgesamt 137 App-Tests und Release-Lint sind bestanden.
-Der [IST-Stand](KRUXX-IST-STAND.md#release-kandidat-120-downloads-update) dokumentiert die Details.
+Der [IST-Stand](KRUXX-IST-STAND.md#vorbereitung-von-120-downloads-update--historische-prüffolge) dokumentiert die Details.
 
 Die API-23-Ergebnisse bleiben historische Nachweise. Sie ersetzen keinen praktischen Test auf der
 neuen Untergrenze Android 7 / API 24 mit einer optimierten Release-APK.

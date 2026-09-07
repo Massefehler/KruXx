@@ -86,8 +86,10 @@ Beide Etappen bilden den visuellen Umfang des öffentlichen Releases `1.1.0`.
 
 ## Aktueller Implementierungsstand
 
-Die beiden Umsetzungsstufen sind im öffentlichen Release `1.1.0` umgesetzt. Die neue
-Designschicht wird
+Die beiden grundlegenden Umsetzungsstufen sind seit Release `1.1.0` veröffentlicht. Release `1.2.0`
+ergänzt die unten beschriebenen Menü-, Tracklisten-, Such-, Dialog-, Filter- und Statistikänderungen
+sowie die erweiterte Hauptnavigation. Der folgende Grundumfang und seine Prüfnachweise beziehen
+sich auf 1.1.0; die Nachweise für 1.2.0 stehen in den anschließenden Ergänzungen. Die Designschicht wird
 nur für den unabhängigen KruXx-Build aktiviert; der gemeinsame Kreate-/GitHub-Build behält seine
 bisherige Darstellung.
 
@@ -204,14 +206,18 @@ ein 95. Perzentil von 14 ms und keine verpassten VSync-Ereignisse. Das ist ein p
 auf diesem Gerät, ersetzt aber keine breitere Performance- und Geräteprüfung.
 
 Die gemeinsame Sichtabnahme auf dem Samsung-Zielgerät ist erfolgt. Als erweiterte Nachtests bleiben
-Hellmodus, große Systemschrift, API 24 bis 30 für den 1.2.0-Kandidaten und eine breitere
-Geräte-/Performanceprüfung offen.
-Der veröffentlichte Stand verwendet außerhalb der vorhandenen echten
-Cover-Unschärfe des Vollbild-Players deshalb auf allen Versionen den sicheren Glas-Fallback aus
-Transparenz, Verlauf, Kontur und Schatten. Echter Backdrop-Blur auf weiteren geeigneten ruhenden
-Oberflächen bleibt eine spätere, gesondert zu prüfende Verfeinerung.
+die breitere Darstellungsmatrix mit Hellmodus, großer Systemschrift und API 24 bis 30 sowie weitere
+Geräte-/Performanceprüfungen für 1.2.0 offen.
+Release 1.1.0 verwendete außerhalb der vorhandenen echten Cover-Unschärfe des Vollbild-Players
+auf allen Versionen den Glas-Fallback aus Transparenz, Verlauf, Kontur und Schatten. Seit 1.2.0
+verwischen die gemeinsamen Material-Dialoge den App-Hintergrund ab API 31; diese Ergänzung und
+der API-24-Fallback sind [mit der signierten APK geprüft](#ergänzung-suchtreffer-und-dialoghintergrund).
+Backdrop-Blur auf weiteren geeigneten ruhenden Oberflächen bleibt eine mögliche, gesondert
+zu prüfende Verfeinerung.
 
 ## Lokale Menü- und Listennacharbeit vom 06.09.2026
+
+Diese Nacharbeit und die folgenden Ergänzungen sind mit 1.2.0 veröffentlicht.
 
 Die Prüfung aller app-eigenen Dialog-, Dropdown- und Sheet-Einstiegspunkte hat fehlende Glasflächen
 bei der Künstlerauswahl, Darstellungsvorschau, den neuen Download-Dialogen und dem separaten
@@ -234,8 +240,9 @@ Hintergrunddarstellung. Androids Ordnerauswahl, Freigabe- und Berechtigungsdialo
 Tracks in Künstleransichten (Online/Bibliothek), lokalen und Online-Playlists, „Titel“ und
 Gerätetiteln verwenden `kruxxTrackCard()`: 8 dp Seitenrand, 3 dp oben und unten, 16-dp-Rundungen und
 feine Kontur. Es gibt keinen zusätzlichen Schatten oder Blur-Durchlauf je Track. Das vereinheitlicht
-die Listen, ohne die Karten optisch so stark zu gewichten wie Header oder Menüs. Diese Nacharbeit
-verwendet weiterhin den gemeinsamen Glas-Fallback; sie führt keinen neuen echten Backdrop-Blur ein.
+die Listen, ohne die Karten optisch so stark zu gewichten wie Header oder Menüs. Diese erste
+Nacharbeit verwendete den gemeinsamen Glas-Fallback; der anschließend ergänzte Dialog-Backdrop-Blur
+ist im folgenden Unterabschnitt beschrieben.
 
 133 App-Unit-Tests sowie der abschließende Debug-Build und Release-Lint sind erfolgreich. Die finale
 Debug-APK ist auf dem Samsung SM-S931B/Android 16 installiert. Die praktische Stichprobe umfasst
@@ -243,10 +250,10 @@ Listen-/Rastermenüs von Künstlern und Playlists, verschachtelte Playlist-/Eing
 und die Download-Auswahl für einzelne und mehrere Titel, Kopieren, Verlauf und Entfernen-Bestätigung.
 Auch die Download-Auswahl im Hellmodus bei Systemschriftfaktor 1,3 bleibt vollständig bedienbar.
 Die ursprünglichen Einstellungen (Systemmodus, Listenmenü, Schriftfaktor 0,8) sind wiederhergestellt.
-Die vollständige Geräte-/Darstellungsmatrix, für den 1.2.0-Kandidaten insbesondere API 24–30,
+Die vollständige Geräte-/Darstellungsmatrix für 1.2.0, insbesondere auf API 24–30,
 bleibt ein ergänzender Nachtest;
 Details stehen im
-[`IST-Stand`](KRUXX-IST-STAND.md#lokale-glass-nacharbeit-vom-06092026--noch-nicht-veröffentlicht).
+[`IST-Stand`](KRUXX-IST-STAND.md#lokale-glass-nacharbeit-vom-06092026--veröffentlicht-mit-120).
 
 ### Ergänzung: Suchtreffer und Dialoghintergrund
 
@@ -292,10 +299,10 @@ und Künstler, damit die Namen nicht zwischen Cover und Aktion eingequetscht wer
 Ansichten behalten die leichten Glasflächen und die vorhandenen Titelaktionen.
 Filterleisten und Statistik-Karten sind auf dem Samsung-Zielgerät nachgeprüft; Debug-Build und
 Release-Lint sind erfolgreich. Der ergänzende Prüfstand steht im
-[IST-Stand](KRUXX-IST-STAND.md#lokale-filterleisten-nacharbeit-vom-06092026--noch-nicht-veröffentlicht).
+[IST-Stand](KRUXX-IST-STAND.md#lokale-filterleisten-nacharbeit-vom-06092026--veröffentlicht-mit-120).
 Die Ansichtsauswahl ist einschließlich Wiederherstellung nach App-Neustart auf dem Samsung
 nachgeprüft. Die Nachweise stehen im
-[Statistik-Prüfstand](KRUXX-IST-STAND.md#auswählbare-statistikansicht-vom-06092026--noch-nicht-veröffentlicht).
+[Statistik-Prüfstand](KRUXX-IST-STAND.md#auswählbare-statistikansicht-vom-06092026--veröffentlicht-mit-120).
 
 ## Bedingte Erweiterung der Hauptnavigation
 
@@ -313,16 +320,15 @@ erreichbaren Inhalte:
 Die Entscheidung richtet sich nach der verfügbaren Breite sowie dem tatsächlichen Scrollzustand,
 nicht nach einer fest angenommenen Reiterzahl. Die Hinweise haben eigene Randflächen und zugängliche Inhaltsbeschreibungen.
 Weitere Nachtests betreffen insbesondere kleine Displays, große Systemschrift und einen späteren Podcast-Reiter.
-Diese Erweiterung ist seit der lokalen Download-Weiterentwicklung vom 05.09.2026 aktiv, noch nicht
-im veröffentlichten 1.1.0: „Downloads“ ergänzt die Hauptleiste als sechster Reiter. Die Hinweise
-reservieren eigene Randflächen, lassen sich zusätzlich zum Wischen antippen und verschwinden
+Diese Erweiterung ist seit 1.2.0 veröffentlicht: „Downloads“ ergänzt die Hauptleiste als sechster
+Reiter. Die Hinweise reservieren eigene Randflächen, lassen sich zusätzlich zum Wischen antippen und verschwinden
 richtungsabhängig an den Scrollgrenzen. Alle beschrifteten Reiter einer Leiste sind gleich breit:
 Die längste gerenderte Beschriftung bestimmt mit seitlichem Abstand die gemeinsame Breite
 (mindestens 76 dp). Symbole und Texte werden innerhalb dieser Flächen zentriert. Schriftwechsel,
 Schriftgröße und zusätzliche Reiter fließen in die Messung ein, auch der spätere Podcast-Reiter.
-„Interpreten“ heißt in der lokalen deutschen KruXx-Oberfläche jetzt „Künstler“.
+„Interpreten“ heißt in der deutschen KruXx-Oberfläche seit 1.2.0 „Künstler“.
 
-Die lokale Downloaderweiterung zeigt eine kompakte Fortschrittskarte mit 10-dp-Balken,
+Die mit 1.2.0 veröffentlichte Downloaderweiterung zeigt eine kompakte Fortschrittskarte mit 10-dp-Balken,
 vollständig gerundeten Enden, dezentem Farbverlauf und sanften Übergängen. Prozentzahl,
 Arbeitsschritt, Format und Speicherziel sind getrennt lesbar; Fehler verwenden zusätzlich zur
 Farbe einen erklärenden Text. Der Balken hat eine zugängliche Fortschrittssemantik. Seit dem lokalen

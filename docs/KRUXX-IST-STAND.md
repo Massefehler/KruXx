@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 07.09.2026 · maßgeblich für den lokalen Entwicklungsstand
+Stand: 07.09.2026 · öffentlicher Release `1.2.0`, Entwicklungsstand und Nachtests
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -36,10 +36,14 @@ wurde die Veröffentlichung ausdrücklich beauftragt. Das ist keine nachträglic
 Abnahme der noch offenen Matrix; Release-Beschreibung und diese Dokumentation nennen deren Grenzen.
 
 - Annotiertes Tag `v1.2.0` zeigt exakt auf den gebauten und in der APK eingebetteten Commit
-  `f195aed1b80348f5355ea129ee4c15e1b1d89bf7`. Die nachfolgenden Commits auf `main` ändern nur Dokumentation.
+  `f195aed1b80348f5355ea129ee4c15e1b1d89bf7`. Die nachfolgenden Commits auf `main` ändern nur
+  Dokumentation und die Fehlerbericht-Vorlage.
 - [CI-Lauf 34113950567](https://github.com/Massefehler/KruXx/actions/runs/34113950567) für
   `4410fda407aa03647bba4f83b6401c3b8d9c884b` ist bestanden. Der signierte Build und alle 195 Tests
   sind in der Geräteprüfung unten belegt.
+- Auch [CI-Lauf 34116708466](https://github.com/Massefehler/KruXx/actions/runs/34116708466) für den
+  Dokumentationscommit `2450da36e923d4665cdef78475032047e9a0dcc0` ist bestanden: App-/Innertube-Tests
+  und Debug-Build, abgeschlossen am 07.09.2026 um **13:37 Uhr MESZ**.
 - GitHub-Release zuerst als Entwurf erstellt; Tagobjekt, Quellcommit, Beschreibung und genau ein
   vollständig hochgeladenes Asset vor Veröffentlichung über die API geprüft.
 - Öffentliche Latest-API bestätigt `v1.2.0`, weder Entwurf noch Vorabversion, Asset
@@ -297,8 +301,9 @@ Arbeitsunterbrechung auf Nutzerwunsch am 06.09.2026:
   Dieser Stand besteht im sauberen Release-Clone alle 137 App- und 58 Innertube-Tests;
   Release-Lint: keine Fehler, 34 Versionshinweise und zwei Baseline-Hinweise.
 - Die Glass-Korrekturen sind mit Debug auf dem Samsung geprüft. Die installierte stabile
-  Release-App und das bisherige Archiv-APK stammen weiterhin aus `b6cda8025`; die korrigierte
-  endgültige Release-APK wurde noch nicht erstellt oder installiert. `1.2.0` ist nicht veröffentlicht.
+  Release-App und das bisherige Archiv-APK stammten zu diesem Zeitpunkt aus `b6cda8025`; die
+  korrigierte endgültige Release-APK war noch nicht erstellt oder installiert. `1.2.0` war damals
+  noch nicht veröffentlicht.
 - Der damalige Fortsetzungsplan sah zuerst die Behebung des Android-6-Vergleichsfehlers vor.
   Dieser Schritt entfällt durch die Supportentscheidung vom 07.09.2026. Der anschließende
   Prüflauf oben ergänzt die Kernabnahme ab API 24 mit optimierten Builds, beide archivierten APKs
@@ -735,6 +740,10 @@ separates späteres Funktionsvorhaben.
 
 ## 3. Prüfstand vom 04.09.2026
 
+Dieser Abschnitt bewahrt die historischen Nachweise für 1.1.0 und 1.0.2. Maßgeblich für 1.2.0 sind
+die [signierte Geräteprüfung vom 07.09.2026](#signierte-geräteprüfung-vom-07092026) und der
+[Self-Updater-Nachtest](#self-updater-nachtest-nach-veröffentlichung) in §1.
+
 ### Öffentlicher Release 1.1.0
 
 | Bereich | Nachweis | Status |
@@ -824,24 +833,24 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   Samsung-Testgerät nach 1,713 Sekunden `PLAYING`. In der erweiterten Gerätematrix bleiben der
   explizite Erststart, Qualitäts-/Datensparwechsel, Offline-Cache und ein gefilterter
   Recovery-Loglauf praktisch zu prüfen.
-- **Die automatische Updateprüfung ist technisch gehärtet, aber noch praktisch freizugeben:** Auf
-  einem zweiten Gerät erschien nach frischer Installation von `1.0.0` und anschließendem App-Start
-  kein automatischer Hinweis auf das bereits
-  veröffentlichte `1.0.1`. Version 1.0.2 behebt die dabei erkannten Schwächen:
-  foreground- und netzgebundener Start, erneuter Versuch nach Netzrückkehr beziehungsweise neuem
-  Vordergrundstart, zwei begrenzte Retries für vorübergehende Fehler, keine doppelten Dialoge und ein
-  24-Stunden-Zeitstempel erst nach erfolgreicher Antwortprüfung. Nach Veröffentlichung bleibt der
-  echte Erkennungstest von der vorherigen signierten Version offen – einmal online beim Kaltstart und
-  einmal offline gestartet mit anschließend hergestellter Verbindung, jeweils ohne „Jetzt
-  überprüfen“ anzutippen. Debug-Builds deaktivieren den Self-Updater und können diesen Nachweis nicht
-  ersetzen.
+- **Der Self-Updater ist für 1.1.0 → 1.2.0 praktisch geprüft, mit einer belegten API-24-Grenze:**
+  Auf API 36 sind automatische Erkennung beim Online-Kaltstart, Download, APK-Prüfung und
+  Installation mit erhaltener Playlist und Erstinstallationszeit bestanden. Auf API 24 sind
+  automatische Erkennung nach Offline→Online-Wechsel, manuelle Prüfung trotz Intervall,
+  Offline-Fehlermeldung und Dialog-Deduplizierung belegt. Der System-Downloadmanager des
+  API-24-Emulators lehnt jedoch die TLS-Zertifikatskette des APK-Downloads ab. Bei diesem Fehler
+  die signierte APK auf einem aktuellen Rechner laden, übertragen und über die bestehende App
+  installieren; dieser manuelle Upgrade-Weg ist auf API 24 bestanden. HTTP-5xx-Injektion,
+  vollständige 24-Stunden-Grenze und weitere reale Geräte bleiben Nachtests. Die Einzelversuche
+  und ihre Grenzen stehen im [Self-Updater-Nachtest](#self-updater-nachtest-nach-veröffentlichung).
+  Debug-Builds deaktivieren den Self-Updater und können diese Nachweise nicht ersetzen.
 - YTM, GitHub, Metadaten- und Liedtextdienste sind externe Dienste. Antwortformate, regionale
   Verfügbarkeit, Kontoversuche und CDN-Tempo können sich ohne App-Update ändern.
 - Die Podcast-Autoplaylist „Neue Folgen“ (`RDPN`) ist keine reguläre Musik-Playlist. Ihr
   Multirow-Antwortformat wird vom derzeitigen Playlist-Parser nicht abgebildet. Sie soll nicht als
   Einzelfall in den Musik-Playlistpfad gedrückt, sondern später Bestandteil eines eigenständigen
   Podcast-Bereichs mit Episodenstatus und Wiederaufnahme werden.
-- Der öffentliche Release `1.1.0` enthält die beiden Umsetzungsstufen des
+- **Historischer Glass-Nachweis für Release `1.1.0`:** Er umfasst die beiden Umsetzungsstufen des
   [„KruXx Glass“-Redesigns](Design.md):
   zentrale KruXx-Designbausteine, Graphit-Hintergrund mit rot-blauer Lichtaura, halbtransparenter
   Header, schwebende untere Navigation, Mini-Player und leichte Karten der Startansicht. Auch die
@@ -861,12 +870,13 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   „Alben“ und „Playlists“ besitzen nun einheitliche gläserne Werkzeugleisten und Suchfelder,
   transparente Filterchips und leichte Inhaltskarten. Die deutsche Hauptreiter-Beschriftung
   „Playlists“ hält alle vorhandenen Reiter vollständig sichtbar und schafft Breitenreserve für den
-  geplanten Podcast-Reiter. Die bereits horizontal scrollbar ausgelegte Navigation soll erst bei
-  tatsächlich gemessenem Überlauf seitliche `<<`-/`>>`-Hinweise erhalten: jeweils nur dort, wo
+  geplanten Podcast-Reiter. Für die bereits horizontal scrollbar ausgelegte Navigation waren erst bei
+  tatsächlich gemessenem Überlauf seitliche `<<`-/`>>`-Hinweise vorgesehen: jeweils nur dort, wo
   weitere Reiter verborgen sind, beide zwischen den Scrollgrenzen und keinen, solange sämtliche
-  Reiter passen. Diese Kennzeichnung ist vorgemerkt und derzeit bewusst nicht aktiv. Der
-  Vorschlags-Downloadbutton beansprucht
-  nicht mehr die Titelzeile. Vorschläge und „Top Artists“ sind im Hochformat auf rund 65 Prozent der
+  Reiter passen. Diese Kennzeichnung war in 1.1.0 noch nicht aktiv; seit 1.2.0 ist sie mit dem
+  sechsten Reiter „Downloads“ veröffentlicht
+  (siehe [Hauptnavigation](Design.md#bedingte-erweiterung-der-hauptnavigation)). Der Vorschlags-Downloadbutton
+  beansprucht nicht mehr die Titelzeile. Vorschläge und „Top Artists“ sind im Hochformat auf rund 65 Prozent der
   Inhaltsbreite und damit auf das Maß von „Forgotten favorites“ abgestimmt; „Top Artists“ berechnet
   seine zweizeilige Höhe aus dem tatsächlich dargestellten Song-Thumbnail samt Innen- und
   Zeilenabstand. Das Vollbild-Player-Sheet besitzt eine undurchsichtige Unterlage, sodass die
@@ -893,9 +903,11 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
   abweichend gespeicherte Auswahl; das nach Veröffentlichung gemeldete fehlende separate Cover war
   auf dem Zielgerät genau ein solcher Zustand und kein Unterschied zwischen Quellstand und GitHub-APK.
   Nach dem Wiedereinschalten blieb die Basisdarstellung beim Verkleinern und erneuten Öffnen erhalten.
-  Als erweiterte Nachtests nach der Veröffentlichung bleiben Hellmodus, große Systemschrift,
-  API 24 bis 30 für den 1.2.0-Kandidaten, breitere
-  Performanceprüfung sowie echter Backdrop-Blur für weitere geeignete ruhende Oberflächen offen.
+  Für 1.2.0 bleiben die breitere Darstellungsmatrix mit Hellmodus, großer Systemschrift und
+  API 24 bis 30 sowie weitere Performanceprüfungen offen. Der inzwischen veröffentlichte
+  Dialog-Backdrop-Blur ab API 31 und der API-24-Fallback sind in der
+  [signierten Geräteprüfung](#signierte-geräteprüfung-vom-07092026) belegt; weitere geeignete
+  ruhende Oberflächen bleiben mögliche Designnacharbeiten.
   Die zu großen Vorschlagskarten, die überhöhten und überlappenden „Top Artists“-Zeilen sowie das
   Durchscheinen der Startseiten-Kopfzeile hinter dem Vollbild-Player wurden auf dem Zielgerät
   reproduziert. Die Korrekturen kompilieren und sind automatisiert geprüft; „Top Artists“ und die
@@ -927,10 +939,10 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
 - Der Benachrichtigungsschutz kann nur Android-Benachrichtigungstöne und Heads-up-Pop-ups über die
   Notification Policy steuern. Er blockiert weder Einträge im Benachrichtigungsbereich noch Medien,
   Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Für den öffentlichen `v1.1.0` wurden geprüfter Quellstand, beide Submodul-Commits und das passende
-  Tag veröffentlicht und exakt das lokal geprüfte Archiv-APK an den GitHub-Release gehängt. Die
-  nicht separat protokollierten Detailfälle in der Tabelle bleiben Bestandteil der
-  Regressionstest-Matrix, sind aber derzeit keine bekannten Defekte.
+- Für den öffentlichen `v1.2.0` sind Quellstand, beide Submodul-Commits, Tag und das bytegleich
+  veröffentlichte Archiv-APK in [§1](#veröffentlichung-von-120-am-07092026) belegt. Die nicht
+  separat protokollierten Detailfälle bleiben Bestandteil der Regressionstest-Matrix.
+  Der oben beschriebene API-24-Downloadfehler ist eine bekannte Einschränkung.
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 

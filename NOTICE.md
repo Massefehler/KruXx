@@ -35,7 +35,7 @@ The current feature and verification status is documented in
 [`docs/KRUXX-IST-STAND.md`](docs/KRUXX-IST-STAND.md); historical release notes remain
 available under [`docs/changelogs/kruxx`](docs/changelogs/kruxx).
 
-The local download extension bundles the LAME 3.100 encoder, licensed under the GNU Library
+KruXx's download feature bundles the LAME 3.100 encoder, licensed under the GNU Library
 General Public License 2.0 or later. Original source notices and the complete license are in
 [`composeApp/src/androidMain/cpp/lame`](composeApp/src/androidMain/cpp/lame).
 The encoder and JNI bridge are separate shared libraries; source provenance, archive checksum
