@@ -58,6 +58,8 @@ Die erweiterten offenen Gerätefälle bleiben als Nachtests ausgewiesen.
   und beispielsweise `Kilophil - Protoporn.mp3`. Weitere Titelbestandteile wie `- Extended Mix`
   bleiben erhalten. Ohne dieses Schema werden vorhandene Musikmetadaten verwendet;
   bei bekannten Videos ohne Künstlerangabe wird kein Künstler aus dem Kanalnamen erfunden.
+  Auch beim Abspielen von Originalaudio aus der Downloads-Übersicht übernimmt der Player die
+  aufgelösten Künstler-/Titeldaten statt der alten Bibliotheksangaben.
 - Rohe Quellangaben werden auch für Originaldownloads gespeichert. Bereits aufgeteilte
   Bibliothekstitel werden bei erneuten Download-/Kopieraktionen damit nicht nochmals zerlegt.
   Suchtreffer behalten ihre Video-/Art-Track-Kennung bis zum Downloadknopf.

@@ -580,7 +580,8 @@ der erste von Leerzeichen umgebene Bindestrich/Gedankenstrich trennt Künstler u
 Weitere Titelbestandteile bleiben erhalten. `source_tracks` bewahrt rohe Quellmetadaten auch für
 Originalaudio, damit ein bereits aufgeteilter Bibliothekstitel nicht nochmals aufgeteilt wird.
 Dieselbe Auflösung
-versorgt Download-Dateinamen, Fortschritt, Kopierauswahl, interne Download-Zeilen und neue MP3-Tags.
+versorgt Download-Dateinamen, Fortschritt, Kopierauswahl, interne Download-Zeilen, Wiedergabemetadaten
+beim Start aus der Downloads-Übersicht und neue MP3-Tags.
 Technische IDs bleiben in privaten Dateipfaden; öffentliche Namen enthalten nur Künstler, Titel
 und Endung. Bekannte alte Namen werden mit kollisionssicherer Nummerierung umbenannt; dabei
 bleiben Mediendaten und bereits eingebettete Tags unverändert. Musikversionen bleiben erhalten,

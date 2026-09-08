@@ -10,7 +10,7 @@ Downloads:
 - A long press opens the format and storage choices even when a default has been remembered
 - Public folder copies remain separately removable in Downloads
 - Applies Artist - Title naming to every download route, including single tracks and bulk actions, instead of using the uploader as the artist when the source title identifies the artist
-- Uses the corrected artist and title in download labels, filenames and MP3 tags; reusing an older internal MP3 updates KruXx's tags without re-encoding the audio
+- Uses the corrected artist and title in download labels, filenames, playback from Downloads and MP3 tags; reusing an older internal MP3 updates KruXx's tags without re-encoding the audio
 - Preserves additional title parts and stored source metadata when downloading or copying a track again
 
 Android support:

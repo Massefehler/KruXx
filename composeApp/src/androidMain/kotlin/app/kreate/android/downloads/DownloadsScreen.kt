@@ -229,7 +229,7 @@ fun DownloadsScreen(player: StatefulPlayer = koinInject()) {
                             download?.state == Download.STATE_REMOVING -> R.string.kruxx_remove_running
                             download?.state == Download.STATE_FAILED -> R.string.kruxx_files_failed
                             else -> R.string.kruxx_files_waiting
-                        }), onOpen = { player.forcePlay(song.asMediaItem) }, enabled = done,
+                        }), onOpen = { player.forcePlay(track.mediaItem()) }, enabled = done,
                             onCopy = if (done) ({ DownloadCenter.copy(listOf(track.mediaItem())) }) else null,
                             onRemove = { removal.request(listOf(target)) },
                             selected = if (selecting) target.key in selected else null, onSelect = { toggle(target) }, interactive = !removing)
