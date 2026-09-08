@@ -6,7 +6,6 @@ import android.app.WallpaperManager
 import android.app.WallpaperManager.FLAG_LOCK
 import android.app.WallpaperManager.FLAG_SYSTEM
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -37,7 +36,6 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.SessionToken
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.service.player.ExoPlayerListener
@@ -303,9 +301,9 @@ class PlayerServiceModern:
             listener = this@PlayerServiceModern.listener
         }
 
-        // Keep a connected controller so that notification works
-        val sessionToken = SessionToken(this, ComponentName(this, PlayerServiceModern::class.java))
-        controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
+        // Keep a connected controller for notifications, using the session directly. Binding to
+        // our own service would keep it alive after the last activity disconnects.
+        controllerFuture = MediaController.Builder(this, mediaSession.token).buildAsync()
 
         // Download listener help to notify download change to UI
         downloadListener = object : DownloadManager.Listener {

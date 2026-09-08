@@ -869,7 +869,9 @@ leere Queue ist ein normaler leerer Rückgabewert. `PlayerServiceModern.onDestro
 am Library-Callback auf, damit laufende Browse-/Suchjobs nicht über das Dienstende hinaus leben.
 
 Ergänzung für 1.2.1: Der Dienst gibt auch seinen eigenen Controller, seine Mediensitzung, Listener,
-Beobachter und periodischen Queue-Job frei. Jeder Bereinigungsschritt wird unabhängig ausgeführt,
+Beobachter und periodischen Queue-Job frei. Der Controller verbindet sich direkt mit dem Token
+der vorhandenen Sitzung; eine Bindung an den eigenen Dienst würde dessen Ende verhindern.
+Jeder Bereinigungsschritt wird unabhängig ausgeführt,
 damit ein Fehler nicht die Sitzungsfreigabe überspringt und beim nächsten Dienststart
 `Session ID must be unique` auslöst. Player und Caches sind derzeit Koin-Singletons mit
 Anwendungslebensdauer: Der Dienst darf die Wiedergabe stoppen, aber diese gemeinsam verwendeten

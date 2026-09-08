@@ -48,7 +48,11 @@ jetzt unabhängig aus und gibt Controller, Sitzung und dienstgebundene Listener 
 anwendungsweit geteilte Player wird gestoppt, aber ebenso wie die gemeinsam verwendeten Caches
 nicht durch eine einzelne Dienstinstanz zerstört. Der periodische Queue-Job endet mit dem Dienst;
 der doppelte Statistik-Listener entfällt. Ein Regressionstest deckt die Freigabe vor der ersten
-Audiositzung ab. Die erneute Geräteprüfung dieses zusätzlichen Fixes steht noch aus.
+Audiositzung ab. Der interne Controller verwendet das Sitzungstoken direkt, damit keine Bindung
+an den eigenen Dienst dessen Ende verhindert. Im Android-16-Debugtest sind drei vollständige
+Activity-/Dienst-Neuerstellungen im selben Prozess bestanden: nach dem Schließen keine Sitzung,
+nach dem Öffnen genau eine Sitzung, keine Bereinigungsfehler oder Abstürze. Die signierte Prüfung
+dieses zusätzlichen Fixes steht noch aus.
 
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 
