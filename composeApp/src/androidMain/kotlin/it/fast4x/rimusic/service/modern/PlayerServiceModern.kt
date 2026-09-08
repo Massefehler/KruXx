@@ -301,6 +301,10 @@ class PlayerServiceModern:
             listener = this@PlayerServiceModern.listener
         }
 
+        // Direct controllers do not pass through onGetSession: register the session explicitly
+        // so Media3 owns the playback notification and foreground-service lifecycle.
+        addSession(mediaSession)
+
         // Keep a connected controller for notifications, using the session directly. Binding to
         // our own service would keep it alive after the last activity disconnects.
         controllerFuture = MediaController.Builder(this, mediaSession.token).buildAsync()

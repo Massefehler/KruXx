@@ -54,6 +54,11 @@ Activity-/Dienst-Neuerstellungen im selben Prozess bestanden: nach dem Schließe
 nach dem Öffnen genau eine Sitzung, keine Bereinigungsfehler oder Abstürze. Die signierte Prüfung
 dieses zusätzlichen Fixes steht noch aus.
 
+Die Sitzung wird zusätzlich ausdrücklich beim Media3-Dienst registriert; beim direkten Token
+entfällt der automatische Weg über `onGetSession()`. Der ergänzende Debugtest bestätigt nach drei
+Dienst-Neuerstellungen Online-Wiedergabe im selben Prozess, Medienbenachrichtigung samt
+Steueraktionen, den aktiven Vordergrunddienst und fortlaufende Wiedergabe hinter der Android-Startseite.
+
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 
 - Startseite, Sucheingabe und Suchergebnisse verwenden dieselbe Hauptnavigation einschließlich

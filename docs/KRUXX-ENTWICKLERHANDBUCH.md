@@ -871,6 +871,9 @@ am Library-Callback auf, damit laufende Browse-/Suchjobs nicht über das Dienste
 Ergänzung für 1.2.1: Der Dienst gibt auch seinen eigenen Controller, seine Mediensitzung, Listener,
 Beobachter und periodischen Queue-Job frei. Der Controller verbindet sich direkt mit dem Token
 der vorhandenen Sitzung; eine Bindung an den eigenen Dienst würde dessen Ende verhindern.
+`addSession(mediaSession)` registriert die Sitzung ausdrücklich beim Dienst, da der direkte
+Controller nicht über `onGetSession()` kommt. Diese Registrierung ist für Medienbenachrichtigung,
+deren Steueraktionen und den Vordergrunddienst während der Wiedergabe erforderlich.
 Jeder Bereinigungsschritt wird unabhängig ausgeführt,
 damit ein Fehler nicht die Sitzungsfreigabe überspringt und beim nächsten Dienststart
 `Session ID must be unique` auslöst. Player und Caches sind derzeit Koin-Singletons mit
