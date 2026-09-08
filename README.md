@@ -8,11 +8,11 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-KruXx `1.2.1` (`versionCode 1000005`, Android 7.0+) is being prepared with navigation and download
-fixes. The current public stable release is still
-[KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
-The implementation has passed 203 unit tests, release lint and debug interaction checks;
-validation of the final signed 1.2.1 artifact and publication are pending.
+[KruXx 1.2.1](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1)
+(`versionCode 1000005`, Android 7.0+) is the current public stable release, with navigation,
+download and playback stability fixes. All 204 unit tests, release lint and CI passed.
+The signed APK was tested on Android 7 and Android 16 emulators, including updates from 1.2.0
+with app data retained. Its public download matches the tested local archive byte for byte.
 Verification details and the remaining device checks are recorded in the
 [KruXx status report](docs/KRUXX-IST-STAND.md); the new in-app notes are in
 [`docs/changelogs/kruxx/1.2.1.txt`](docs/changelogs/kruxx/1.2.1.txt). Android Auto in a real vehicle,
@@ -62,6 +62,8 @@ crash report is uploaded automatically or offered to the Kreate project.
   a long press opens the format and storage choices. Public copies are removed separately in Downloads.
 - All download routes resolve `Artist - Title` consistently for labels, filenames and MP3 tags.
   Reusing an older internal MP3 corrects KruXx's tags without re-encoding its audio.
+- Closing and reopening the app before the first track no longer leaves a stale media session.
+  Playback, media controls and background operation remain available after the service restarts.
 
 ### New in 1.2.0 — Downloads Update
 

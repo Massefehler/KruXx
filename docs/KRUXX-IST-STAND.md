@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 08.09.2026 · Release-Kandidat `1.2.1`; öffentlich weiterhin `1.2.0`
+Stand: 08.09.2026 · KruXx `1.2.1` veröffentlicht
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -11,9 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | [`1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0) |
-| Öffentlicher Android-Versionscode | `1_000_004` |
-| Nächster Release | `1.2.1` / `1_000_005`: Navigation und Download-Korrekturen, in Vorbereitung |
+| Öffentlicher Release | [`1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) |
+| Öffentlicher Android-Versionscode | `1_000_005` |
+| Schwerpunkt von 1.2.1 | Navigation, Download-Metadaten und -Entfernung, stabiler Wiedergabedienst |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -28,36 +28,74 @@ keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, 
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
 
-### Release-Vorbereitung 1.2.1 vom 08.09.2026
+### Veröffentlichung von 1.2.1 am 08.09.2026
 
-Der beauftragte Patch-Release bündelt die folgenden Korrekturen. Versionsname und Android-Code
-sind auf `1.2.1` / `1000005` erhöht; eigene [Versionshinweise](changelogs/kruxx/1.2.1.txt) liegen vor.
-Historische Changelogs, Paket-ID, Android-Untergrenze und Release-Zertifikat bleiben erhalten.
-Die bisherigen 203 Tests und Debug-Geräteprüfungen sind unten belegt. Die erneuten Prüfungen aus
-dem sauberen Release-Commit, der signierte Build, dessen Geräteabnahme, CI, Tag und Veröffentlichung
-stehen zu diesem Quellstand noch aus. Finale Prüfergebnisse und APK-Hash werden anschließend ergänzt.
+KruXx `1.2.1` / `1000005` ist seit **14:09 Uhr MESZ** als neuester stabiler GitHub-Release
+veröffentlicht. Der beauftragte Patch-Release bündelt die folgenden Navigations- und Download-Fixes
+sowie eine während der signierten Abnahme gefundene Korrektur am Wiedergabedienst.
+Die [Versionshinweise](changelogs/kruxx/1.2.1.txt) sind in drei Abschnitte gegliedert.
 
-Die USB-Verbindung zum Samsung war zuletzt nicht verfügbar. Für die signierte Abnahme sind eigene
-API-24- und API-36-Emulatoren vorgesehen; die vorhandenen Samsung-Nachweise betreffen den Debug-Code.
-Die erweiterten offenen Gerätefälle bleiben als Nachtests ausgewiesen.
+- Annotiertes Tag `v1.2.1` zeigt exakt auf den sauber gebauten und in der APK eingebetteten Commit
+  `756f5fb8a8a4282c136128569c7d5f46c759c949`. Die anschließende Dokumentation der Veröffentlichung
+  ändert das Release-Artefakt nicht. Historische Changelogs und beabsichtigte Submodul-Pins bleiben erhalten.
+- **146 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder übersprungene Tests;
+  Metrolist meldet `NO-SOURCE`. Vollständiger Release-Lint erfolgreich mit 48 Warnungen und zwei
+  Baseline-Hinweisen, ohne Fehler oder Erweiterung der Baseline. Der vollständige lokale Build
+  erzeugt und archiviert signierte Release- und passende Debug-APK aus demselben Commit.
+- [CI-Lauf 34223264060](https://github.com/Massefehler/KruXx/actions/runs/34223264060) für genau diesen
+  Quellcommit ist bestanden: App-/Innertube-Tests und Debug-Build, abgeschlossen um **14:06 Uhr MESZ**.
+- Paket `de.kruxx.music`, Version `1.2.1` / `1000005`, Mindest-/Ziel-API `24` / `36`, alle vier ABIs,
+  APK-v2/v3-Signaturen, ZIP-Integrität, 16-KiB-ZIP-Ausrichtung und eingebettete Quellrevision sind geprüft.
+  Die eingebetteten Release Notes stimmen bytegenau mit dem Changelog überein. Das Release-Zertifikat
+  hat weiterhin SHA-256 `5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673`.
+- Release zuerst als Entwurf erstellt und über die API auf annotiertes Tag, Quellcommit,
+  Beschreibung und genau ein vollständig hochgeladenes Asset geprüft. Die öffentliche Latest-API
+  bestätigt `v1.2.1`, weder Entwurf noch Vorabversion, mit `KruXx-1.2.1-release.apk`, **23.640.999 Bytes**
+  und SHA-256 `24d4cbfded534d9a2e10229d576609dcb77e6c749a5d1566474426e7d301e5e7`.
+  Ein anonymer erneuter Download ist bytegleich mit dem getesteten lokalen Archiv.
+- Die signierten Prüfungen verwenden eigene Android-7-/API-24- und Android-16-/API-36-Emulatoren.
+  Updates aus der unveränderten öffentlichen 1.2.0 behalten Testplaylists und Erstinstallationszeit.
+  Release-Dialoge, Hauptnavigation, Suchfilter und die Startseiten-Aktion im Header sind geprüft.
+  MP3-Konvertierung und öffentlicher Export liefern 320 kbit/s, Künstler `Kilophil` und Titel
+  `Protoporn`; beim Korrigieren einer älteren internen MP3 bleiben die codierten Audiobytes unverändert.
+  Kurzes Tippen entfernt alle internen Formate, während die öffentliche Kopie bytegleich erhalten bleibt.
+  Reine MP3-Wiedergabe ohne Originalcache nach Offline-Kaltstart ist ebenfalls bestanden.
+- Mit der endgültigen APK sind auf beiden APIs jeweils drei vollständige Activity-/Dienst-Neuerstellungen
+  im selben Prozess bestanden: nach dem Schließen keine Sitzung, nach dem Öffnen genau eine;
+  keine Bereinigungsfehler oder Abstürze. Anschließend laufen Online-Wiedergabe auf API 36 und
+  Offline-Originalaudio auf API 24 mit korrekten Download-Metadaten, Medienbenachrichtigung,
+  Steueraktionen und aktivem Vordergrunddienst. Die Wiedergabe läuft hinter der Android-Startseite weiter.
+- Offene Secret-Scanning-Alarme in App-, Innertube- und Metrolist-Spiegel waren vor Veröffentlichung leer.
+  Es wurden keine Diagnoseexporte, privaten Gerätedaten oder Schlüsseldateien veröffentlicht.
 
-Die signierte Android-16-Abnahme hat zusätzlich einen Absturz beim erneuten Erstellen des
-Wiedergabedienstes aufgedeckt: Beim Schließen vor der ersten Wiedergabe verhinderte ein noch nicht
-initialisierter Audioeffekt die Freigabe der Mediensitzung. Die Dienstbereinigung führt ihre Schritte
-jetzt unabhängig aus und gibt Controller, Sitzung und dienstgebundene Listener frei. Der
-anwendungsweit geteilte Player wird gestoppt, aber ebenso wie die gemeinsam verwendeten Caches
-nicht durch eine einzelne Dienstinstanz zerstört. Der periodische Queue-Job endet mit dem Dienst;
-der doppelte Statistik-Listener entfällt. Ein Regressionstest deckt die Freigabe vor der ersten
-Audiositzung ab. Der interne Controller verwendet das Sitzungstoken direkt, damit keine Bindung
-an den eigenen Dienst dessen Ende verhindert. Im Android-16-Debugtest sind drei vollständige
-Activity-/Dienst-Neuerstellungen im selben Prozess bestanden: nach dem Schließen keine Sitzung,
-nach dem Öffnen genau eine Sitzung, keine Bereinigungsfehler oder Abstürze. Die signierte Prüfung
-dieses zusätzlichen Fixes steht noch aus.
+Der zusätzlich behobene Dienstfehler entstand beim Schließen vor der ersten Wiedergabe: Ein noch
+nicht initialisierter Audioeffekt verhinderte die Freigabe der Sitzung. Die Bereinigung führt ihre
+Schritte jetzt unabhängig aus und gibt Controller, Sitzung, Listener und Queue-Job frei. Geteilter
+Player und Caches bleiben für die nächste Dienstinstanz verwendbar. Der Controller verwendet das
+Sitzungstoken direkt ohne Bindung an den eigenen Dienst; `addSession(mediaSession)` registriert die
+Sitzung ausdrücklich für Benachrichtigung und Vordergrundbetrieb. Ein Regressionstest sichert die
+Freigabe vor der ersten Audiositzung ab; der doppelte Statistik-Listener entfällt.
 
-Die Sitzung wird zusätzlich ausdrücklich beim Media3-Dienst registriert; beim direkten Token
-entfällt der automatische Weg über `onGetSession()`. Der ergänzende Debugtest bestätigt nach drei
-Dienst-Neuerstellungen Online-Wiedergabe im selben Prozess, Medienbenachrichtigung samt
-Steueraktionen, den aktiven Vordergrunddienst und fortlaufende Wiedergabe hinter der Android-Startseite.
+Die USB-Verbindung zum Samsung war während der finalen Release-Prüfung nicht verfügbar. Die unten
+dokumentierten Samsung-Interaktionen betreffen den vorangehenden Debug-Code. Android Auto in
+DHU/Fahrzeug, physische SD-/USB-Anbieter, die breitere Download-/Fehler-/Interaktionsmatrix und
+subjektive Hör-/Kanal-/Synchronitätsprüfungen bleiben Nachtests und sind auch im Release offengelegt.
+
+### Self-Updater-Nachtest für 1.2.1
+
+Der Nachtest nach Veröffentlichung verwendet die unveränderte öffentliche 1.2.0, die auf dem eigenen
+API-36-Emulator frisch und zunächst offline installiert wurde. Im Modus „Nachfragen“ erscheint nach Netzrückkehr
+automatisch genau ein Hinweis auf 1.2.1; ein Vordergrundwechsel verdoppelt ihn nicht.
+Nach „Später“ findet Einstellungen → Allgemein → „Jetzt überprüfen“ den Release erneut trotz des
+gerade erfolgten Abrufs. Download und APK-Prüfung führen zur Android-Freigabe für Installationen
+aus KruXx und anschließend zum nativen Update-Dialog.
+
+Androids Installer aktualisiert erfolgreich auf `1.2.1` / `1000005`. Alle drei neuen Changelog-Reiter
+erscheinen; die Testplaylist `Release121Updater` und die Erstinstallationszeit bleiben erhalten.
+Die anschließend aus der Installation gelesene `base.apk` hat exakt den oben dokumentierten
+Release-Hash. Im Crashpuffer gibt es keinen KruXx-Absturz. Der manuelle Upgrade-Weg auf API 24
+ist ebenfalls geprüft; die unten historisch belegte TLS-Grenze des alten System-Downloadmanagers
+bleibt dokumentiert. Weitere Updater-Fehlerkombinationen werden durch diesen Nachtest nicht abgedeckt.
 
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 

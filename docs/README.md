@@ -1,12 +1,14 @@
 # KruXx-Dokumentation
 
-Stand: 08.09.2026 · Release `1.2.1` in Vorbereitung; öffentlich weiterhin `1.2.0`
+Stand: 08.09.2026 · KruXx `1.2.1` veröffentlicht
 
-[KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0)
-ist veröffentlicht. `1.2.1` / `1000005` bündelt die Korrekturen an Navigation, Download-Entfernung,
-Künstler-/Titelzuordnung und der Startseiten-Schaltfläche im Header. Der verbindliche Artefakt-,
-Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`; der signierte 1.2.1-Build und dessen
-Veröffentlichung stehen noch aus. Offene Gerätefälle bleiben ausdrücklich dokumentiert.
+[KruXx `1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) / `1000005`
+ist veröffentlicht. Der Release bündelt Korrekturen an Navigation, Download-Entfernung,
+Künstler-/Titelzuordnung, der Startseiten-Schaltfläche im Header und der Lebensdauer des
+Wiedergabedienstes. 204 Tests, Release-Lint und CI sind bestanden; die signierte APK ist auf
+API 24 und API 36 geprüft und der öffentliche Download bytegleich mit dem lokalen Archiv.
+Der verbindliche Artefakt-, Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`.
+Offene Gerätefälle bleiben ausdrücklich dokumentiert.
 Ab `1.2.0` setzt KruXx Android 7.0 / API 24 voraus. Android 6 wird nicht mehr unterstützt;
 der letzte dafür veröffentlichte Release bleibt `1.1.0`. Die historischen API-23-Prüfungen bleiben
 nachvollziehbar dokumentiert, gehören aber nicht mehr zur aktuellen Abnahmematrix.
@@ -18,7 +20,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 
 | Dokument | Zweck |
 |---|---|
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Vorbereitung von 1.2.1 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.1 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
 | [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |

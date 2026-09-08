@@ -1,23 +1,26 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 08.09.2026 · Release `1.2.1` in Vorbereitung, öffentlich KruXx `1.2.0` ·
+Stand: 08.09.2026 · KruXx `1.2.1` veröffentlicht ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx `1.2.0` „Downloads Update“ (`1000004`) ist veröffentlicht.
-Alle 195 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
-signierte APK ist in den Kernabläufen auf Android 7 / API 24 und dem Samsung mit Android 16 geprüft.
-Quellcommit `f195aed1b80348f5355ea129ee4c15e1b1d89bf7`, annotiertes Tag `v1.2.0`, Submodul-Pins
+[`README.md`](README.md). KruXx `1.2.1` (`1000005`) ist veröffentlicht.
+Alle 204 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
+signierte APK ist auf eigenen Android-7-/API-24- und Android-16-/API-36-Emulatoren geprüft,
+einschließlich Updates von 1.2.0 mit erhaltenen Testplaylists. Die vorherigen Samsung-Nachweise
+betreffen den Debug-Code; das Handy war für die finale signierte Prüfung nicht per ADB erreichbar.
+Quellcommit `756f5fb8a8a4282c136128569c7d5f46c759c949`, annotiertes Tag `v1.2.1`, Submodul-Pins
 und die bytegenau geprüfte öffentliche APK sind unter
-<https://github.com/Massefehler/KruXx/releases/tag/v1.2.0> verfügbar.
+<https://github.com/Massefehler/KruXx/releases/tag/v1.2.1> verfügbar.
 
-Der Quellstand für `1.2.1` / `1000005` ergänzt die unten dokumentierten Navigations- und
-Download-Korrekturen sowie den gemeinsamen Startseiten-Klick auf Icon und Wortmarke. 203 Tests
-und Debug-Bedienprüfungen sind bestanden; finale Prüfungen aus dem sauberen Commit, signierte
-Artefakte, CI und Veröffentlichung folgen im [IST-Stand](KRUXX-IST-STAND.md).
+`1.2.1` ergänzt die unten dokumentierten Navigations- und Download-Korrekturen, den gemeinsamen
+Startseiten-Klick auf Header-Icon und Wortmarke sowie die sichere Bereinigung des Wiedergabedienstes.
+Auf beiden APIs sind drei vollständige Dienst-Neuerstellungen im selben Prozess ohne verwaiste
+Mediensitzung bestanden; anschließende Wiedergabe, Benachrichtigung und Vordergrundbetrieb sind geprüft.
+Artefakte, Hashes und konkrete Nachweise stehen im [IST-Stand](KRUXX-IST-STAND.md).
 
-Der Release bündelt Download-/Dateifunktionen und weitere Glass-Korrekturen. Die Veröffentlichung
+Die Download-/Dateifunktionen und grundlegenden Glass-Ergänzungen stammen aus `1.2.0`. Die Veröffentlichung
 ist nach Offenlegung der übrigen Gerätefälle ausdrücklich beauftragt; insbesondere Android Auto,
 physische SD-/USB-Anbieter und die breitere Interaktionsmatrix gelten dadurch nicht als bestanden.
 Der IST-Stand hält Freigabeentscheidung, Artefakte und konkrete Nachweise fest.
@@ -493,7 +496,7 @@ exakt nachbauen: Server-Experimente, Verfügbarkeit nach Land/Konto, Alters-/Inh
 persönliche Uploads können weiterhin andere Treffer erzeugen. Bei einem verbleibenden Einzelfall immer
 exakten Titel, Interpret und möglichst die YTM-URL/`videoId` festhalten.
 
-Die unveröffentlichte Korrektur vom 08.09.2026 verwendet `SearchSkeleton`: `HomeNavigation.Items`
+Die mit 1.2.1 veröffentlichte Korrektur vom 08.09.2026 verwendet `SearchSkeleton`: `HomeNavigation.Items`
 definiert die gemeinsame Hauptleiste von Startseite, Suche und Suchergebnissen einschließlich
 „Playlists“/„Downloads“. `Skeleton` trennt Inhaltsindex und Navigationsindex. Suchkategorien und
 Online-/Bibliotheks-/Linkauswahl sind eigene `ButtonsRow`-Filter; der Hauptleistenklick navigiert
@@ -502,14 +505,14 @@ gespeicherte ungültige Suchindizes werden auf 0 zurückgesetzt. Auch direkte Su
 `SearchTypeScreen` verwenden diese Leiste. `searchContentWidth` reserviert den Platz für eine
 rechte Navigationsleiste einmal im Rahmen; eingebettete Suchseiten nutzen dessen volle Inhaltsbreite.
 
-Ebenfalls unveröffentlicht seit 08.09.2026: `AppTitle` verbindet Icon und Wortmarke in KruXx zu einer
+Ebenfalls seit 1.2.1 veröffentlicht: `AppTitle` verbindet Icon und Wortmarke in KruXx zu einer
 gemeinsamen Startseiten-Schaltfläche. `HomeNavigation.goHome` wählt `QuickPics` ausdrücklich aus,
 statt nur zur `home`-Route mit der bisherigen Reiterauswahl zurückzukehren. Bei deaktivierter
 Startseite wird wie beim App-Start `Songs` gewählt. Die konfigurierte `STARTUP_SCREEN` wird nicht
 verändert. Beim Verlassen einer Unterseite räumt `popUpTo(navController.graph.id)` den Stapel auf;
 die Graph-ID berücksichtigt auch einen direkten Start in der Suche. Auf einer bereits alleinigen
 Home-Route reicht das Umschalten des Reiters, ohne einen neuen Navigationseintrag anzulegen.
-Der gemeinsame Header deckt damit alle Ansichten ab, die das App-Icon anzeigen. Geerbte
+Die Aktion gilt für alle Ansichten mit diesem gemeinsamen Header. Geerbte
 Mehrfachklick-/Langdruck-Spielaktionen bleiben ausschließlich in anderen Produkt-Flavors bestehen.
 
 ### 4.3 Downloads
@@ -519,7 +522,7 @@ Media3-Audioqueue führt `DownloadCenter` alle manuellen Einzel- und Sammelaktio
 Format-/Speicherabfrage. `addDownloadsInternal()` ist ausschließlich der interne Queue-Einstieg
 nach Auswahl bzw. für Hintergrundaufträge. Neue UI-Aktionen müssen `addDownload(s)` verwenden.
 `SongItem.Render` bietet für nicht lokale Audiotitel in KruXx einen rechten `AudioDownloadButton`
-mit explizitem Audioformat-Dialog. Seit der unveröffentlichten Korrektur vom 08.09.2026 entfernt
+mit explizitem Audioformat-Dialog. Seit der mit 1.2.1 veröffentlichten Korrektur vom 08.09.2026 entfernt
 ein kurzer Tipp auf fertige/laufende Downloads wieder alle internen Varianten des Tracks;
 langes Drücken öffnet mit `forceDialog=true` die Format-/Speicherauswahl auch bei gemerkten Vorgaben.
 Videotreffer verwenden dieselbe Umschaltlogik mit Video-/MP3-Auswahl. Die `MediaItem`- und
@@ -546,7 +549,7 @@ des Titels, sodass ältere Dateiaufträge ihn nicht wiederherstellen; öffentlic
 fehlgeschlagene Dateien nicht. Titelweite Media3-Entfernungen laufen durch dieselbe Befehlssperre
 wie Hinzufügungen; wartende Hinzufügungen mit älterer Generation werden verworfen.
 Die horizontale Navigation misst den tatsächlichen Überlauf und reserviert dafür Richtungshinweise.
-Seit der unveröffentlichten Leistenkorrektur vom 08.09.2026 übernimmt `HorizontalScrollWithArrows`
+Seit der mit 1.2.1 veröffentlichten Leistenkorrektur vom 08.09.2026 übernimmt `HorizontalScrollWithArrows`
 diese Logik gemeinsam für `HorizontalNavigationBar` und alle `ButtonsRow`-Filter. Die Messung der
 Inhaltsbreite liegt hinter `horizontalScroll`; verglichen wird mit der gesamten verfügbaren
 Scrollspur, bevor Pfeilflächen abgezogen werden. So verschwinden die Pfeile nach einer
@@ -921,7 +924,7 @@ Nacharbeit vom 06.09.2026, veröffentlicht mit 1.2.0:
   Quellenfilter in `HomeArtist` und `HomeAlbum` nutzen `trailingContent` mit begrenzter Breite statt
   einer über den Chips liegenden Box. Beschriftungen bleiben einzeilig; bei Platzmangel wird die
   Chip-Leiste horizontal gescrollt. Die Glasfläche erzeugt keinen zusätzlichen Blur oder Schatten.
-  Die unveröffentlichte Ergänzung vom 08.09.2026 nutzt `HorizontalScrollWithArrows` für antippbare
+  Die mit 1.2.1 veröffentlichte Ergänzung vom 08.09.2026 nutzt `HorizontalScrollWithArrows` für antippbare
   Richtungshinweise in allen diesen Filtern sowie den Suchfiltern. Ein `BringIntoViewRequester`
   je stabilem Chip-Schlüssel hält die aktive Auswahl nach Auswahl- und Breitenwechseln sichtbar.
   Werkzeugleisten bleiben eigenständige Aktionsleisten mit ihrem bestehenden Überlaufmenü.

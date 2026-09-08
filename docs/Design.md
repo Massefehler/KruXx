@@ -3,7 +3,8 @@
 Stand: 08.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
 „Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen veröffentlicht mit
 [KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
-Die Leisten- und Header-Korrekturen vom 08.09.2026 sind für `1.2.1` vorbereitet.
+Die Leisten- und Header-Korrekturen vom 08.09.2026 sind mit
+[KruXx `1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) veröffentlicht.
 Die vollständige Darstellungsmatrix bleibt als Nachtest dokumentiert.
 
 ## Ziel und Abgrenzung
