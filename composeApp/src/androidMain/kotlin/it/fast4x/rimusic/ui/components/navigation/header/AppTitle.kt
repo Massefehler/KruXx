@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -18,6 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -28,6 +32,7 @@ import app.kreate.android.drawable.AppIcon
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.typography
+import it.fast4x.rimusic.ui.components.navigation.nav.HomeNavigation
 import it.fast4x.rimusic.ui.components.themed.Button
 import it.fast4x.rimusic.utils.semiBold
 import me.knighthat.utils.Toaster
@@ -70,14 +75,14 @@ private fun AppLogo(
     context: Context
 ) {
     val countToReveal = remember { mutableIntStateOf(0) }
-    val modifier = Modifier.combinedClickable(
+    val modifier = if (BuildConfig.INDEPENDENT_FORK) Modifier else Modifier.combinedClickable(
         onClick = { appIconClickAction( navController, countToReveal, context ) },
         onLongClick = { appIconLongClickAction( navController, context ) }
     )
 
     Image(
         bitmap = AppIcon.Round.imageBitmap( LocalContext.current ),
-        contentDescription = "App's icon",
+        contentDescription = if (BuildConfig.INDEPENDENT_FORK) null else "App's icon",
         modifier = modifier.size( 36.dp )
     )
 }
@@ -90,7 +95,7 @@ private fun AppLogoText( navController: NavController ) {
         padding = 0.dp,
         size = BuildConfig.HEADER_LOGO_HEIGHT_DP.dp,
         forceWidth = BuildConfig.HEADER_LOGO_WIDTH_DP.dp,
-        modifier = Modifier.clickable {
+        modifier = if (BuildConfig.INDEPENDENT_FORK) Modifier else Modifier.clickable {
             if ( NavRoutes.home.isHere( navController ) ) return@clickable
 
             // In short, navigates to [NavRoutes.home] then previous stacks
@@ -116,8 +121,19 @@ fun AppTitle(
         horizontalArrangement = Arrangement.spacedBy( 5.dp ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AppLogo( navController, context )
-        AppLogoText( navController )
+        val homeDescription = stringResource(R.string.kruxx_go_to_home)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = if (BuildConfig.INDEPENDENT_FORK) Modifier
+                .heightIn(min = 48.dp)
+                .clickable(role = Role.Button) { HomeNavigation.goHome(navController) }
+                .semantics { contentDescription = homeDescription }
+            else Modifier
+        ) {
+            AppLogo(navController, context)
+            AppLogoText(navController)
+        }
 
         if(Preference.parentalControl())
             Button(

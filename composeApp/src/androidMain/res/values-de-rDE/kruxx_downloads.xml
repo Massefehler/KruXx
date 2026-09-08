@@ -37,6 +37,8 @@
     <string name="kruxx_saved_files">Gespeicherte MP3-Dateien und Videos</string>
     <string name="kruxx_video_download">Video oder MP3 herunterladen</string>
     <string name="kruxx_audio_download">Originalaudio oder MP3 herunterladen</string>
+    <string name="kruxx_remove_download">Alle internen Downloads dieses Titels entfernen</string>
+    <string name="kruxx_download_options">Downloadformat und Speicherort wählen</string>
     <string name="kruxx_file_play">Gespeicherte Datei abspielen</string>
     <string name="kruxx_downloads_tab">Downloads</string>
     <string name="kruxx_downloads_audio">Audio</string>

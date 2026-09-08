@@ -49,14 +49,16 @@ fun Skeleton(
     onTabChanged: (Int) -> Unit = {},
     miniPlayer: @Composable (() -> Unit)? = null,
     navBarContent: @Composable (@Composable (Int, String, Int) -> Unit) -> Unit,
+    navigationTabIndex: Int = tabIndex,
+    onNavigationTabChanged: (Int) -> Unit = onTabChanged,
     content: @Composable AnimatedVisibilityScope.(Int) -> Unit
 ) {
     val navigationBar: AbstractNavigationBar =
         when( NavigationBarPosition.current() ) {
             NavigationBarPosition.Left, NavigationBarPosition.Right ->
-                VerticalNavigationBar( tabIndex, onTabChanged, navController )
+                VerticalNavigationBar( navigationTabIndex, onNavigationTabChanged, navController )
             NavigationBarPosition.Top, NavigationBarPosition.Bottom ->
-                HorizontalNavigationBar( tabIndex, onTabChanged, navController )
+                HorizontalNavigationBar( navigationTabIndex, onNavigationTabChanged, navController )
         }
     navigationBar.add( navBarContent )
 

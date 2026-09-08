@@ -8,15 +8,14 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-The current stable release is KruXx `1.2.0` (`versionCode 1000004`, Android 7.0+), titled
-**Downloads Update**. All 195 unit tests, full release lint and CI passed. The exact signed APK
-passed core search, dialog, playback, MP3 export and offline checks on Android 7 and Android 16;
-the Android 7 upgrade from 1.1.0 retained its test playlist. The signed APK, matching source tag,
-submodule pins and artifact hashes are published in the
-[KruXx 1.2.0 release](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
-Verification details and the remaining extended device checks are recorded in the
-[KruXx status report](docs/KRUXX-IST-STAND.md); immutable in-app notes are available in
-[`docs/changelogs/kruxx/1.2.0.txt`](docs/changelogs/kruxx/1.2.0.txt). Android Auto in a real vehicle,
+KruXx `1.2.1` (`versionCode 1000005`, Android 7.0+) is being prepared with navigation and download
+fixes. The current public stable release is still
+[KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+The implementation has passed 203 unit tests, release lint and debug interaction checks;
+validation of the final signed 1.2.1 artifact and publication are pending.
+Verification details and the remaining device checks are recorded in the
+[KruXx status report](docs/KRUXX-IST-STAND.md); the new in-app notes are in
+[`docs/changelogs/kruxx/1.2.1.txt`](docs/changelogs/kruxx/1.2.1.txt). Android Auto in a real vehicle,
 physical SD/USB providers and the broader interaction matrix still require testing. The dedicated
 podcast section remains a separate future feature.
 
@@ -51,6 +50,18 @@ Update checks can be changed or disabled under **Settings → General → Update
 crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
+
+### New in 1.2.1
+
+- Home and search keep the same main navigation, including Playlists and Downloads. Search filters
+  have their own row; the inactive Featured and Podcasts tabs are removed.
+- Overflowing filter rows gain tappable arrows that adapt to screen width and font size. The selected
+  filter stays visible, including when the main navigation is placed on the right.
+- Tapping the header icon or KruXx wordmark returns to the home page and clears nested pages.
+- A short tap on a track's download icon removes all internal formats and cancels pending work;
+  a long press opens the format and storage choices. Public copies are removed separately in Downloads.
+- All download routes resolve `Artist - Title` consistently for labels, filenames and MP3 tags.
+  Reusing an older internal MP3 corrects KruXx's tags without re-encoding its audio.
 
 ### New in 1.2.0 — Downloads Update
 

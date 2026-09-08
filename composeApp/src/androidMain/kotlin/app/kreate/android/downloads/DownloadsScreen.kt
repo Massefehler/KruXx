@@ -44,6 +44,7 @@ import app.kreate.android.R
 import app.kreate.android.service.player.StatefulPlayer
 import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.colorPalette
+import it.fast4x.rimusic.enums.NavigationBarPosition
 import it.fast4x.rimusic.service.MyDownloadHelper
 import it.fast4x.rimusic.ui.components.ButtonsRow
 import it.fast4x.rimusic.ui.components.tab.TabHeader
@@ -133,7 +134,9 @@ fun DownloadsScreen(player: StatefulPlayer = koinInject()) {
     LaunchedEffect(removal.revision) { selected = emptyList(); selecting = false }
     DownloadRemovalDialog(removal, context)
     CompositionLocalProvider(LocalContentColor provides palette.text) {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxHeight().fillMaxWidth(
+            if (NavigationBarPosition.Right.isCurrent()) Dimensions.contentWidthRightBar else 1f
+        )) {
             TabHeader(R.string.kruxx_downloads_tab) {}
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(if (category == 2) R.string.kruxx_download_in_app else R.string.kruxx_folder_default),

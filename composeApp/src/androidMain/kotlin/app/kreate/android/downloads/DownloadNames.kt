@@ -17,19 +17,18 @@ internal object DownloadNames {
     fun resolve(track: DownloadTrack): TrackNames {
         var title = track.title.trim()
         val artist = track.artist.trim()
-        if (track.videoSource) {
-            do {
-                val before = title
-                title = title.replace(presentation, "").trim()
-            } while (title != before)
-        }
+        do {
+            val before = title
+            title = title.replace(presentation, "").trim()
+        } while (title != before)
         val split = separator.find(title)
         if (split != null) {
             val left = title.substring(0, split.range.first).trim()
             val right = title.substring(split.range.last + 1).trim()
-            if (left.isNotEmpty() && right.isNotEmpty() &&
-                (track.videoSource || left.equals(artist, ignoreCase = true)))
-                return TrackNames(if (track.videoSource) left else artist, right)
+            // The artist/title convention applies to every download entry point, including
+            // library Song records that no longer carry the original video classification.
+            if (left.isNotEmpty() && right.isNotEmpty())
+                return TrackNames(if (left.equals(artist, ignoreCase = true)) artist else left, right)
         }
         // A channel is not evidence of authorship. Keep an unsplit video title without guessing.
         return TrackNames(if (track.videoSource) "" else artist, title)

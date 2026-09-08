@@ -13,8 +13,8 @@ val KRUXX_APP_NAME = "KruXx"
 // KruXx has its own release line. Keep versionCode strictly increasing forever: Android uses
 // it (not versionName) to decide whether an APK is an update. 1_000_000 is deliberately above
 // every distributed 2.2.3-kruxx.x build (latest: 14_107).
-val KRUXX_VERSION_NAME = "1.2.0"
-val KRUXX_VERSION_CODE = 1_000_004
+val KRUXX_VERSION_NAME = "1.2.1"
+val KRUXX_VERSION_CODE = 1_000_005
 val KRUXX_REPOSITORY_OWNER = "Massefehler"
 val KRUXX_REPOSITORY_NAME = "KruXx"
 val KRUXX_SIGNING_CERT_SHA256 = "5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673"

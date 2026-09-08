@@ -33,7 +33,7 @@ import it.fast4x.compose.persist.PersistMapCleanup
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.UiType
 import it.fast4x.rimusic.typography
-import it.fast4x.rimusic.ui.components.Skeleton
+import it.fast4x.rimusic.ui.components.SearchSkeleton
 import it.fast4x.rimusic.ui.components.themed.IconButton
 import it.fast4x.rimusic.ui.styling.favoritesIcon
 import it.fast4x.rimusic.utils.secondary
@@ -161,16 +161,16 @@ fun SearchScreen(
                 }
             }
 
-            Skeleton(
+            SearchSkeleton(
                 navController,
                 tabIndex,
                 onTabChanged,
                 miniPlayer,
-                navBarContent = { item ->
-                    item(0, stringResource(R.string.online), R.drawable.globe)
-                    item(1, stringResource(R.string.library), R.drawable.library)
-                    item(2, stringResource(R.string.go_to_link), R.drawable.link)
-                }
+                tabs = listOf(
+                    stringResource(R.string.online) to R.drawable.globe,
+                    stringResource(R.string.library) to R.drawable.library,
+                    stringResource(R.string.go_to_link) to R.drawable.link,
+                )
             ) { currentTabIndex ->
                 saveableStateHolder.SaveableStateProvider(currentTabIndex) {
                     when (currentTabIndex) {

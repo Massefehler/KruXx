@@ -28,6 +28,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.Cache
 import androidx.navigation.NavController
 import app.kreate.android.LocalBottomMenu
+import app.kreate.android.BuildConfig
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.downloads.forVideoDownload
@@ -53,7 +54,7 @@ import it.fast4x.innertube.utils.from
 import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.ui.components.LocalMenuState
-import it.fast4x.rimusic.ui.components.Skeleton
+import it.fast4x.rimusic.ui.components.SearchSkeleton
 import it.fast4x.rimusic.ui.components.SwipeableAlbumItem
 import it.fast4x.rimusic.ui.components.SwipeablePlaylistItem
 import it.fast4x.rimusic.ui.components.themed.NonQueuedMediaItemMenu
@@ -145,19 +146,21 @@ fun SearchResultScreen(
         SongItem.Values.from( colorPalette, typography )
     }
 
-    Skeleton(
+    SearchSkeleton(
         navController,
         tabIndex,
         onTabIndexChanges,
         miniPlayer,
-        navBarContent = { item ->
-            item(0, stringResource(R.string.songs), R.drawable.musical_notes)
-            item(1, stringResource(R.string.albums), R.drawable.album)
-            item(2, stringResource(R.string.artists), R.drawable.artist)
-            item(3, stringResource(R.string.videos), R.drawable.video)
-            item(4, stringResource(R.string.playlists), R.drawable.playlist)
-            item(5, stringResource(R.string.featured), R.drawable.featured_playlist)
-            item(6, stringResource(R.string.podcasts), R.drawable.podcast)
+        tabs = buildList {
+            add(stringResource(R.string.songs) to R.drawable.musical_notes)
+            add(stringResource(R.string.albums) to R.drawable.album)
+            add(stringResource(R.string.artists) to R.drawable.artist)
+            add(stringResource(R.string.videos) to R.drawable.video)
+            add(stringResource(if (BuildConfig.INDEPENDENT_FORK) R.string.tab_playlists else R.string.playlists) to R.drawable.playlist)
+            if (!BuildConfig.INDEPENDENT_FORK) {
+                add(stringResource(R.string.featured) to R.drawable.featured_playlist)
+                add(stringResource(R.string.podcasts) to R.drawable.podcast)
+            }
         }
     ) { currentTabIndex ->
         saveableStateHolder.SaveableStateProvider(currentTabIndex) {
@@ -215,7 +218,7 @@ fun SearchResultScreen(
                                 }
                             ) {
                                 SongItem.Render(
-                                    song = song.asSong,
+                                    mediaItem = mediaItem,
                                     modifier = Modifier.kruxxTrackCard(),
                                     hapticFeedback = hapticFeedback,
                                     isPlaying = song.shallowCompare( currentMediaItem ),

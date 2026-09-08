@@ -37,6 +37,8 @@
     <string name="kruxx_saved_files">Saved MP3 files and videos</string>
     <string name="kruxx_video_download">Download video or MP3</string>
     <string name="kruxx_audio_download">Download original audio or MP3</string>
+    <string name="kruxx_remove_download">Remove all in-app downloads of this track</string>
+    <string name="kruxx_download_options">Choose download format and storage</string>
     <string name="kruxx_file_play">Play saved media</string>
     <string name="kruxx_downloads_tab">Downloads</string>
     <string name="kruxx_downloads_audio">Audio</string>

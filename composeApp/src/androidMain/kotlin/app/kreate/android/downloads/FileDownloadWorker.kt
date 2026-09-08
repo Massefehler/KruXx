@@ -111,7 +111,12 @@ class FileDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
                         continue
                     }
                     val (file, extension) = if (existing != null) {
-                        DownloadCenter.file(existing) to existing.extension
+                        val source = DownloadCenter.file(existing)
+                        val updated = File(scratch, "retagged.mp3")
+                        if (kind == DownloadKind.MP3 && Mp3Tags.copyWithUpdatedNames(source, updated, track.names) {
+                                onProgress(DownloadStep.PREPARING, it)
+                            }) retain(track, kind, updated, "mp3", generations.getValue(track.id))
+                        else source to existing.extension
                     } else {
                         check(!copy || kind != DownloadKind.VIDEO) { "Video is not downloaded" }
                         onProgress(DownloadStep.PREPARING, 0.0)

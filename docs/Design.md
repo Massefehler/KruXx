@@ -1,8 +1,9 @@
 # KruXx Glass – Designkonzept
 
-Stand: 07.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
+Stand: 08.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
 „Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen veröffentlicht mit
 [KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Die Leisten- und Header-Korrekturen vom 08.09.2026 sind für `1.2.1` vorbereitet.
 Die vollständige Darstellungsmatrix bleibt als Nachtest dokumentiert.
 
 ## Ziel und Abgrenzung
@@ -290,6 +291,16 @@ Nur die Auswahlbuttons scrollen seitlich, die Glasfläche bleibt stehen. Quellen
 Künstlern und Alben erhalten einen eigenen Platz rechts innerhalb der Leiste und können lange
 Reiter nicht überdecken. Es entsteht kein zusätzlicher Blur-Durchlauf pro Button.
 
+Unveröffentlichte Ergänzung vom 08.09.2026: Alle `ButtonsRow`-Filter verwenden dieselben
+antippbaren `<<`-/`>>`-Hinweise wie die horizontale Hauptnavigation. Das umfasst Titel, Künstler,
+Alben, Playlists, Downloads, Verlauf, Statistik sowie Suchquellen und Suchergebnisse. Die Hinweise
+erscheinen nur bei tatsächlichem Überlauf und nur in noch erreichbare Richtungen. Beim Wechsel
+wird der gewählte Filter in den sichtbaren Bereich gescrollt. Die Messung berücksichtigt
+Schriftgröße, Fensterbreite und den Platz des festen Quellenfilters; nach einer Verbreiterung
+verschwinden die Pfeile, wenn alle Einträge passen. Die obere Werkzeugleiste und die darunterliegende
+Filterleiste bleiben getrennt: Aktionen verwenden ihr vorhandenes Drei-Punkte-Menü, Kategorien
+die Scrollpfeile. Die Downloads-Ansicht hält außerdem Platz für eine rechte Hauptnavigation frei.
+
 In der Statistik sind zusätzlich die Karte mit Titelanzahl/Wiedergabezeit und die Titel der
 Rangliste angeglichen. Die leichten Track-Kacheln gelten für jeden Zeitraum einschließlich „Gesamt“.
 Die Auswahl „Liste / Raster“ neben der Zeitraumüberschrift bietet einen Titel je Zeile oder
@@ -305,6 +316,18 @@ nachgeprüft. Die Nachweise stehen im
 [Statistik-Prüfstand](KRUXX-IST-STAND.md#auswählbare-statistikansicht-vom-06092026--veröffentlicht-mit-120).
 
 ## Bedingte Erweiterung der Hauptnavigation
+
+Unveröffentlichte Ergänzung vom 08.09.2026: App-Icon und Wortmarke im Header sind gemeinsam als
+„Zur Startseite“-Schaltfläche bedienbar. Ein Tipp wählt die Startseite ausdrücklich aus und verlässt
+offene Unterseiten. Die zusammenhängende Trefferfläche ist mindestens 48 dp hoch. Wiederholtes
+Tippen legt keine weiteren Seiten an; die geerbten versteckten Spielaktionen des Icons entfallen
+in KruXx. Bei bewusst ausgeschalteter Startseite gilt der vorhandene Titel-Fallback.
+
+Unveröffentlichte Korrektur vom 08.09.2026: Startseite, Sucheingabe und Suchergebnisse verwenden
+dieselbe Hauptleiste einschließlich „Playlists“ und „Downloads“. Suchquellen und Ergebniskategorien
+stehen als separate Filterleiste oberhalb des Inhalts. Die übernommenen, nicht unterstützten
+Suchkategorien „Vorgestellt“ und „Podcasts“ entfallen in KruXx. Ein Klick auf die Hauptleiste öffnet
+den jeweiligen Bereich der Startseite; die Suche gibt keinen Home-Reiter als ausgewählt aus.
 
 Die untere Hauptnavigation bleibt horizontal scrollbar. Solange alle Reiter vollständig in die
 verfügbare Breite passen, werden keine zusätzlichen Richtungshinweise angezeigt. Erst bei einem

@@ -2,6 +2,7 @@ package app.kreate.android.downloads
 
 import android.app.Application
 import android.content.Context
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -45,6 +46,31 @@ class DownloadRemovalTest {
         assertEquals(setOf(video, other), DownloadCenter.saved.value.toSet())
         assertEquals(generation + 1, DownloadCenter.generation("one"))
         assertEquals(0, DownloadCenter.generation("two"))
+    }
+
+    @Test fun trackRemovalDeletesAllItsConversionsAndPersistsUnrelatedDownloads() = runBlocking {
+        val mp3 = asset("one", DownloadKind.MP3)
+        val video = asset("one", DownloadKind.VIDEO)
+        val other = asset("two", DownloadKind.MP3)
+        val generation = DownloadCenter.generation("one")
+        val removal = DownloadCenter.removeFiles("one")
+        assertTrue(DownloadCenter.generation("one") > generation)
+        removal.join()
+        assertFalse(DownloadCenter.file(mp3).exists())
+        assertFalse(DownloadCenter.file(video).exists())
+        assertTrue(DownloadCenter.file(other).exists())
+        DownloadCenter.initialize(context)
+        assertEquals(listOf(other), DownloadCenter.saved.value)
+        assertTrue(DownloadCenter.generation("one") > generation)
+        assertEquals(0, DownloadCenter.generation("two"))
+    }
+
+    @Test fun removingAnOriginalWithNoConversionsAlsoInvalidatesPendingConversionWork() = runBlocking {
+        val generation = DownloadCenter.generation("one")
+        DownloadCenter.removeFiles("one").join()
+        DownloadCenter.initialize(context)
+        assertTrue(DownloadCenter.generation("one") > generation)
+        assertTrue(DownloadCenter.saved.value.isEmpty())
     }
 
     @Test fun changedAssetCannotBeRemovedOrForgottenUsingAnOldSelection() {

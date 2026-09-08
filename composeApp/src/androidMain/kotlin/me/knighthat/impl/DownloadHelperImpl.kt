@@ -255,6 +255,8 @@ class DownloadHelperImpl(
             .distinctBy(MediaItem::mediaId)
             .filter(::canAdd)
         if( accepted.isEmpty() ) return
+        val generations = if (BuildConfig.INDEPENDENT_FORK)
+            accepted.associate { it.mediaId to DownloadCenter.generation(it.mediaId) } else emptyMap()
 
         accepted.forEach { mediaItem ->
             // Also covers orphaned partial cache data whose old index row no longer exists.
@@ -268,6 +270,12 @@ class DownloadHelperImpl(
         coroutineScope.launch {
             commandMutex.withLock {
                 accepted.forEach { mediaItem ->
+                    // Removal may have happened while this command waited behind a batch.
+                    if (BuildConfig.INDEPENDENT_FORK &&
+                        DownloadCenter.generation(mediaItem.mediaId) != generations[mediaItem.mediaId]) {
+                        pendingCommandIds.remove(mediaItem.mediaId)
+                        return@forEach
+                    }
                     val result = context.download<MyDownloadService>(makeDownloadRequest(mediaItem))
 
                     result.exceptionOrNull()?.let {
@@ -316,10 +324,13 @@ class DownloadHelperImpl(
 
         //sendRemoveDownload(context,MyDownloadService::class.java,mediaItem.mediaId,false)
         coroutineScope.launch {
-            context.removeDownload<MyDownloadService>(mediaItem.mediaId).exceptionOrNull()?.let {
-                if (it is CancellationException) throw it
+            commandMutex.withLock {
+                context.removeDownload<MyDownloadService>(mediaItem.mediaId).exceptionOrNull()?.let {
+                    if (it is CancellationException) throw it
 
-                Logger.e( it, "DownloadHelperImpl" ) { "removeDownload failed!"}
+                    Logger.e( it, "DownloadHelperImpl" ) { "removeDownload failed!"}
+                    Toaster.e(app.kreate.android.R.string.kruxx_remove_error)
+                }
             }
         }
     }
@@ -366,7 +377,8 @@ class DownloadHelperImpl(
 
         val state = downloads.value[song.id]?.state
 
-        if( removeIfDownloaded && state?.isDownloadRemovable() == true )
+        if( removeIfDownloaded && (state?.isDownloadRemovable() == true ||
+                    (BuildConfig.INDEPENDENT_FORK && DownloadCenter.isDownloaded(song.id))) )
             removeDownload( song.asMediaItem )
         else if( state != Download.STATE_COMPLETED && state?.isDownloadPending() != true )
             addDownload( song.asMediaItem )

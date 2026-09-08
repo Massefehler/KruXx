@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 07.09.2026 · öffentlicher Release `1.2.0`, Entwicklungsstand und Nachtests
+Stand: 08.09.2026 · Release-Kandidat `1.2.1`; öffentlich weiterhin `1.2.0`
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,7 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0) |
 | Öffentlicher Android-Versionscode | `1_000_004` |
-| Nächster Release | Noch nicht festgelegt; offene Nachtests und Roadmap siehe unten |
+| Nächster Release | `1.2.1` / `1_000_005`: Navigation und Download-Korrekturen, in Vorbereitung |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -27,6 +27,133 @@ KruXx ist ein eigenständiger Fork. Es gibt keine automatische Übernahme neuer 
 keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, Metrolist und weitere
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
+
+### Release-Vorbereitung 1.2.1 vom 08.09.2026
+
+Der beauftragte Patch-Release bündelt die folgenden Korrekturen. Versionsname und Android-Code
+sind auf `1.2.1` / `1000005` erhöht; eigene [Versionshinweise](changelogs/kruxx/1.2.1.txt) liegen vor.
+Historische Changelogs, Paket-ID, Android-Untergrenze und Release-Zertifikat bleiben erhalten.
+Die bisherigen 203 Tests und Debug-Geräteprüfungen sind unten belegt. Die erneuten Prüfungen aus
+dem sauberen Release-Commit, der signierte Build, dessen Geräteabnahme, CI, Tag und Veröffentlichung
+stehen zu diesem Quellstand noch aus. Finale Prüfergebnisse und APK-Hash werden anschließend ergänzt.
+
+Die USB-Verbindung zum Samsung war zuletzt nicht verfügbar. Für die signierte Abnahme sind eigene
+API-24- und API-36-Emulatoren vorgesehen; die vorhandenen Samsung-Nachweise betreffen den Debug-Code.
+Die erweiterten offenen Gerätefälle bleiben als Nachtests ausgewiesen.
+
+### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
+
+- Startseite, Sucheingabe und Suchergebnisse verwenden dieselbe Hauptnavigation einschließlich
+  „Playlists“ und „Downloads“. Suchquellen beziehungsweise Ergebniskategorien stehen als eigene
+  Filter oberhalb des Inhalts. Die übernommenen Kategorien „Vorgestellt“ und „Podcasts“ werden
+  in KruXx nicht mehr angeboten; eine gespeicherte Auswahl dieser Kategorien fällt auf Titel zurück.
+- Kurzes Tippen auf das Downloadsymbol eines fertigen oder laufenden Tracks entfernt wieder
+  internes Originalaudio und sämtliche internen MP3-/Videovarianten. Langes Drücken öffnet
+  die Format-/Speicherauswahl auch bei gemerkten Vorgaben. Exportierte Ordnerkopien werden weiterhin
+  gezielt in der Downloads-Übersicht entfernt. Fehlgeschlagene interne Dateilöschungen bleiben
+  sichtbar; wartende Media3-Befehle berücksichtigen die Entfernungsgeneration.
+- Das Schema `Künstler - Titel` (einschließlich Gedankenstrichen mit Leerzeichen) gilt für alle
+  Downloadwege, auch Titelkacheln, Sammelaktionen und Bibliotheksdaten ohne Video-Herkunftsflag.
+  `Kilophil - Protoporn` mit Uploader `dejanprogtrens` wird zu Künstler `Kilophil`, Titel `Protoporn`
+  und beispielsweise `Kilophil - Protoporn.mp3`. Weitere Titelbestandteile wie `- Extended Mix`
+  bleiben erhalten. Ohne dieses Schema werden vorhandene Musikmetadaten verwendet;
+  bei bekannten Videos ohne Künstlerangabe wird kein Künstler aus dem Kanalnamen erfunden.
+- Rohe Quellangaben werden auch für Originaldownloads gespeichert. Bereits aufgeteilte
+  Bibliothekstitel werden bei erneuten Download-/Kopieraktionen damit nicht nochmals zerlegt.
+  Suchtreffer behalten ihre Video-/Art-Track-Kennung bis zum Downloadknopf.
+- Neue MP3s verwenden die korrigierten ID3-Tags. Beim erneuten Verwenden einer älteren internen
+  Konvertierung werden deren von KruXx erzeugte Titel-/Künstler-Tags bei Bedarf ersetzt;
+  die MP3-Audiodaten werden unverändert kopiert. Bestehende öffentliche Dateien werden dabei
+  nicht überschrieben. Originalaudio bleibt unverändert im Quellformat.
+- Automatische Prüfung dieses Arbeitsstands: **145 App-Tests und 58 Innertube-Tests bestanden**,
+  ohne Fehler oder übersprungene Tests. Universal-Debug erfolgreich gebaut; Release-Lint
+  erfolgreich ohne Fehler, mit 48 Warnungen und zwei Baseline-Hinweisen. Die Warnungen betreffen
+  Dependency-Versionen und vorhandene API-Prüfungen; die Baseline wurde nicht erweitert.
+  Nach der Ergänzung für direkte Suchrouten und die rechte Navigationsleiste wurden App-Tests,
+  Debug-Build und Release-Lint erneut erfolgreich ausgeführt.
+- Bedienprüfung auf einem eigens angelegten API-36-Emulator: Die unveränderte Debug-APK von
+  1.2.0 zeigt beim Suchbegriff `Kilophil Protoporn` die alte Kategorienleiste und den Uploader
+  `dejanprogtrens`. Nach Installation des Arbeitsstands bleiben Hauptnavigation und „Downloads“
+  während der Suche erreichbar. Originalaudio wurde erfolgreich heruntergeladen und unter
+  `Kilophil - Protoporn` in „Nur in KruXx“ angezeigt. Langes Drücken auf dessen Downloadsymbol
+  öffnet die Formatauswahl; die anschließende MP3-Konvertierung mit öffentlicher Kopie ist fertig.
+  `ffprobe` bestätigt `Kilophil - Protoporn.mp3`, MP3 mit 320.000 bit/s, Titel `Protoporn` und
+  Künstler `Kilophil`. Ein kurzer Tipp auf denselben Knopf entfernt danach die internen MP3-
+  und Originalaudio-Dateien vollständig (beide Speicherbereiche leer); das Symbol bietet wieder
+  einen Download an. Die öffentliche Kopie bleibt wie vorgesehen erhalten.
+  Sucheingabe und Suchergebnisse wurden außerdem mit rechter Navigationsleiste geprüft:
+  Inhalts-/Filterbreite berücksichtigen die Leiste; „Playlists“ und „Downloads“ bleiben sichtbar.
+  Der App-Crashpuffer blieb leer. Der eigens angelegte Emulator wurde beendet und gelöscht;
+  bestehende Geräteinstallationen wurden für diese Bedienprüfung nicht verändert.
+  Diese Prüfungen ersetzen nicht die unten genannten offenen Gerätefälle.
+
+### Ergänzende Leistenkorrektur für 1.2.1 vom 08.09.2026
+
+- Die zwei Leisten in den Bibliotheksrubriken haben unterschiedliche Aufgaben: oben die Aktionen
+  mit Drei-Punkte-Menü, darunter die Kategorienfilter. Die Filter besaßen noch keine Pfeile.
+  `HorizontalScrollWithArrows` stellt nun die gemeinsame Überlaufmessung und antippbare `<<`-/`>>`-
+  Hinweise für Hauptnavigation und sämtliche `ButtonsRow`-Filter bereit: Titel, Künstler, Alben,
+  Playlists, Downloads, Verlauf, Statistik, Suchquellen und Suchergebnisse.
+- Pfeile erscheinen nur bei tatsächlich verdeckten Einträgen und nur in noch erreichbare
+  Richtungen. Die Randflächen bleiben an den Scrollgrenzen stabil. Die aktive Filterauswahl
+  wird nach Auswahl- und Breitenänderungen sichtbar gehalten. Quellenfilter bei Künstlern und
+  Alben behalten ihren eigenen Platz. Schriftgröße und verfügbare Breite fließen in die Messung ein.
+- Die sichtbaren Titelfilter reagieren nun auch auf Änderungen von „Lokal“/„Auf dem Gerät“;
+  dessen Zustand fehlte bisher unter den `remember`-Schlüsseln. `DownloadsScreen` reserviert
+  außerdem den Platz für eine rechts angeordnete Hauptnavigation.
+- Erneute automatische Prüfung des endgültigen Codes: **145 App-Tests bestanden**, keine Fehler
+  oder übersprungenen Tests. Universal-Debug und Release-Lint erfolgreich; unverändert 48 Warnungen
+  und zwei Baseline-Hinweise, keine Lint-Fehler und keine Erweiterung der Baseline.
+- USB-Prüfung auf Samsung SM-S931B / Android 16: bestehende Debug-App per Update installiert,
+  Release-App und gespeicherte Dateien erhalten. Der vorherige Stand zeigt die Filter unter
+  „Titel“ ohne Pfeile. Nach Update sind Beginn, Zwischenposition und Ende mit korrekten
+  Richtungshinweisen belegt; „Lokal“ wird erreicht. Künstler-, Alben-, Playlist- und Downloadleisten
+  sind geöffnet und geprüft; Audio, Video und „Nur in KruXx“ lassen sich wechseln.
+  Bei Schriftfaktor 1,5 sind überlaufende Künstler-/Albenfilter per Pfeil erreichbar, der feste
+  Quellenfilter behält exakt seine Position. Die Statistikfilter und sämtliche sieben Zeiträume
+  von „Heute“ bis „Gesamt“ sind erreichbar. Die Verlaufsfilter passen auch bei Schriftfaktor 1,5
+  vollständig in die Leiste und benötigen dann keine Pfeile.
+- Beide Verlaufsquellen, die Titelfilter Favoriten/Zwischengespeichert/Offline-Songs/Top sowie
+  sämtliche neun Einstellungsrubriken sind gewechselt. Auch die Einstellungsleiste erreicht ihre
+  letzte Rubrik „Info“ mit dem korrekten linken Richtungshinweis an der rechten Scrollgrenze.
+- Abschließende Prüfung mit der zuletzt gebauten Debug-APK: Im Querformat passen beide
+  Künstlerfilter und alle sechs Hauptreiter; die Pfeile verschwinden. Nach Rückkehr ins Hochformat
+  bleibt „Bibliothek“ ausgewählt und sichtbar, die notwendigen Pfeile kehren zurück. Mit rechter
+  Navigation ist auch der letzte Downloads-Filter „Nur in KruXx“ auswählbar, ohne die Hauptleiste
+  zu verdecken. Alle drei Suchquellen und alle fünf Ergebniskategorien sind gewechselt; danach ist
+  „Downloads“ über die weiterhin sichtbare Hauptleiste erreichbar. „Vorgestellt“ und „Podcasts“
+  sind nicht mehr vorhanden. Ursprünglicher Schriftfaktor 0,8, Ausrichtungssperre/Hochformat und
+  untere Navigationsposition sind wiederhergestellt. Der neue Crash-/ANR-Filter für das Debug-Paket
+  liefert im Prüfzeitraum keine Treffer. Zum Abschluss steht die Debug-App auf „Titel“ mit der
+  normalen Gesamtauswahl; die temporäre UI-Dump-Datei auf dem Handy ist entfernt.
+
+### App-Icon als Startseiten-Schaltfläche für 1.2.1 vom 08.09.2026
+
+- Das App-Icon und der KruXx-Schriftzug im gemeinsamen Header bilden eine zusammenhängende,
+  mindestens 48 dp hohe Schaltfläche mit der zugänglichen Beschriftung „Zur Startseite“.
+  Beide öffnen ausdrücklich den Startseiten-Reiter, auch wenn zuletzt Titel oder Downloads aktiv war.
+  Die geerbten Spielaktionen durch Mehrfach- oder Langdruck auf das Icon entfallen in KruXx.
+- `HomeNavigation.goHome` setzt die Reiterauswahl und entfernt untergeordnete Seiten aus dem
+  Navigationsstapel. Das gilt auch für einen direkten App-Start in der Suche. Wiederholtes Tippen
+  auf der bereits geöffneten Startseite erzeugt keine weiteren Seiten. Die konfigurierbare
+  Startansicht beim App-Start bleibt unabhängig davon; bei bewusst deaktivierter Startseite greift
+  wie beim App-Start der vorhandene Titel-Fallback.
+- **145 App-Tests bestanden**, keine Fehler oder übersprungenen Tests. Universal-Debug und
+  Release-Lint erfolgreich; unverändert 48 Warnungen und zwei Baseline-Hinweise, keine Lint-Fehler.
+  Der neue Debug-Build ist mit Datenerhalt auf dem Samsung SM-S931B / Android 16 installiert.
+  Die neue Header-Schaltfläche ist dort sichtbar. Die USB-Debugging-Verbindung brach danach ab;
+  der vollständige Interaktionstest auf dem Handy konnte deshalb nicht abgeschlossen werden.
+- Ersatzprüfung mit derselben APK in einem eigenen Android-16-AVD: Rückkehr über Icon und
+  Schriftzug aus Titel, Künstlern, Alben, Playlists, Downloads, Einstellungen, Verlauf, Statistik,
+  Profilen und einer geöffneten Albumdetailseite bestanden. Auch Einstellungen → Suche →
+  Suchergebnisse → Startseite entfernt den gesamten Unterseitenstapel. Der Header zeigt danach
+  keine Zurück-Schaltfläche mehr.
+- Ein Kaltstart über `it.fast4x.rimusic.action.search` öffnet zunächst die Suche; Icon → Startseite
+  und anschließend Einstellungen → Schriftzug → Startseite funktionieren auch bei diesem
+  abweichenden Graph-Startziel. Zwölf weitere Icon-Tipps und ein langer Druck öffnen weder Spiele
+  noch zusätzliche Seiten. Im abschließenden Emulatorlauf keine App-Abstürze oder ANRs.
+  Der erfolgreiche Lauf verwendet Host-Grafik mit deaktiviertem Vulkan; der Software-Renderer
+  des Emulators war zuvor auf dem Entwicklungsrechner abgestürzt.
 
 ### Veröffentlichung von 1.2.0 am 07.09.2026
 

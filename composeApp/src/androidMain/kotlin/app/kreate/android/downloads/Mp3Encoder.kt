@@ -47,7 +47,7 @@ object Mp3Encoder {
             var pcmEncoding = AudioFormat.ENCODING_PCM_16BIT
             var sampleCount = 0L
             destination.outputStream().buffered().use { output ->
-                output.write(id3Tag(track.names.title, track.names.artist))
+                output.write(Mp3Tags.encode(track.names.title, track.names.artist))
                 while (!outputEnded) {
                     currentCoroutineContext().ensureActive()
                     if (!inputEnded) {
@@ -125,17 +125,4 @@ object Mp3Encoder {
         }
     }
 
-    /** Small UTF-16 ID3v2.3 tags; accented artist/title names survive on USB players. */
-    internal fun id3Tag(title: String, artist: String): ByteArray {
-        fun frame(id: String, value: String): ByteArray {
-            val text = byteArrayOf(1) + value.toByteArray(Charsets.UTF_16)
-            val size = text.size
-            return id.toByteArray(Charsets.US_ASCII) +
-                byteArrayOf((size ushr 24).toByte(), (size ushr 16).toByte(), (size ushr 8).toByte(), size.toByte(), 0, 0) + text
-        }
-        val body = frame("TIT2", title.take(4096)) + frame("TPE1", artist.take(4096))
-        val size = body.size
-        return byteArrayOf(73, 68, 51, 3, 0, 0, ((size ushr 21) and 127).toByte(),
-            ((size ushr 14) and 127).toByte(), ((size ushr 7) and 127).toByte(), (size and 127).toByte()) + body
-    }
 }

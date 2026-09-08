@@ -1,6 +1,8 @@
 # Downloads, MP3 und Dateikopien
 
-Stand: 07.09.2026. Veröffentlicht mit [KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Stand: 08.09.2026. Grundfunktion veröffentlicht mit [KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Die unten beschriebenen Korrekturen an Downloadsymbol, Suchnavigation und Künstler-/Titelzuordnung
+vom 08.09.2026 sind für `1.2.1` vorbereitet; signierte Abnahme und Veröffentlichung stehen noch aus.
 Die unten aufgeführten offenen Gerätefälle bleiben Nachtests und gelten nicht als bestanden.
 Der verbindliche Prüfstatus steht in [KRUXX-IST-STAND.md](KRUXX-IST-STAND.md).
 KruXx `1.2.0` setzt Android 7.0 / API 24 voraus; Android 6 gehört seit der Supportentscheidung
@@ -24,8 +26,9 @@ zeigt einen Dialog für alle enthaltenen Titel. Lokale Gerätedateien und doppel
 In Videotreffern öffnet das Downloadsymbol die Auswahl Video/MP3. Normale Musikdownloads bieten
 Originalaudio/MP3. Normale Titel besitzen rechts denselben gut erreichbaren Downloadknopf, sowohl
 im Titelreiter und in Suchtreffern als auch in Künstler-, Album- und Playlistlisten. Ein Tipp auf
-einen bereits heruntergeladenen Titel öffnet ebenfalls die Format-/Speicherauswahl beziehungsweise
-wendet die gemerkte Vorgabe an; der Knopf entfernt keinen bestehenden Download. Die Statussymbole
+einen bereits heruntergeladenen oder laufenden Titel entfernt alle internen Varianten einschließlich
+Originalaudio, MP3 und Video. Exportierte Ordnerkopien lassen sich separat in „Downloads“ entfernen.
+Langes Drücken öffnet jederzeit die Format-/Speicherauswahl, auch bei einer gemerkten Vorgabe. Die Statussymbole
 für laufende und fertige Downloads bleiben sichtbar. Lokale Gerätedateien erhalten diesen Knopf nicht.
 Speichermodus und Formate für Musik und Video lassen sich merken. Hintergrund-
 Autodownloads verwenden gemerkte Vorgaben; ohne Vorgabe speichern sie wie bisher Audio in der App
@@ -154,8 +157,9 @@ vollständig vorhandene Quellen wird keine unnötige Netzwerkbedingung gesetzt.
   Abschluss. Andere Formate und öffentliche Kopien werden dabei nicht mitgelöscht. Interne
   Entfernungen invalidieren ältere Dateiaufträge für den betroffenen Titel.
 - `SongItem.Render` verwendet für KruXx-Audiotitel `AudioDownloadButton` mit explizitem `video=false`.
-  Er ersetzt dort das bisherige kleine Cache-/Download-Umschaltsymbol. Das Öffnen der Auswahl
-  verändert weder Cache noch Formatmetadaten; fertiges Originalaudio bleibt für MP3 und Kopien nutzbar.
+  Kurzes Tippen schaltet zwischen Herunterladen und titelweiter interner Entfernung um;
+  langes Drücken öffnet mit `forceDialog=true` die Auswahl. Dasselbe gilt für `VideoDownloadButton`.
+  Die MediaItem-/Innertube-Aufrufer behalten die Video-/Art-Track-Kennung bis zum Knopf.
 - `FileDownloadWorker` nutzt persistente JSON-Eingaben außerhalb des WorkManager-Data-Limits und
   getrennte eindeutige Aufträge. Ein Semaphore begrenzt Konvertieren/Kopieren auf einen Auftrag;
   die bestehende Media3-Audioqueue lädt bis zu fünf Quellen gleichzeitig. Alle Media3-Queuezugriffe
@@ -164,19 +168,23 @@ vollständig vorhandene Quellen wird keine unnötige Netzwerkbedingung gesetzt.
 - Abbrechen beendet den Dateiauftrag. Die separat verwaltete Media3-Audioqueue und fertig gespeicherte
   App-Downloads bleiben bestehen. Ein erneuter Auftrag verwendet fertige Dateien wieder. Entfernen
   eines Downloads erhöht dessen persistente Generation, damit ein älterer Worker ihn nicht
-  ungewollt wieder als fertige MP3/Videodatei registriert.
+  ungewollt wieder als fertige MP3/Videodatei registriert. Auch wartende Media3-Hinzufügungen prüfen
+  ihre Generation; Hinzufügen und titelweites Entfernen teilen eine Befehlssperre. Interne
+  Dateien werden nur nach erfolgreicher Entfernung aus dem Bestand entfernt.
 - `OfflineFiles.snapshot` liest ausschließlich vollständige Download-Cachebereiche über eine
   `CacheDataSource` ohne Netzwerk-Upstream. Teilstücke werden in Byte-Reihenfolge gestreamt und
   Länge/Dateisignatur geprüft. Es gibt kein Einlesen ganzer Titel oder Playlists in den Arbeitsspeicher.
 - `DownloadNames` bildet Dateinamen und Download-Beschriftungen aus Künstler und Titel:
-  `Noma - Sleepwalker.mp3`, ohne Uploader, ID-Hash oder Format-Zusatz im Namen. Bei Audiotracks
-  zählen die Musikmetadaten; Videotitel im Schema `Künstler - Titel` (auch Gedankenstriche) werden
-  aufgeteilt. Ohne solche Angaben bleibt der Videotitel ohne erfundenen Künstler stehen. Offizielle
-  Art-Tracks behalten ihre Musikmetadaten. Gängige Video-/Qualitäts-Klammern entfallen, musikalische
+  `Kilophil - Protoporn.mp3`, ohne Uploader, ID-Hash oder Format-Zusatz im Namen. Das Schema
+  `Künstler - Titel` (auch Gedankenstriche mit Leerzeichen) wird für alle Downloadwege aufgeteilt,
+  einschließlich gewöhnlicher Audiokacheln und Bibliothekseinträgen ohne Video-Herkunftsflag.
+  Ohne Trennschema gelten die vorhandenen Musikmetadaten; bekannte Videotitel ohne Künstlerangabe
+  bleiben ohne erfundenen Künstler stehen. Gängige Video-/Qualitäts-Klammern entfallen, musikalische
   Versionsangaben wie Remix, Live und feat. bleiben erhalten. Unicode bleibt erhalten;
   problematische Pfadzeichen werden ersetzt und der UTF-8-Namensteil auf 160 Bytes begrenzt.
 - Quellmetadaten und Video-Herkunft werden getrennt von der sichtbaren Benennung persistiert;
-  Queue-/Kopierrundläufe behalten sie. Eine aufgeteilte Künstlerangabe übernimmt keine Kanal-ID als
+  `source_tracks` sichert sie auch für interne Originaldownloads. Queue-/Kopierrundläufe und bereits
+  aufgeteilte Bibliothekstitel behalten so ihre Identität. Eine aufgeteilte Künstlerangabe übernimmt keine Kanal-ID als
   Künstlerverknüpfung. Alte lokale JSON-Assets ohne Herkunftsflag erhalten eine Kompatibilitätsregel
   für Kanalverknüpfungen ohne Album. Normale neue Audiotracks durchlaufen diese Regel nicht.
 - Bekannte alte Exportnamen werden anhand von Hash **und exaktem früheren Namen** erkannt und
@@ -184,6 +192,11 @@ vollständig vorhandene Quellen wird keine unnötige Netzwerkbedingung gesetzt.
   Schreibfreigabe. Unterschiedliche Dateien gleichen Namens bleiben als `(2)`, `(3)` usw. erhalten.
   Die Umbenennung verändert keine Mediendaten oder bestehenden eingebetteten Tags. Neu erzeugte
   MP3-Dateien verwenden die aufgelösten Künstler-/Titeldaten auch für ID3.
+- `Mp3Tags` prüft beim erneuten Kopieren/Herunterladen vorhandener interner MP3-Konvertierungen
+  deren ID3-Titel und -Künstler. Veraltete KruXx-Tags werden in einer temporären Datei korrigiert;
+  die Audiodaten bleiben bytegleich und werden nicht nochmals komprimiert. Unerwartete Tags werden
+  nicht verworfen. Öffentliche Altdateien bleiben unverändert; neue Exporte erhalten bei anderem
+  Inhalt wie bisher eine kollisionsfreie Nummer. Originalaudio behält seine ursprünglichen Bytes.
 - Exporte erhalten einen eigenen temporären Namen und Marker. Erst nach vollständigem Schreiben
   und SHA-256-Leseprüfung wird die Datei umbenannt. Identische bestehende Dateien, einschließlich
   nummerierter Kopien, werden übersprungen; andere Dateien bekommen keinen Überschreibzugriff.

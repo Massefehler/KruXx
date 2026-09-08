@@ -12,6 +12,8 @@ import androidx.core.content.ContextCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
@@ -22,6 +24,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -31,6 +35,7 @@ import androidx.work.*
 import app.kreate.android.BuildConfig
 import app.kreate.android.R
 import app.kreate.android.service.isDownloadPending
+import app.kreate.android.service.isDownloadRemovable
 import app.kreate.android.themed.common.component.tab.DownloadAllDialog
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.ui.components.themed.ThemedAlertDialog
@@ -278,25 +283,34 @@ class CopyDownloadsButton(private val download: DownloadAllDialog) : MenuIcon, D
 }
 
 @Composable
-fun AudioDownloadButton(item: androidx.media3.common.MediaItem) {
+fun AudioDownloadButton(item: androidx.media3.common.MediaItem) = TrackDownloadButton(item, video = false)
+
+@Composable
+fun VideoDownloadButton(item: androidx.media3.common.MediaItem) = TrackDownloadButton(item, video = true)
+
+@Composable
+private fun TrackDownloadButton(item: androidx.media3.common.MediaItem, video: Boolean) {
     val state = getDownloadState(item.mediaId)
+    val removable = state.isDownloadRemovable()
     val icon = when {
-        state.isDownloadPending() -> R.drawable.download_progress
+        state.isDownloadPending() || state == androidx.media3.exoplayer.offline.Download.STATE_REMOVING -> R.drawable.download_progress
         state == androidx.media3.exoplayer.offline.Download.STATE_COMPLETED -> R.drawable.downloaded
         else -> R.drawable.download
     }
-    // A completed audio download can still be rendered as MP3 or copied to another destination.
-    IconButton(onClick = { DownloadCenter.request(listOf(item), video = false) }) {
-        Icon(painterResource(icon), stringResource(R.string.kruxx_audio_download), tint = colorPalette().text)
-    }
-}
-
-@Composable
-fun VideoDownloadButton(item: androidx.media3.common.MediaItem) {
-    val saved by DownloadCenter.saved.collectAsState()
-    val downloaded = saved.any { it.track.id == item.mediaId }
-    IconButton(onClick = { DownloadCenter.request(listOf(item), video = true) }) {
-        Icon(painterResource(if (downloaded) R.drawable.downloaded else R.drawable.download),
-            stringResource(R.string.kruxx_video_download), tint = colorPalette().text)
+    Box(Modifier.size(48.dp).clip(CircleShape).combinedClickable(
+        enabled = state != androidx.media3.exoplayer.offline.Download.STATE_REMOVING,
+        role = Role.Button,
+        onClick = {
+            if (removable) MyDownloadHelper.removeDownload(item)
+            else DownloadCenter.request(listOf(item), video = video)
+        },
+        onLongClickLabel = stringResource(R.string.kruxx_download_options),
+        onLongClick = { DownloadCenter.request(listOf(item), video = video, forceDialog = true) },
+    ), contentAlignment = Alignment.Center) {
+        Icon(painterResource(icon), stringResource(when {
+            removable -> R.string.kruxx_remove_download
+            video -> R.string.kruxx_video_download
+            else -> R.string.kruxx_audio_download
+        }), tint = colorPalette().text, modifier = Modifier.size(24.dp))
     }
 }

@@ -1,10 +1,12 @@
 # KruXx-Dokumentation
 
-Stand: 07.09.2026 · öffentlicher Release `1.2.0` „Downloads Update“
+Stand: 08.09.2026 · Release `1.2.1` in Vorbereitung; öffentlich weiterhin `1.2.0`
 
 [KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0)
-ist veröffentlicht. Der verbindliche Artefakt-, Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`;
-offene Gerätefälle bleiben ausdrücklich dokumentiert.
+ist veröffentlicht. `1.2.1` / `1000005` bündelt die Korrekturen an Navigation, Download-Entfernung,
+Künstler-/Titelzuordnung und der Startseiten-Schaltfläche im Header. Der verbindliche Artefakt-,
+Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`; der signierte 1.2.1-Build und dessen
+Veröffentlichung stehen noch aus. Offene Gerätefälle bleiben ausdrücklich dokumentiert.
 Ab `1.2.0` setzt KruXx Android 7.0 / API 24 voraus. Android 6 wird nicht mehr unterstützt;
 der letzte dafür veröffentlichte Release bleibt `1.1.0`. Die historischen API-23-Prüfungen bleiben
 nachvollziehbar dokumentiert, gehören aber nicht mehr zur aktuellen Abnahmematrix.
@@ -16,7 +18,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 
 | Dokument | Zweck |
 |---|---|
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus des öffentlichen KruXx-Releases 1.2.0 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Vorbereitung von 1.2.1 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
 | [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |
@@ -34,7 +36,7 @@ Rubriken sowie Queue-Sheet, Werkzeugleisten, Suche, Filter und Inhaltskarten all
 Bibliotheks-Reiter. Der Stand ist auf dem Samsung-Zielgerät geprüft; weiterführende Geräte- und
 Darstellungsmatrizen bleiben im Statusdokument transparent als Nachtests festgehalten. Der
 eigenständige Podcast-Bereich mit vollständiger Podcast-Funktion bleibt
-als separates späteres Vorhaben vorgemerkt und ist auch kein Bestandteil von `1.2.0`.
+als separates späteres Vorhaben vorgemerkt und ist auch kein Bestandteil von `1.2.1`.
 Roadmap und Produktstatus stehen in `KRUXX-IST-STAND.md` §4 und im Entwicklerhandbuch §9; das
 Designkonzept konkretisiert Implementierungsstand, Abgrenzung und Abnahmekriterien. Historische
 Release Notes werden dafür nicht nachträglich geändert.

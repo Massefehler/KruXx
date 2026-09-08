@@ -1,13 +1,18 @@
 package app.kreate.android.downloads
 
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import app.kreate.database.models.Song
+import it.fast4x.rimusic.utils.asMediaItem
+import org.junit.Before
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -15,6 +20,12 @@ import org.robolectric.annotation.Config
 class DownloadNamesTest {
     private val noma = DownloadTrack("pITRfcVDyGQ", "Noma - Sleepwalker", "dejanprogtrens",
         artistNames = listOf("dejanprogtrens"), artistIds = listOf("channel-id"), videoSource = true)
+
+    @Before fun setup() {
+        val context: Context = RuntimeEnvironment.getApplication()
+        context.getSharedPreferences("kruxx_download_options", Context.MODE_PRIVATE).edit().clear().commit()
+        DownloadCenter.initialize(context)
+    }
 
     @Test fun videoUsesArtistAndTitleInsteadOfUploaderAcrossAllFormats() {
         assertEquals(TrackNames("Noma", "Sleepwalker"), noma.names)
@@ -26,7 +37,40 @@ class DownloadNamesTest {
         assertEquals("Noma - Sleepwalker", noma.copy(title = "Sleepwalker", artist = "Noma", videoSource = false).names.label)
         assertEquals("Noma - Sleepwalker", noma.copy(artist = "Noma", videoSource = false).names.label)
         assertEquals(TrackNames("Artist", "Part One - Part Two"),
-            DownloadTrack("id", "Part One - Part Two", "Artist").names)
+            DownloadTrack("id", "Artist - Part One - Part Two", "Artist").names)
+    }
+
+    @Test fun artistTitleConventionAlsoAppliesToAudioAndLibraryRowsWithoutVideoExtras() {
+        for (video in listOf(false, true)) {
+            val track = DownloadTrack("id", "Kilophil - Protoporn", "dejanprogtrens", videoSource = video)
+            assertEquals(TrackNames("Kilophil", "Protoporn"), track.names)
+            for (extension in listOf("mp3", "mp4", "webm", "m4a"))
+                assertEquals("Kilophil - Protoporn.$extension", OfflineFiles.fileName(track, extension))
+            assertEquals("Kilophil", track.mediaItem().mediaMetadata.artist)
+            assertEquals("Protoporn", track.mediaItem().mediaMetadata.title)
+            assertEquals(track.names, DownloadTrack.from(track.json()).names)
+        }
+        val library = Song(id = "id", title = "Kilophil - Protoporn", artistsText = "dejanprogtrens",
+            durationText = null, thumbnailUrl = null)
+        assertEquals(TrackNames("Kilophil", "Protoporn"), DownloadCenter.trackFor(library.asMediaItem).names)
+    }
+
+    @Test fun resolvedLibraryTitlesAreNotSplitAgainWhenCopiedAfterRestart() {
+        val original = noma.copy(title = "Noma - Sleepwalker - Extended Mix")
+        DownloadCenter.rememberTracks(listOf(original))
+        DownloadCenter.initialize(RuntimeEnvironment.getApplication())
+        val library = Song(id = original.id, title = "Sleepwalker - Extended Mix", artistsText = "Noma",
+            durationText = null, thumbnailUrl = null)
+        val restored = DownloadCenter.trackFor(library.asMediaItem)
+        assertEquals(original, restored)
+        assertEquals("Noma - Sleepwalker - Extended Mix.mp3", OfflineFiles.fileName(restored, "mp3"))
+    }
+
+    @Test fun audioPresentationLabelsAndEmptyArtistsDoNotLeakIntoPortableNames() {
+        assertEquals("AC-DC - Song (Live Remix)", DownloadTrack("id",
+            "AC-DC — Song (Live Remix) [Official Audio] [4K]", "Uploader").names.label)
+        assertEquals(TrackNames("Kilophil", "Protoporn"), DownloadTrack("id", "Kilophil – Protoporn", "").names)
+        assertEquals(TrackNames("Kilophil", "Protoporn"), DownloadTrack("id", "Protoporn", "Kilophil").names)
     }
 
     @Test fun videoPresentationLabelsAreRemovedWhileVersionsAndArtistHyphensSurvive() {

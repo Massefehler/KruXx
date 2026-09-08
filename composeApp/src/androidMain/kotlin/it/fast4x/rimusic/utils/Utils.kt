@@ -114,7 +114,12 @@ val Innertube.SongItem.asMediaItem: MediaItem
                         "artistIds" to authors?.mapNotNull { it.endpoint?.browseId },
                         EXPLICIT_BUNDLE_TAG to explicit,
                         "setVideoId" to setVideoId,
-                    )
+                    ).apply {
+                        info?.endpoint?.type?.let { type ->
+                            putString("musicVideoType", type)
+                            putBoolean("isArtTrack", type == "MUSIC_VIDEO_TYPE_ATV")
+                        }
+                    }
                 )
                 .build()
         )

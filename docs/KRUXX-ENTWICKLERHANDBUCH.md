@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 07.09.2026 · öffentlicher Release KruXx `1.2.0` „Downloads Update“ ·
+Stand: 08.09.2026 · Release `1.2.1` in Vorbereitung, öffentlich KruXx `1.2.0` ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -11,6 +11,11 @@ signierte APK ist in den Kernabläufen auf Android 7 / API 24 und dem Samsung mi
 Quellcommit `f195aed1b80348f5355ea129ee4c15e1b1d89bf7`, annotiertes Tag `v1.2.0`, Submodul-Pins
 und die bytegenau geprüfte öffentliche APK sind unter
 <https://github.com/Massefehler/KruXx/releases/tag/v1.2.0> verfügbar.
+
+Der Quellstand für `1.2.1` / `1000005` ergänzt die unten dokumentierten Navigations- und
+Download-Korrekturen sowie den gemeinsamen Startseiten-Klick auf Icon und Wortmarke. 203 Tests
+und Debug-Bedienprüfungen sind bestanden; finale Prüfungen aus dem sauberen Commit, signierte
+Artefakte, CI und Veröffentlichung folgen im [IST-Stand](KRUXX-IST-STAND.md).
 
 Der Release bündelt Download-/Dateifunktionen und weitere Glass-Korrekturen. Die Veröffentlichung
 ist nach Offenlegung der übrigen Gerätefälle ausdrücklich beauftragt; insbesondere Android Auto,
@@ -488,6 +493,25 @@ exakt nachbauen: Server-Experimente, Verfügbarkeit nach Land/Konto, Alters-/Inh
 persönliche Uploads können weiterhin andere Treffer erzeugen. Bei einem verbleibenden Einzelfall immer
 exakten Titel, Interpret und möglichst die YTM-URL/`videoId` festhalten.
 
+Die unveröffentlichte Korrektur vom 08.09.2026 verwendet `SearchSkeleton`: `HomeNavigation.Items`
+definiert die gemeinsame Hauptleiste von Startseite, Suche und Suchergebnissen einschließlich
+„Playlists“/„Downloads“. `Skeleton` trennt Inhaltsindex und Navigationsindex. Suchkategorien und
+Online-/Bibliotheks-/Linkauswahl sind eigene `ButtonsRow`-Filter; der Hauptleistenklick navigiert
+zum entsprechenden Home-Reiter. KruXx bietet die alten Featured-/Podcast-Suchfilter nicht mehr an;
+gespeicherte ungültige Suchindizes werden auf 0 zurückgesetzt. Auch direkte Suchrouten über
+`SearchTypeScreen` verwenden diese Leiste. `searchContentWidth` reserviert den Platz für eine
+rechte Navigationsleiste einmal im Rahmen; eingebettete Suchseiten nutzen dessen volle Inhaltsbreite.
+
+Ebenfalls unveröffentlicht seit 08.09.2026: `AppTitle` verbindet Icon und Wortmarke in KruXx zu einer
+gemeinsamen Startseiten-Schaltfläche. `HomeNavigation.goHome` wählt `QuickPics` ausdrücklich aus,
+statt nur zur `home`-Route mit der bisherigen Reiterauswahl zurückzukehren. Bei deaktivierter
+Startseite wird wie beim App-Start `Songs` gewählt. Die konfigurierte `STARTUP_SCREEN` wird nicht
+verändert. Beim Verlassen einer Unterseite räumt `popUpTo(navController.graph.id)` den Stapel auf;
+die Graph-ID berücksichtigt auch einen direkten Start in der Suche. Auf einer bereits alleinigen
+Home-Route reicht das Umschalten des Reiters, ohne einen neuen Navigationseintrag anzulegen.
+Der gemeinsame Header deckt damit alle Ansichten ab, die das App-Icon anzeigen. Geerbte
+Mehrfachklick-/Langdruck-Spielaktionen bleiben ausschließlich in anderen Produkt-Flavors bestehen.
+
 ### 4.3 Downloads
 
 **Download-Erweiterung vom 05.09.2026, veröffentlicht mit 1.2.0:** Vor dem Einreihen der
@@ -495,9 +519,11 @@ Media3-Audioqueue führt `DownloadCenter` alle manuellen Einzel- und Sammelaktio
 Format-/Speicherabfrage. `addDownloadsInternal()` ist ausschließlich der interne Queue-Einstieg
 nach Auswahl bzw. für Hintergrundaufträge. Neue UI-Aktionen müssen `addDownload(s)` verwenden.
 `SongItem.Render` bietet für nicht lokale Audiotitel in KruXx einen rechten `AudioDownloadButton`
-mit explizitem Audioformat-Dialog. Er bleibt für fertige Downloads verwendbar, ohne sie zu löschen
-oder vor der Auswahl Playback-Cache/Formatdaten zurückzusetzen. Videotreffer verwenden weiterhin
-`VideoDownloadButton` mit Video-/MP3-Auswahl.
+mit explizitem Audioformat-Dialog. Seit der unveröffentlichten Korrektur vom 08.09.2026 entfernt
+ein kurzer Tipp auf fertige/laufende Downloads wieder alle internen Varianten des Tracks;
+langes Drücken öffnet mit `forceDialog=true` die Format-/Speicherauswahl auch bei gemerkten Vorgaben.
+Videotreffer verwenden dieselbe Umschaltlogik mit Video-/MP3-Auswahl. Die `MediaItem`- und
+Innertube-Überladungen von `SongItem.Render` reichen Quellmetadaten bis zum Downloadknopf weiter.
 „Nur in KruXx“ bleibt die anfängliche Vorgabe. Zusätzlich kann in den automatisch angelegten
 öffentlichen Ordner `Download/KruXx-Downloads` oder einen anderen Ordner gespeichert werden.
 Der Standardordner trennt `Audio` (MP3 und Originalaudio) und `Video` nach MIME-Typ. `DownloadsScreen`
@@ -516,7 +542,17 @@ werden. Die neue interne Einzelentfernung verwendet `DownloadCenter.removeAsset(
 ein Format bzw. den Media3-Entfernungsbefehl für Originalaudio. Der bestehende Bibliothekshelfer
 zur titelweiten Entfernung bleibt davon getrennt. Beide internen Wege erhöhen die Generation
 des Titels, sodass ältere Dateiaufträge ihn nicht wiederherstellen; öffentliche Kopien bleiben erhalten.
+`removeFiles()` verwendet dieselbe geprüfte Dateientfernung wie die Übersicht und vergisst
+fehlgeschlagene Dateien nicht. Titelweite Media3-Entfernungen laufen durch dieselbe Befehlssperre
+wie Hinzufügungen; wartende Hinzufügungen mit älterer Generation werden verworfen.
 Die horizontale Navigation misst den tatsächlichen Überlauf und reserviert dafür Richtungshinweise.
+Seit der unveröffentlichten Leistenkorrektur vom 08.09.2026 übernimmt `HorizontalScrollWithArrows`
+diese Logik gemeinsam für `HorizontalNavigationBar` und alle `ButtonsRow`-Filter. Die Messung der
+Inhaltsbreite liegt hinter `horizontalScroll`; verglichen wird mit der gesamten verfügbaren
+Scrollspur, bevor Pfeilflächen abgezogen werden. So verschwinden die Pfeile nach einer
+Verbreiterung wieder, wenn die Inhalte passen. Ein Pfeilklick bewegt die Leiste um 75 Prozent
+ihres sichtbaren Bereichs; an den Grenzen bleiben die Randflächen stabil. Beschriftung und Richtung
+beachten auch RTL. `DownloadsScreen` reserviert wie die Bibliotheksseiten den Platz der rechten Leiste.
 `UniformNavigationRow` ermittelt die maximale intrinsische Breite der beschrifteten Reiter und misst
 alle mit derselben Breite einschließlich seitlichem Abstand. Die umgebende Box gibt diese Breite
 an `TextIconButton` weiter, damit Text und Symbol zentriert werden. Die Messung verwendet die
@@ -538,12 +574,23 @@ persistiert die Abschlussdaten; erst nach fertiger, geprüfter Zieldatei sind 10
 Manuelle interne Originaldownloads verwenden ebenfalls den Worker, ohne zusätzliche Datei; für
 automatische Downloads öffnet sich kein Fortschrittsdialog. Details und Regressionstests stehen
 in `DOWNLOADS.md`.
-`DownloadNames` trennt sichtbare Künstler-/Titeldaten von Video-Kanalmetadaten. Dieselbe Auflösung
+`DownloadNames` trennt sichtbare Künstler-/Titeldaten von Video-Kanalmetadaten. Das Schema
+`Künstler - Titel` gilt seit der Korrektur vom 08.09.2026 unabhängig vom Video-Herkunftsflag;
+der erste von Leerzeichen umgebene Bindestrich/Gedankenstrich trennt Künstler und Titel.
+Weitere Titelbestandteile bleiben erhalten. `source_tracks` bewahrt rohe Quellmetadaten auch für
+Originalaudio, damit ein bereits aufgeteilter Bibliothekstitel nicht nochmals aufgeteilt wird.
+Dieselbe Auflösung
 versorgt Download-Dateinamen, Fortschritt, Kopierauswahl, interne Download-Zeilen und neue MP3-Tags.
 Technische IDs bleiben in privaten Dateipfaden; öffentliche Namen enthalten nur Künstler, Titel
 und Endung. Bekannte alte Namen werden mit kollisionssicherer Nummerierung umbenannt; dabei
 bleiben Mediendaten und bereits eingebettete Tags unverändert. Musikversionen bleiben erhalten,
 unbekannte Videokünstler werden nicht aus einem Kanalnamen geraten.
+`Mp3Tags` schreibt die UTF-16-ID3v2.3-Tags des Encoders. Vor Wiederverwendung einer internen MP3
+prüft der Worker diese Tags und erstellt bei geänderten Künstler-/Titeldaten eine korrigierte
+temporäre Datei mit identischen Audiobytes. Nur die bekannten KruXx-Frames TIT2/TPE1 werden ersetzt;
+unerwartete oder beschädigte Tags werden abgewiesen. Registrierung und Generationsprüfung erfolgen
+wie bei einer neuen Konvertierung, ohne erneute Kompression. Öffentliche Altdateien werden nicht
+überschrieben und Originalaudio wird nicht nachträglich umkodiert oder getaggt.
 `FileDownloadWorker` erzeugt MP3/Video und kopiert verifiziert über MediaStore (`SharedDownloads`,
 API 29+) beziehungsweise SAF für andere Ordner; API 24–28 verwendet für den öffentlichen Ordner
 die abgefragte Schreibberechtigung. Dieselben Dateiziele gibt es beim Kopieren. `OfflineFiles.snapshot()`
@@ -860,6 +907,11 @@ Nacharbeit vom 06.09.2026, veröffentlicht mit 1.2.0:
   Quellenfilter in `HomeArtist` und `HomeAlbum` nutzen `trailingContent` mit begrenzter Breite statt
   einer über den Chips liegenden Box. Beschriftungen bleiben einzeilig; bei Platzmangel wird die
   Chip-Leiste horizontal gescrollt. Die Glasfläche erzeugt keinen zusätzlichen Blur oder Schatten.
+  Die unveröffentlichte Ergänzung vom 08.09.2026 nutzt `HorizontalScrollWithArrows` für antippbare
+  Richtungshinweise in allen diesen Filtern sowie den Suchfiltern. Ein `BringIntoViewRequester`
+  je stabilem Chip-Schlüssel hält die aktive Auswahl nach Auswahl- und Breitenwechseln sichtbar.
+  Werkzeugleisten bleiben eigenständige Aktionsleisten mit ihrem bestehenden Überlaufmenü.
+  `HomeSongsScreen` berücksichtigt beim Merken der sichtbaren Filter nun auch `showOnDevice`.
 - `StatisticsPage` verwendet `kruxxCardSurface()` für Titelanzahl/Wiedergabezeit und
   `kruxxTrackCard()` für die Rangliste in allen Zeiträumen. Die separate Boolean-Präferenz
   `STATISTICS_GRID_VIEW` (`StatisticsGridView`, Vorgabe `false`) speichert die Ansicht unabhängig

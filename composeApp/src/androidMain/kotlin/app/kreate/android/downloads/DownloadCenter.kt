@@ -120,6 +120,7 @@ object DownloadCenter {
     val hiddenStatusJobs = MutableStateFlow<Set<String>>(emptySet())
     val saved = MutableStateFlow<List<SavedMedia>>(emptyList())
     val removals = MutableStateFlow<Map<String, Int>>(emptyMap())
+    private val sourceTracks = MutableStateFlow<Map<String, DownloadTrack>>(emptyMap())
     private val prefs get() = context.getSharedPreferences("kruxx_download_options", Context.MODE_PRIVATE)
     val mediaDirectory get() = File(context.filesDir, "offline_media").apply { mkdirs() }
     val jobDirectory get() = File(context.noBackupFilesDir, "file_download_jobs").apply { mkdirs() }
@@ -144,6 +145,11 @@ object DownloadCenter {
                     json.getString("extension"), json.getLong("size"))
             }.getOrNull()
         }.filter { file(it).let { f -> f.isFile && f.length() == it.size } }
+        val sources = runCatching { JSONArray(prefs.getString("source_tracks", "[]")) }.getOrDefault(JSONArray())
+        sourceTracks.value = saved.value.map { it.track }.associateBy { it.id } +
+            (0 until sources.length()).mapNotNull { index ->
+                runCatching { DownloadTrack.from(sources.getJSONObject(index)) }.getOrNull()
+            }.associateBy { it.id }
     }
 
     fun remember(external: Boolean, kind: DownloadKind, enabled: Boolean, video: Boolean, folder: Uri?) {
@@ -158,14 +164,15 @@ object DownloadCenter {
     fun request(items: List<MediaItem>, video: Boolean = items.any {
         it.mediaMetadata.extras?.getBoolean("downloadVideo") == true ||
             it.mediaMetadata.extras?.getBoolean("isVideo") == true
-    }, automatic: Boolean = false) {
+    }, automatic: Boolean = false, forceDialog: Boolean = false) {
         val tracks = items.filterNot { it.isLocal }.distinctBy { it.mediaId }.map(::trackFor)
         if (tracks.isEmpty()) return
+        rememberTracks(tracks)
         // Background actions cannot open a folder picker. Until a default is chosen they save
         // offline audio, just as before; a remembered destination applies to them too.
         if (automatic && !rememberChoice) {
             MyDownloadHelper.instance.addDownloadsInternal(tracks.map(DownloadTrack::mediaItem))
-        } else if (rememberChoice) {
+        } else if (rememberChoice && !forceDialog) {
             submit(tracks, if (video) defaultVideoKind else defaultKind, alsoSaveFile, folder, showProgress = !automatic)
         } else {
             prompts.update { it + DownloadPrompt(tracks, video = video) }
@@ -176,12 +183,25 @@ object DownloadCenter {
         prompts.update { it + DownloadPrompt(items.distinctBy { it.mediaId }.map(::trackFor), copy = true, preferredKind = kind) }
     }
 
-    /** Library Song records from earlier builds have no video-source extras. */
+    /** Keep raw source identity even when a library row contains the already resolved title. */
     internal fun trackFor(item: MediaItem): DownloadTrack {
         val track = DownloadTrack.from(item)
-        val known = saved.value.firstOrNull { it.track.id == track.id }?.track
-        return if (known != null && known.title == track.title && known.artist == track.artist)
-            track.copy(videoSource = known.videoSource || track.videoSource) else track
+        val known = sourceTracks.value[track.id] ?: saved.value.firstOrNull { it.track.id == track.id }?.track
+        return when {
+            known == null -> track
+            known.title == track.title && known.artist == track.artist ->
+                track.copy(videoSource = known.videoSource || track.videoSource)
+            known.names.title == track.title && known.names.artist == track.artist -> known
+            else -> track
+        }
+    }
+
+    @Synchronized
+    internal fun rememberTracks(tracks: List<DownloadTrack>) {
+        val next = sourceTracks.value + tracks.associateBy { it.id }
+        if (next == sourceTracks.value) return
+        sourceTracks.value = next
+        prefs.edit { putString("source_tracks", JSONArray(sourceTracks.value.values.map { it.json() }).toString()) }
     }
 
     fun settings() { prompts.update { it + DownloadPrompt(emptyList(), settings = true) } }
@@ -241,18 +261,14 @@ object DownloadCenter {
     }
 
     @Synchronized
-    fun removeFiles(id: String) {
+    fun removeFiles(id: String): Job {
         invalidateDownload(id)
-        scope.launch(Dispatchers.IO) {
-            synchronized(this@DownloadCenter) {
-                saved.value.filter { it.track.id == id }.forEach { file(it).delete() }
-                saved.value = saved.value.filterNot { it.track.id == id }
-                prefs.edit(commit = true) {
-                    putString("assets", JSONArray(saved.value.map {
-                        it.track.json().put("kind", it.kind.name).put("extension", it.extension).put("size", it.size)
-                    }).toString())
-                }
-            }
+        val targets = saved.value.filter { it.track.id == id }
+        return scope.launch(Dispatchers.IO) {
+            // Use the same checked deletion as the Downloads screen. A failed deletion must
+            // remain visible and retryable instead of silently forgetting the existing file.
+            val failures = targets.mapNotNull { asset -> runCatching { removeAsset(asset) }.exceptionOrNull() }
+            if (failures.isNotEmpty()) me.knighthat.utils.Toaster.e(app.kreate.android.R.string.kruxx_remove_error)
         }
     }
 
@@ -263,6 +279,7 @@ object DownloadCenter {
         scope.launch {
           try {
             require(!(external || copy) || destination != null) { "Missing destination" }
+            rememberTracks(tracks)
             val token = UUID.randomUUID().toString()
             val payload = JSONObject().put("tracks", JSONArray(tracks.map {
                 it.json().put("generation", generation(it.id))

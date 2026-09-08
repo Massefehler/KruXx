@@ -175,7 +175,7 @@ fun HomeSongsScreen(
                     val showDownloadedPlaylist by Preferences.HOME_SONGS_SHOW_DOWNLOADED_CHIP
                     val showMyTopPlaylist by Preferences.HOME_SONGS_SHOW_MOST_PLAYED_CHIP
                     val showOnDevice by Preferences.HOME_SONGS_SHOW_ON_DEVICE_CHIP
-                    val chips = remember( showFavoritesPlaylist, showCachedPlaylist, showMyTopPlaylist, showDownloadedPlaylist) {
+                    val chips = remember(showFavoritesPlaylist, showCachedPlaylist, showMyTopPlaylist, showDownloadedPlaylist, showOnDevice) {
                         buildList {
                             add( BuiltInPlaylist.All )
                             if( showFavoritesPlaylist )

@@ -431,6 +431,7 @@ object SongItem: Visual() {
         showThumbnail: Boolean = true,
         trailingContent: @Composable (RowScope.() -> Unit)? = null,
         thumbnailOverlay: @Composable BoxScope.() -> Unit = {},
+        downloadItem: MediaItem = song.asMediaItem,
         onClick: () -> Unit = {}
     ) {
         Structure(
@@ -479,7 +480,7 @@ object SongItem: Visual() {
             trailingContent = {
                 itemSelector?.CheckBox( song )
                 if (app.kreate.android.BuildConfig.INDEPENDENT_FORK && !song.isLocal)
-                    app.kreate.android.downloads.AudioDownloadButton(song.asMediaItem)
+                    app.kreate.android.downloads.AudioDownloadButton(downloadItem)
                 trailingContent?.invoke( this )
             },
             modifier = modifier.songItemModifier( isPlaying, values, onClick ) {
@@ -508,6 +509,7 @@ object SongItem: Visual() {
     ) =
         Render(
             song = mediaItem.asSong,
+            downloadItem = mediaItem,
             hapticFeedback = hapticFeedback,
             isPlaying = isPlaying,
             values = values,
@@ -541,6 +543,7 @@ object SongItem: Visual() {
     ) =
         Render(
             song = innertubeSong.asSong,
+            downloadItem = innertubeSong.asMediaItem,
             hapticFeedback = hapticFeedback,
             isPlaying = isPlaying,
             values = values,
