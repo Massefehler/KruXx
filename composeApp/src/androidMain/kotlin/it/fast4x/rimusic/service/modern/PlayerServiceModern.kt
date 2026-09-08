@@ -28,7 +28,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.Cache
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStats
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
@@ -50,9 +49,8 @@ import app.kreate.android.utils.centerCropToMatchScreenSize
 import app.kreate.android.utils.isLocalFile
 import app.kreate.android.widget.Widget
 import app.kreate.database.models.Event
-import app.kreate.di.CacheType
 import co.touchlab.kermit.Logger
-import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.ListenableFuture
 import io.ktor.client.HttpClient
 import it.fast4x.innertube.Innertube
 import it.fast4x.rimusic.Database
@@ -61,12 +59,10 @@ import it.fast4x.rimusic.enums.WallpaperType
 import it.fast4x.rimusic.extensions.connectivity.AndroidConnectivityObserverLegacy
 import it.fast4x.rimusic.service.BitmapProvider
 import it.fast4x.rimusic.service.MyDownloadHelper
-import it.fast4x.rimusic.service.MyDownloadService
 import it.fast4x.rimusic.utils.AppLifecycleTracker
 import it.fast4x.rimusic.utils.CoilBitmapLoader
 import it.fast4x.rimusic.utils.collect
 import it.fast4x.rimusic.utils.getEnum
-import it.fast4x.rimusic.utils.intent
 import it.fast4x.rimusic.utils.isAtLeastAndroid6
 import it.fast4x.rimusic.utils.isAtLeastAndroid7
 import it.fast4x.rimusic.utils.playNext
@@ -100,8 +96,6 @@ import org.koin.java.KoinJavaComponent.inject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
@@ -116,7 +110,6 @@ class PlayerServiceModern:
     Player.Listener,
     KoinComponent
 {
-    private val cache: Cache by inject(CacheType.CACHE)
     private val discord: Discord by inject()
     private val player: StatefulPlayer by inject()
     private val volumeObserver: VolumeObserver by inject()
@@ -130,6 +123,8 @@ class PlayerServiceModern:
         CoroutineScope( coroutineScope.coroutineContext + Dispatchers.Main.immediate )
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var mediaSession: MediaLibrarySession
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+    private val playbackStatsListener = PlaybackStatsListener(false, this)
     private var mediaLibrarySessionCallback: MediaLibrarySessionCallback =
         MediaLibrarySessionCallback(this, Database, MyDownloadHelper)
     private lateinit var bitmapProvider: BitmapProvider
@@ -257,8 +252,7 @@ class PlayerServiceModern:
 
         playerPreferences = Preferences.preferences
 
-        PlaybackStatsListener(false, this@PlayerServiceModern)
-            .also( player::addAnalyticsListener )
+        player.addAnalyticsListener(playbackStatsListener)
 
         playerPreferences.registerOnSharedPreferenceChangeListener(this)
 
@@ -304,7 +298,6 @@ class PlayerServiceModern:
 
         player.addListener( listener )
         player.addListener( this )
-        player.addAnalyticsListener(PlaybackStatsListener(false, this@PlayerServiceModern))
 
         mediaLibrarySessionCallback.apply {
             listener = this@PlayerServiceModern.listener
@@ -312,8 +305,7 @@ class PlayerServiceModern:
 
         // Keep a connected controller so that notification works
         val sessionToken = SessionToken(this, ComponentName(this, PlayerServiceModern::class.java))
-        val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
-        controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
+        controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
 
         // Download listener help to notify download change to UI
         downloadListener = object : DownloadManager.Listener {
@@ -370,11 +362,12 @@ class PlayerServiceModern:
         if ( Preferences.ENABLE_PERSISTENT_QUEUE.value ) {
             maybeResumePlaybackOnStart()
 
-            val scheduler = Executors.newScheduledThreadPool(1)
-            scheduler.scheduleWithFixedDelay({
-                println("PlayerServiceModern onCreate savePersistentQueue")
-                listener.saveQueueToDatabase()
-            }, 0, 30, TimeUnit.SECONDS)
+            playerCoroutineScope.launch {
+                while (true) {
+                    listener.saveQueueToDatabase()
+                    delay(30.seconds)
+                }
+            }
 
         }
 
@@ -466,59 +459,51 @@ class PlayerServiceModern:
 
     @UnstableApi
     override fun onDestroy() {
-        embeddedVideoPlaybackJob?.cancel()
-        mediaLibrarySessionCallback.release()
-        if( ::playbackNotificationSilencer.isInitialized )
-            playbackNotificationSilencer.release()
+        fun cleanup(name: String, action: () -> Unit) {
+            runCatching(action).onFailure { logger.e(it) { "onDestroy $name failed!" } }
+        }
 
-        if( notificationPolicyAccessReceiverRegistered ) {
-            runCatching {
-                unregisterReceiver( notificationPolicyAccessReceiver )
-            }.onFailure {
-                logger.e( it ) {
-                    "onDestroy unregisterReceiver notificationPolicyAccessReceiver failed!"
-                }
+        try {
+            // A failed optional cleanup must never leave the session ID registered. The player
+            // and caches are application-scoped Koin singletons: releasing them here makes the
+            // next service instance reuse an already released player/cache in the same process.
+            cleanup("save queue") { if (::listener.isInitialized) listener.saveQueueToDatabase() }
+            coroutineScope.cancel()
+            cleanup("stop playback") { player.stop() }
+            cleanup("controller") { controllerFuture?.let(MediaController::releaseFuture) }
+            controllerFuture = null
+            cleanup("session") { if (::mediaSession.isInitialized) mediaSession.release() }
+            cleanup("library callback") { mediaLibrarySessionCallback.release() }
+            cleanup("player listeners") {
+                player.removeListener(this)
+                if (::listener.isInitialized) player.removeListener(listener)
+                player.removeAnalyticsListener(playbackStatsListener)
+            }
+            cleanup("notification silencing") {
+                if (::playbackNotificationSilencer.isInitialized) playbackNotificationSilencer.release()
+            }
+            cleanup("volume observer") { volumeObserver.unregister() }
+            cleanup("connectivity observer") { if (::connectivityObserver.isInitialized) connectivityObserver.unregister() }
+            cleanup("audio device callback") { audioDeviceCallback?.let { audioManager?.unregisterAudioDeviceCallback(it) } }
+            handler.removeCallbacksAndMessages(null)
+            cleanup("download listener") {
+                if (::downloadListener.isInitialized) MyDownloadHelper.instance.downloadManager.removeListener(downloadListener)
+            }
+            cleanup("audio effect") { if (::listener.isInitialized) listener.loudnessEnhancer?.release() }
+            cleanup("action receiver") { if (::notificationActionReceiver.isInitialized) unregisterReceiver(notificationActionReceiver) }
+            cleanup("policy receiver") {
+                if (notificationPolicyAccessReceiverRegistered) unregisterReceiver(notificationPolicyAccessReceiver)
             }
             notificationPolicyAccessReceiverRegistered = false
-        }
-
-        runCatching {
-            listener.saveQueueToDatabase()
-            volumeObserver.unregister()
-
-            stopService(intent<MyDownloadService>())
-            stopService(intent<PlayerServiceModern>())
-
-            player.removeListener( listener )
-            player.stop()
-            player.release()
-
-            try{
-                unregisterReceiver(notificationActionReceiver)
-            } catch (e: Exception){
-                logger.e( e ) { "onDestroy unregisterReceiver notificationActionReceiver failed!" }
+            cleanup("preferences listener") {
+                if (::playerPreferences.isInitialized) playerPreferences.unregisterOnSharedPreferenceChangeListener(this)
             }
-
-            mediaSession.release()
-            cache.release()
-            //downloadCache.release()
-            MyDownloadHelper.instance.downloadManager.removeListener(downloadListener)
-
-            listener.loudnessEnhancer?.release()
-
-            notificationManager?.cancel(NotificationId)
-            notificationManager?.cancelAll()
+            cleanup("notification") { notificationManager?.cancel(NotificationId) }
             notificationManager = null
-
-            coroutineScope.cancel()
-
-            runBlocking { discord.logout() }
-
-            playerPreferences.unregisterOnSharedPreferenceChangeListener(this)
-        }.onFailure {
-            logger.e( it ) { "onDestroy failed!" }
+            cleanup("Discord") { runBlocking { discord.logout() } }
+        } finally {
+            super.onDestroy()
         }
-        super.onDestroy()
     }
 
 

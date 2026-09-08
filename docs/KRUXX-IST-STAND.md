@@ -41,6 +41,15 @@ Die USB-Verbindung zum Samsung war zuletzt nicht verfügbar. Für die signierte 
 API-24- und API-36-Emulatoren vorgesehen; die vorhandenen Samsung-Nachweise betreffen den Debug-Code.
 Die erweiterten offenen Gerätefälle bleiben als Nachtests ausgewiesen.
 
+Die signierte Android-16-Abnahme hat zusätzlich einen Absturz beim erneuten Erstellen des
+Wiedergabedienstes aufgedeckt: Beim Schließen vor der ersten Wiedergabe verhinderte ein noch nicht
+initialisierter Audioeffekt die Freigabe der Mediensitzung. Die Dienstbereinigung führt ihre Schritte
+jetzt unabhängig aus und gibt Controller, Sitzung und dienstgebundene Listener frei. Der
+anwendungsweit geteilte Player wird gestoppt, aber ebenso wie die gemeinsam verwendeten Caches
+nicht durch eine einzelne Dienstinstanz zerstört. Der periodische Queue-Job endet mit dem Dienst;
+der doppelte Statistik-Listener entfällt. Ein Regressionstest deckt die Freigabe vor der ersten
+Audiositzung ab. Die erneute Geräteprüfung dieses zusätzlichen Fixes steht noch aus.
+
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 
 - Startseite, Sucheingabe und Suchergebnisse verwenden dieselbe Hauptnavigation einschließlich

@@ -866,7 +866,15 @@ Für Wiedergabe-Wiederaufnahme wird die aktuelle Callback-Variante mit `isForPla
 einer reinen Metadatenabfrage erhält Android Auto genau den zuletzt aktiven Titel samt Media3-
 Fortschrittsstatus; bei echter Wiedergabe die gesamte persistente Queue, Startindex und Position. Eine
 leere Queue ist ein normaler leerer Rückgabewert. `PlayerServiceModern.onDestroy()` ruft `release()`
-auf, damit laufende Browse-/Suchjobs nicht über das Dienstende hinaus leben.
+am Library-Callback auf, damit laufende Browse-/Suchjobs nicht über das Dienstende hinaus leben.
+
+Ergänzung für 1.2.1: Der Dienst gibt auch seinen eigenen Controller, seine Mediensitzung, Listener,
+Beobachter und periodischen Queue-Job frei. Jeder Bereinigungsschritt wird unabhängig ausgeführt,
+damit ein Fehler nicht die Sitzungsfreigabe überspringt und beim nächsten Dienststart
+`Session ID must be unique` auslöst. Player und Caches sind derzeit Koin-Singletons mit
+Anwendungslebensdauer: Der Dienst darf die Wiedergabe stoppen, aber diese gemeinsam verwendeten
+Instanzen nicht freigeben. `StatefulPlayerImpl.release()` berücksichtigt zusätzlich, dass vor der
+ersten Wiedergabe noch keine Audioeffekte existieren; dafür gibt es einen Robolectric-Regressionstest.
 
 Automatisierte Parser-/Paging-Tests sichern Sonderzeichen, leere Suche, Alt-ID-Kompatibilität,
 Fehleingaben und Integer-Überlauf. Sie ersetzen nicht den Sicherheits-/Darstellungstest im Desktop

@@ -481,9 +481,11 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
 
         player.removeListener( this )
 
-        loudnessEnhancer.release()      // Must release after listener is removed to prevent race condition
-        bassBoost.release()
-        reverb.release()
+        // Audio effects are created only after the first audio session. Closing before playback
+        // must still release ExoPlayer and unregister its preferences listener.
+        if (::loudnessEnhancer.isInitialized) loudnessEnhancer.release()
+        if (::bassBoost.isInitialized) bassBoost.release()
+        if (::reverb.isInitialized) reverb.release()
         clearAuxEffectInfo()
 
         player.release()

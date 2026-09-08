@@ -14,4 +14,5 @@ Downloads:
 - Preserves additional title parts and stored source metadata when downloading or copying a track again
 
 Android support:
+- Fixes playback-service cleanup when the app is closed and reopened before the first track; releases the old media session and preserves the shared player and caches for reuse
 - Requires Android 7.0 (API 24) or newer, with the same package and release signing certificate for updates that retain app data
