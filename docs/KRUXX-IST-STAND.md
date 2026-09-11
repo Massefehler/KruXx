@@ -97,6 +97,38 @@ Release-Hash. Im Crashpuffer gibt es keinen KruXx-Absturz. Der manuelle Upgrade-
 ist ebenfalls geprüft; die unten historisch belegte TLS-Grenze des alten System-Downloadmanagers
 bleibt dokumentiert. Weitere Updater-Fehlerkombinationen werden durch diesen Nachtest nicht abgedeckt.
 
+### Unveröffentlichte Rücknahme der Suchnavigation vom 11.09.2026
+
+Auf Nutzerentscheidung gehört die Hauptleiste in der Suche wieder ihren eigenen Kategorien, wie
+vor 1.2.1. Die Sucheingabe zeigt dort Online/Bibliothek/Link, die Ergebnisseite
+Titel/Alben/Künstler/Videos/Playlists; ein Tipp wechselt die Kategorie, statt die Suche zu
+verlassen. Die mit 1.2.1 ergänzte zweite Filterzeile entfällt dadurch wieder.
+
+- Umgesetzt allein in `SearchSkeleton`, das den vorhandenen Zweig ohne Home-Reiter wieder für
+  alle Varianten verwendet. `HomeNavigation.select` entfällt, weil es nur die Suchleiste bediente.
+- **Ausdrücklich erhalten geblieben sind die übrigen Neuerungen aus 1.2.1:** die gemeinsamen
+  antippbaren `<<`-/`>>`-Hinweise über `HorizontalScrollWithArrows`, gleich breite Reiter über
+  `UniformNavigationRow`, das Sichtbarhalten der aktiven Auswahl, die Reservierung einer rechten
+  Navigationsleiste über `searchContentWidth`, der Wegfall der Featured-/Podcast-Kategorien samt
+  Rückfall eines ungültigen gespeicherten Index, die Glas-Filterleisten der Bibliotheksrubriken
+  und die Startseiten-Schaltfläche aus Header-Icon und Wortmarke. Letztere ist jetzt der Weg
+  zurück aus der Suche und wurde dafür ausdrücklich nachgeprüft.
+- Automatische Prüfung: **146 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder
+  übersprungene Tests. Universal-Debug gebaut; vollständiger Release-Lint erfolgreich ohne Fehler,
+  ohne Erweiterung der Baseline und ohne Befund in einer der geänderten Dateien.
+- Geräteprüfung auf Samsung SM-S931B / Android 16: Die Suchergebnisse zu „chris liebing“ zeigen in
+  der Hauptleiste Titel, Alben, Künstler, Videos und Playlists. „Künstler“ liefert die beiden
+  Künstlertreffer, „Alben“ die Albumtreffer; „Vorgestellt“ und „Podcasts“ fehlen wie vorgesehen.
+  Die Sucheingabe zeigt Online, Bibliothek und Link. Das Header-Icon führt aus der Suche zurück zur
+  Startseite, deren Leiste wieder Startseite/Titel/Künstler/Alben mit Richtungshinweis zeigt.
+  Für den gesamten Prüfzeitraum gibt es im Crash-, ANR- und AndroidRuntime-Puffer des
+  Debug-Pakets keinen Eintrag; temporäre Dateien auf dem Gerät sind entfernt. Die USB-Verbindung
+  brach unmittelbar nach dieser Abfrage ab.
+- Nachtests: Hoch-/Querformat mit rechter Navigationsleiste, große Systemschrift und die
+  Überlaufpfeile in der nun längeren Suchleiste auf schmalen Displays.
+- Die Root-README beschreibt unter „New in 1.2.1“ weiterhin den veröffentlichten Stand und wird
+  erst mit dem nächsten Release angepasst.
+
 ### Unveröffentlichte Glaskorrektur an Kacheln und Titellisten vom 11.09.2026
 
 Gemeldet wurde eine fehlende Glasfläche unter Startseite → Künstler → „Albums“ und „Singles & EPs“.

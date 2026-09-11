@@ -22,14 +22,6 @@ object HomeNavigation {
             item(5, stringResource(R.string.kruxx_downloads_tab), R.drawable.download)
     }
 
-    fun select(navController: NavController, index: Int) {
-        Preferences.HOME_TAB_INDEX.value = index
-        navController.navigate(NavRoutes.home.name) {
-            popUpTo(NavRoutes.home.name)
-            launchSingleTop = true
-        }
-    }
-
     fun goHome(navController: NavController) {
         Preferences.HOME_TAB_INDEX.value = if (Preferences.QUICK_PICKS_PAGE.value)
             HomeScreenTabs.QuickPics.index

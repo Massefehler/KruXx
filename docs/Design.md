@@ -353,12 +353,13 @@ aus und verlässt offene Unterseiten. Die zusammenhängende Trefferfläche ist m
 Wiederholtes Tippen legt keine weiteren Seiten an; die geerbten versteckten Spielaktionen des Icons
 entfallen in KruXx. Bei bewusst ausgeschalteter Startseite gilt der vorhandene Titel-Fallback.
 
-Mit 1.2.1 veröffentlichte Korrektur vom 08.09.2026: Startseite, Sucheingabe und Suchergebnisse
-verwenden dieselbe Hauptleiste einschließlich „Playlists“ und „Downloads“. Suchquellen und
-Ergebniskategorien stehen als separate Filterleiste oberhalb des Inhalts. Die übernommenen, nicht
-unterstützten Suchkategorien „Vorgestellt“ und „Podcasts“ entfallen in KruXx. Ein Klick auf die
-Hauptleiste öffnet den jeweiligen Bereich der Startseite; die Suche gibt keinen Home-Reiter als
-ausgewählt aus.
+Unveröffentlichte Korrektur vom 11.09.2026: In der Suche gehört die Hauptleiste wieder ihren
+eigenen Kategorien. Die Sucheingabe zeigt dort Online, Bibliothek und Link, die Ergebnisseite
+Titel, Alben, Künstler, Videos und Playlists. Ein Tipp wechselt also die Kategorie, statt die
+Suche zu verlassen. Die mit 1.2.1 eingeführte zweite Filterzeile über dem Inhalt entfällt damit
+wieder; die Home-Reiter erscheinen in der Suche nicht. Der Weg zur Startseite bleibt die seit
+1.2.1 vorhandene Header-Schaltfläche aus Icon und Wortmarke. Die übernommenen, nicht
+unterstützten Suchkategorien „Vorgestellt“ und „Podcasts“ entfallen in KruXx weiterhin.
 
 Die untere Hauptnavigation bleibt horizontal scrollbar. Solange alle Reiter vollständig in die
 verfügbare Breite passen, werden keine zusätzlichen Richtungshinweise angezeigt. Erst bei einem

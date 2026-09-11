@@ -496,14 +496,15 @@ exakt nachbauen: Server-Experimente, Verfügbarkeit nach Land/Konto, Alters-/Inh
 persönliche Uploads können weiterhin andere Treffer erzeugen. Bei einem verbleibenden Einzelfall immer
 exakten Titel, Interpret und möglichst die YTM-URL/`videoId` festhalten.
 
-Die mit 1.2.1 veröffentlichte Korrektur vom 08.09.2026 verwendet `SearchSkeleton`: `HomeNavigation.Items`
-definiert die gemeinsame Hauptleiste von Startseite, Suche und Suchergebnissen einschließlich
-„Playlists“/„Downloads“. `Skeleton` trennt Inhaltsindex und Navigationsindex. Suchkategorien und
-Online-/Bibliotheks-/Linkauswahl sind eigene `ButtonsRow`-Filter; der Hauptleistenklick navigiert
-zum entsprechenden Home-Reiter. KruXx bietet die alten Featured-/Podcast-Suchfilter nicht mehr an;
-gespeicherte ungültige Suchindizes werden auf 0 zurückgesetzt. Auch direkte Suchrouten über
-`SearchTypeScreen` verwenden diese Leiste. `searchContentWidth` reserviert den Platz für eine
-rechte Navigationsleiste einmal im Rahmen; eingebettete Suchseiten nutzen dessen volle Inhaltsbreite.
+`SearchSkeleton` ist der gemeinsame Rahmen aller drei Suchseiten. Seine Leiste wählt die eigene
+Kategorie: Sucheingabe und `SearchTypeScreen` zeigen Online/Bibliothek/Link, die Ergebnisseite
+Titel/Alben/Künstler/Videos/Playlists. Damit gilt wieder der Stand vor 1.2.1; die dort eingeführte
+zweite Filterzeile über dem Inhalt entfällt. Die Suche zeigt bewusst keine Home-Reiter, weil der
+Weg zurück seit 1.2.1 am Header-Icon samt Wortmarke hängt (`HomeNavigation.goHome`).
+
+KruXx bietet die geerbten Featured-/Podcast-Kategorien weiterhin nicht an; ein gespeicherter
+ungültiger Index fällt über `tabs.indices` auf 0 zurück. `searchContentWidth` bleibt die eine
+Stelle, an der eingebettete Suchseiten den Platz einer rechten Navigationsleiste reservieren.
 
 Ebenfalls seit 1.2.1 veröffentlicht: `AppTitle` verbindet Icon und Wortmarke in KruXx zu einer
 gemeinsamen Startseiten-Schaltfläche. `HomeNavigation.goHome` wählt `QuickPics` ausdrücklich aus,
