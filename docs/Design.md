@@ -5,6 +5,8 @@ Stand: 08.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
 [KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
 Die Leisten- und Header-Korrekturen vom 08.09.2026 sind mit
 [KruXx `1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) veröffentlicht.
+Die gemeinsamen Kachel- und Titelflächen sowie die zurückgenommene Suchnavigation vom
+11.09.2026 sind für `1.2.2` vorbereitet und noch nicht veröffentlicht.
 Die vollständige Darstellungsmatrix bleibt als Nachtest dokumentiert.
 
 ## Ziel und Abgrenzung
@@ -318,7 +320,7 @@ nachgeprüft. Die Nachweise stehen im
 
 ### Ergänzung: gemeinsame Flächen für Kacheln und Titellisten
 
-Unveröffentlichte Korrektur vom 11.09.2026: Die Glasfläche der Alben-, Künstler- und
+Für 1.2.2 vorbereitete Korrektur vom 11.09.2026: Die Glasfläche der Alben-, Künstler- und
 Playlist-Kacheln lag bisher an den einzelnen Aufrufstellen. Dadurch besaßen nur Startseite und
 Bibliotheksreiter eine Fläche, während dieselben Kacheln unter Künstler → „Albums“/„Singles & EPs“,
 auf deren Alben-Unterseite, in Suchergebnissen, Statistik, „Neue Alben“, Moods und auf der
@@ -353,7 +355,7 @@ aus und verlässt offene Unterseiten. Die zusammenhängende Trefferfläche ist m
 Wiederholtes Tippen legt keine weiteren Seiten an; die geerbten versteckten Spielaktionen des Icons
 entfallen in KruXx. Bei bewusst ausgeschalteter Startseite gilt der vorhandene Titel-Fallback.
 
-Unveröffentlichte Korrektur vom 11.09.2026: In der Suche gehört die Hauptleiste wieder ihren
+Für 1.2.2 vorbereitete Korrektur vom 11.09.2026: In der Suche gehört die Hauptleiste wieder ihren
 eigenen Kategorien. Die Sucheingabe zeigt dort Online, Bibliothek und Link, die Ergebnisseite
 Titel, Alben, Künstler, Videos und Playlists. Ein Tipp wechselt also die Kategorie, statt die
 Suche zu verlassen. Die mit 1.2.1 eingeführte zweite Filterzeile über dem Inhalt entfällt damit

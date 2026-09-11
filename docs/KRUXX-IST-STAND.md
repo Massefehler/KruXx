@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 08.09.2026 · KruXx `1.2.1` veröffentlicht
+Stand: 11.09.2026 · KruXx `1.2.1` veröffentlicht · `1.2.2` vorbereitet, noch nicht veröffentlicht
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -12,6 +12,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 |---|---|
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) |
+| In Vorbereitung | `1.2.2` / `1_000_006` – Glasflächen und Suchnavigation; noch nicht gebaut oder veröffentlicht |
 | Öffentlicher Android-Versionscode | `1_000_005` |
 | Schwerpunkt von 1.2.1 | Navigation, Download-Metadaten und -Entfernung, stabiler Wiedergabedienst |
 | Release-Paket | `de.kruxx.music` |
@@ -97,7 +98,7 @@ Release-Hash. Im Crashpuffer gibt es keinen KruXx-Absturz. Der manuelle Upgrade-
 ist ebenfalls geprüft; die unten historisch belegte TLS-Grenze des alten System-Downloadmanagers
 bleibt dokumentiert. Weitere Updater-Fehlerkombinationen werden durch diesen Nachtest nicht abgedeckt.
 
-### Unveröffentlichte Rücknahme der Suchnavigation vom 11.09.2026
+### Für 1.2.2 vorbereitet: Rücknahme der Suchnavigation vom 11.09.2026
 
 Auf Nutzerentscheidung gehört die Hauptleiste in der Suche wieder ihren eigenen Kategorien, wie
 vor 1.2.1. Die Sucheingabe zeigt dort Online/Bibliothek/Link, die Ergebnisseite
@@ -129,7 +130,7 @@ verlassen. Die mit 1.2.1 ergänzte zweite Filterzeile entfällt dadurch wieder.
 - Die Root-README beschreibt unter „New in 1.2.1“ weiterhin den veröffentlichten Stand und wird
   erst mit dem nächsten Release angepasst.
 
-### Unveröffentlichte Glaskorrektur an Kacheln und Titellisten vom 11.09.2026
+### Für 1.2.2 vorbereitet: Glaskorrektur an Kacheln und Titellisten vom 11.09.2026
 
 Gemeldet wurde eine fehlende Glasfläche unter Startseite → Künstler → „Albums“ und „Singles & EPs“.
 Die Prüfung ergab zwei getrennte, jeweils systematische Lücken aus dem Glass-Rollout von `1.1.0`:

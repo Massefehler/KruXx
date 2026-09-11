@@ -1,6 +1,6 @@
 # KruXx-Dokumentation
 
-Stand: 08.09.2026 · KruXx `1.2.1` veröffentlicht
+Stand: 11.09.2026 · KruXx `1.2.1` veröffentlicht · `1.2.2` vorbereitet, noch nicht veröffentlicht
 
 [KruXx `1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) / `1000005`
 ist veröffentlicht. Der Release bündelt Korrekturen an Navigation, Download-Entfernung,
@@ -21,7 +21,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 | Dokument | Zweck |
 |---|---|
 | [`../ROADMAP.md`](../ROADMAP.md) | Künftige Vorhaben, einschließlich Musikteilen und optionaler Friends-Funktion; ohne feste Release-Termine |
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.1 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.1 und der Vorbereitung von 1.2.2 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
 | [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |

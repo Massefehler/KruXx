@@ -1,0 +1,10 @@
+Design:
+- Gives album, artist and playlist tiles the same glass card everywhere; artist pages, their album subpages, album pages, search results, statistics, new releases and moods no longer show them flat
+- Applies the shared track card to album track lists, both history lists and podcast episodes, matching the song, playlist, artist, search and statistics lists
+- Keeps a single glass pane where tiles or rows already sit on one, so menus, the queue sheet and the player's video search do not stack a second surface
+- Fixes an inherited layout bug that would have drawn the surface of a horizontal album or playlist tile twice
+
+Search:
+- Restores the search navigation bar to its own categories: Online, Library and Link on the search entry, and Songs, Albums, Artists, Videos and Playlists on the results page
+- Selecting a category no longer leaves the search; the header icon and wordmark remain the way back to the home page
+- Keeps the tappable arrows, equal tab widths, visible active selection and right-hand navigation spacing introduced in 1.2.1
