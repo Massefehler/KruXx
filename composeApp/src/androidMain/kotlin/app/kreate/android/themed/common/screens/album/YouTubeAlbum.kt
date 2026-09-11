@@ -101,6 +101,7 @@ import it.fast4x.rimusic.utils.forcePlayAtIndex
 import it.fast4x.rimusic.utils.isLandscape
 import it.fast4x.rimusic.utils.medium
 import it.fast4x.rimusic.utils.semiBold
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -492,6 +493,7 @@ fun YouTubeAlbum(
                                     hapticFeedback = hapticFeedback,
                                     isPlaying = song.shallowCompare( currentMediaItem ),
                                     values = songItemValues,
+                                    modifier = Modifier.kruxxTrackCard(),
                                     itemSelector = itemSelector,
                                     showThumbnail = false,
                                     thumbnailOverlay = {

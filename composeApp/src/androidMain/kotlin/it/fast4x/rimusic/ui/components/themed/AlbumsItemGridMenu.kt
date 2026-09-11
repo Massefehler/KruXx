@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,6 +54,7 @@ import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.LocalKruxxGlassSheet
 import it.fast4x.rimusic.utils.isNetworkConnected
 import it.fast4x.rimusic.utils.semiBold
 import kotlinx.coroutines.Dispatchers
@@ -344,7 +346,10 @@ fun AlbumsItemGridMenu(
                         }
                         val sizeDp = DpSize(AlbumItem.MENU_THUMBNAIL_SIZE.dp, AlbumItem.MENU_THUMBNAIL_SIZE.dp)
 
-                        AlbumItem.Horizontal( album, albumItemValues, navController, sizeDp = sizeDp )
+                        // The surrounding menu already draws a glass pane; a tile card would stack a second one.
+                        CompositionLocalProvider( LocalKruxxGlassSheet provides true ) {
+                            AlbumItem.Horizontal( album, albumItemValues, navController, sizeDp = sizeDp )
+                        }
                     }
                 ) {
 

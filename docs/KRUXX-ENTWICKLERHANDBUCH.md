@@ -939,6 +939,25 @@ Nacharbeit vom 06.09.2026, veröffentlicht mit 1.2.0:
   an, darunter Titel und Künstler. Thumbnail, Badges und Downloadknopf werden wiederverwendet;
   Liste und Raster teilen dieselben Wiedergabe- und Kontextmenüaktionen.
 
+- `kruxxItemCard()` ist seit dem 11.09.2026 die gemeinsame Kachelfläche für Alben, Künstler und
+  Playlists. Sie wird **einmalig** in `AlbumItem.VerticalStructure`/`HorizontalStructure`,
+  `ArtistItem.Structure` und `PlaylistItem.VerticalStructure`/`HorizontalStructure` angewendet,
+  nicht mehr je Aufrufstelle: Genau diese Verteilung hatte dazu geführt, dass nur Startseite und
+  Bibliotheksreiter eine Fläche besaßen. Den Modifier deshalb nicht zusätzlich an eine dieser
+  Komponenten übergeben. Der Baustein prüft `LocalKruxxGlassSheet`, damit Kacheln innerhalb einer
+  Menü- oder Sheet-Glasfläche deren Fläche weiterverwenden; die Kopfkacheln der Alben- und
+  Playlist-Kontextmenüs stellen dieses Local dafür ausdrücklich auf `true`. Song-Kacheln behalten
+  ihren eigenen Weg (`kruxxTrackCard()` in Listen, `ItemUtils.LazyRowItem` in gemeinsamen Reihen),
+  weil `SongItem` auch von Aufrufern mit eigener Karte verwendet wird.
+- `kruxxTrackCard()` prüft seit dem 11.09.2026 ebenfalls `LocalKruxxGlassSheet`. Für alle
+  bisherigen Aufrufer ändert das nichts, weil sie auf Bildschirmen und nicht in Sheets liegen;
+  Queue und die Videosuche des Players behalten dadurch aber ihre eine durchgehende Fläche, falls
+  dort später Karten ergänzt werden. Neu erhalten Albumseite, beide Verlaufslisten und die
+  Podcast-Episodenliste diesen Modifier; sie hatten ihn als einzige Titellisten nie bekommen.
+- `HorizontalStructure` in `AlbumItem` und `PlaylistItem` reichte den übergebenen `modifier`
+  zusätzlich an die innere `Column` weiter. Jede dort übergebene Fläche wäre doppelt gezeichnet
+  worden; die innere Spalte verwendet jetzt ein eigenes `Modifier`.
+
 Der detaillierte Umfang steht in [`Design.md`](Design.md#lokale-menü--und-listennacharbeit-vom-06092026),
 der nachgewiesene Prüfstand in [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md). System-Dialoge und eingebettete
 Anmeldeseiten haben ihre eigene Darstellung.

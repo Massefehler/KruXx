@@ -77,7 +77,6 @@ import it.fast4x.rimusic.ui.components.themed.InputTextDialog
 import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
 import it.fast4x.rimusic.ui.screens.settings.isYouTubeSyncEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
-import it.fast4x.rimusic.ui.styling.kruxxGlassCard
 import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.LocalAppearance
@@ -351,7 +350,6 @@ fun HomeAlbums(
                             album = album,
                             values = albumItemValues,
                             navController = navController,
-                            modifier = Modifier.kruxxGlassCard(),
                             sizeDp = sizeDp,
                             onLongClick = {
                                 menuState.display {

@@ -28,6 +28,7 @@ import app.kreate.database.models.PlaylistPreview
 import it.fast4x.innertube.Innertube
 import it.fast4x.rimusic.thumbnailShape
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.kruxxItemCard
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asVideoMediaItem
 import it.fast4x.rimusic.utils.forcePlay
@@ -53,6 +54,12 @@ object ItemUtils {
     ) =
         Box( modifier.size( sizeDp ).clip(thumbnailShape() ).shimmerEffect() )
 
+    /*
+       Songs and videos receive the shared tile card here, because [SongItem] is
+       also used by callers that already bring their own card. Album, artist and
+       playlist tiles carry it inside their own structures instead, so they must
+       not be given a second one.
+     */
     @JvmName("OldInnertubeLazyRowItem")
     @OptIn(ExperimentalCoroutinesApi::class)
     @UnstableApi
@@ -106,7 +113,7 @@ object ItemUtils {
                         hapticFeedback = hapticFeedback,
                         values = songItemValues,
                         isPlaying = childItem.key == currentlyPlaying,
-                        modifier = itemModifier,
+                        modifier = itemModifier.kruxxItemCard(),
                         onClick = {
                             player.forcePlay( childItem.asMediaItem )
                         },
@@ -122,7 +129,7 @@ object ItemUtils {
                             hapticFeedback = hapticFeedback,
                             isPlaying = currentlyPlaying == childItem.key,
                             values = songItemValues,
-                            modifier = itemModifier,
+                            modifier = itemModifier.kruxxItemCard(),
                             thumbnailSizeDp = SongItem.thumbnailSize(),
                             onClick = {
                                 player.stopRadio()
@@ -217,7 +224,7 @@ object ItemUtils {
                         hapticFeedback = hapticFeedback,
                         values = songIV,
                         isPlaying = item.id == currentlyPlaying,
-                        modifier = itemModifier,
+                        modifier = itemModifier.kruxxItemCard(),
                         onClick = {
                             player.forcePlay( item.toMediaItem )
                         },

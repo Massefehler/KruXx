@@ -97,6 +97,45 @@ Release-Hash. Im Crashpuffer gibt es keinen KruXx-Absturz. Der manuelle Upgrade-
 ist ebenfalls geprüft; die unten historisch belegte TLS-Grenze des alten System-Downloadmanagers
 bleibt dokumentiert. Weitere Updater-Fehlerkombinationen werden durch diesen Nachtest nicht abgedeckt.
 
+### Unveröffentlichte Glaskorrektur an Kacheln und Titellisten vom 11.09.2026
+
+Gemeldet wurde eine fehlende Glasfläche unter Startseite → Künstler → „Albums“ und „Singles & EPs“.
+Die Prüfung ergab zwei getrennte, jeweils systematische Lücken aus dem Glass-Rollout von `1.1.0`:
+Die Flächen wurden je Aufrufstelle gesetzt statt in den gemeinsamen Bausteinen, sodass nur die
+zuerst umgesetzten Ansichten sie erhielten.
+
+- **Kacheln für Alben, Künstler und Playlists:** Nur die Home-Reiter besaßen eine Fläche.
+  Künstlerseite, deren Alben-Unterseite, Albumseite, Suchergebnisse, Statistik, „Neue Alben“
+  und Moods blieben flach. `kruxxItemCard()` ergänzt den fehlenden gemeinsamen Baustein;
+  `AlbumItem`, `ArtistItem` und `PlaylistItem` wenden ihn einmalig in ihren Struktur-Funktionen an.
+  Die bisher doppelten Aufrufstellen in Startseite, Alben, Künstlern und Playlists entfallen.
+- **Titellisten:** Die Albumseite, beide Verlaufslisten und die Podcast-Episodenliste verwendeten
+  keine `kruxxTrackCard()`, obwohl Titel-, Playlist-, Künstler-, Such- und Statistiklisten sie
+  bereits hatten. Sie sind ergänzt. `kruxxTrackCard()` prüft jetzt wie `kruxxItemCard()` das
+  `LocalKruxxGlassSheet`, damit Titelzeilen innerhalb einer Glasfläche deren Fläche weiterverwenden.
+  Queue-Sheet und Videosuche des Players behalten dadurch bewusst ihre eine durchgehende Fläche.
+- Kacheln innerhalb eines Menüs verwenden weiterhin dessen Fläche: Die vier Alben- und
+  Playlist-Kontextmenüs grenzen ihre Kopfkachel ausdrücklich ab. Song-Kacheln der gemeinsamen
+  Reihen erhalten ihre Fläche gezielt über `ItemUtils.LazyRowItem`, weil `SongItem` auch von
+  Aufrufern mit eigener Karte verwendet wird.
+- Dabei wurde ein geerbter Fehler in `AlbumItem.HorizontalStructure` und
+  `PlaylistItem.HorizontalStructure` behoben: Beide reichten den übergebenen `modifier`
+  zusätzlich an die innere `Column` weiter und hätten jede Fläche doppelt gezeichnet.
+- Automatische Prüfung: **146 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder
+  übersprungene Tests. Universal-Debug gebaut; vollständiger Release-Lint erfolgreich ohne Fehler,
+  ohne Erweiterung der Baseline und ohne Befund in einer der geänderten Dateien. Die 53 Warnungen
+  betreffen Abhängigkeitsversionen und die bekannten `ObsoleteSdkInt`-Hinweise.
+- Geräteprüfung auf Samsung SM-S931B / Android 16: Debug-Build mit Datenerhalt installiert
+  (Erstinstallationszeit unverändert). Der gemeldete Weg Startseite → Künstler → „Singles & EPs“
+  ist bestätigt: Kacheln auf der Künstlerseite, in der Unterseite hinter dem Pfeil sowie in
+  „Playlists by …“ und „Fans might also like“ tragen die Glaskarte. Die Titelliste der geöffneten
+  Albumseite zeigt die Karten ebenfalls; der Vorzustand derselben Seite war flach. Kein Eintrag im
+  Crash-/ANR-/Dropbox-Puffer des Debug-Pakets. Temporäre Dateien auf dem Gerät wurden entfernt;
+  bestehende Installationen und Downloads blieben unverändert.
+- Offen bleiben die Verlaufs- und Podcast-Liste als Sichtprüfung sowie Hellmodus, große
+  Systemschrift und API 24–30. Ladeplatzhalter (`SongItem.Placeholder`) behalten bewusst ihre
+  bisherige Darstellung ohne Karte.
+
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 
 - Startseite, Sucheingabe und Suchergebnisse verwenden dieselbe Hauptnavigation einschließlich

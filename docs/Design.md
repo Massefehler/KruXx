@@ -316,6 +316,35 @@ Die Ansichtsauswahl ist einschließlich Wiederherstellung nach App-Neustart auf 
 nachgeprüft. Die Nachweise stehen im
 [Statistik-Prüfstand](KRUXX-IST-STAND.md#auswählbare-statistikansicht-vom-06092026--veröffentlicht-mit-120).
 
+### Ergänzung: gemeinsame Flächen für Kacheln und Titellisten
+
+Unveröffentlichte Korrektur vom 11.09.2026: Die Glasfläche der Alben-, Künstler- und
+Playlist-Kacheln lag bisher an den einzelnen Aufrufstellen. Dadurch besaßen nur Startseite und
+Bibliotheksreiter eine Fläche, während dieselben Kacheln unter Künstler → „Albums“/„Singles & EPs“,
+auf deren Alben-Unterseite, in Suchergebnissen, Statistik, „Neue Alben“, Moods und auf der
+Albumseite flach blieben.
+
+`kruxxItemCard()` ist der dafür fehlende gemeinsame Baustein. `AlbumItem`, `ArtistItem` und
+`PlaylistItem` wenden ihn in ihren Struktur-Funktionen an, sodass jede Ansicht dieselbe leichte
+Karte mit 16-dp-Rundung und feiner Kontur zeigt — ohne eigenen Schatten oder Blur-Durchlauf je
+Kachel. Sitzt eine Kachel bereits auf der Glasfläche eines Menüs oder Sheets, verwendet sie diese
+weiter, statt eine zweite Lage zu zeichnen; die Kopfkacheln der Alben- und Playlist-Kontextmenüs
+nutzen genau diese Abgrenzung. Song-Kacheln behalten ihren bisherigen Weg, weil `SongItem` auch
+von Aufrufern mit eigener Karte verwendet wird.
+
+Dieselbe Lücke bestand bei den Titellisten: Albumseite, beide Verlaufslisten und die
+Podcast-Episodenliste hatten keine `kruxxTrackCard()`, obwohl Titel-, Playlist-, Künstler-, Such-
+und Statistiklisten sie längst verwendeten. Sie sind ergänzt. `kruxxTrackCard()` beachtet jetzt
+ebenfalls eine umgebende Glasfläche, sodass Queue-Sheet und Videosuche des Players weiterhin ihre
+eine durchgehende Fläche behalten statt eine Karte je Zeile zu zeichnen. Ladeplatzhalter bleiben
+unverändert ohne Karte.
+
+Das entspricht dem Abnahmekriterium gemeinsamer Designbausteine statt abweichender
+Einzellösungen pro Screen. Der Prüfstand steht im
+[IST-Stand](KRUXX-IST-STAND.md#unveröffentlichte-glaskorrektur-an-kacheln-und-titellisten-vom-11092026);
+der gemeldete Weg ist auf dem Samsung-Zielgerät bestätigt, Verlaufs- und Podcast-Liste sowie die
+breitere Darstellungsmatrix bleiben Nachtests.
+
 ## Bedingte Erweiterung der Hauptnavigation
 
 Mit 1.2.1 veröffentlichte Ergänzung vom 08.09.2026: App-Icon und Wortmarke im Header sind

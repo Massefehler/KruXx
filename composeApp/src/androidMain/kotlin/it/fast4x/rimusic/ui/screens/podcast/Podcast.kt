@@ -117,6 +117,7 @@ import it.fast4x.rimusic.utils.manageDownload
 import it.fast4x.rimusic.utils.medium
 import it.fast4x.rimusic.utils.secondary
 import it.fast4x.rimusic.utils.semiBold
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -720,6 +721,7 @@ fun Podcast(
                             mediaItem = song.asMediaItem,
                             hapticFeedback = hapticFeedback,
                             values = songItemValues,
+                            modifier = Modifier.kruxxTrackCard(),
                             isPlaying = song.shallowCompare( currentMediaItem ),
                             onLongClick = {
                                 menuState.display {

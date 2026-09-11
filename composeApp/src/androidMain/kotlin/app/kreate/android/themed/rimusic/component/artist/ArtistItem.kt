@@ -34,6 +34,7 @@ import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.ui.styling.Appearance
 import it.fast4x.rimusic.ui.styling.ColorPalette
 import it.fast4x.rimusic.ui.styling.Typography
+import it.fast4x.rimusic.ui.styling.kruxxItemCard
 import it.fast4x.rimusic.utils.asArtist
 import it.fast4x.rimusic.utils.semiBold
 import it.fast4x.rimusic.utils.shimmerEffect
@@ -107,7 +108,8 @@ object ArtistItem: Visual(), MultiplatformItem {
     ) =
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.requiredWidth( widthDp )
+            modifier = modifier.kruxxItemCard()
+                               .requiredWidth( widthDp )
                                .combinedClickable(
                                    onClick = onClick,
                                    onLongClick = onLongClick

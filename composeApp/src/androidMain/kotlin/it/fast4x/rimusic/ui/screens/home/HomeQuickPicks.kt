@@ -625,8 +625,7 @@ fun HomeQuickPicks(
                                     AlbumItem.Vertical(
                                         innertubeAlbum = album,
                                         values = albumItemValues,
-                                        navController = navController,
-                                        modifier = Modifier.kruxxGlassCard()
+                                        navController = navController
                                     )
                                 }
                             }
@@ -651,8 +650,7 @@ fun HomeQuickPicks(
                                 AlbumItem.Vertical(
                                     innertubeAlbum = album,
                                     values = albumItemValues,
-                                    navController = navController,
-                                    modifier = Modifier.kruxxGlassCard()
+                                    navController = navController
                                 )
                             }
                         }
@@ -678,8 +676,7 @@ fun HomeQuickPicks(
                                 AlbumItem.Vertical(
                                     innertubeAlbum = album,
                                     values = albumItemValues,
-                                    navController = navController,
-                                    modifier = Modifier.kruxxGlassCard()
+                                    navController = navController
                                 )
                             }
                         }
@@ -704,8 +701,7 @@ fun HomeQuickPicks(
                                 ArtistItem.Render(
                                     innertubeArtist = artist,
                                     values = artistItemValues,
-                                    navController = navController,
-                                    modifier = Modifier.kruxxGlassCard()
+                                    navController = navController
                                 )
                             }
                         }
@@ -732,8 +728,7 @@ fun HomeQuickPicks(
                                 PlaylistItem.Vertical(
                                     innertubePlaylist = playlist,
                                     values = playlistItemValues,
-                                    navController = navController,
-                                    modifier = Modifier.kruxxGlassCard()
+                                    navController = navController
                                 )
                             }
                         }
@@ -812,8 +807,7 @@ fun HomeQuickPicks(
                                         playlist = preview.playlist,
                                         values = playlistItemValues,
                                         showSongCount = false,
-                                        navController = navController,
-                                        modifier = Modifier.kruxxGlassCard()
+                                        navController = navController
                                     )
                                 }
                             }
@@ -889,8 +883,7 @@ fun HomeQuickPicks(
                                                 PlaylistItem.Vertical(
                                                     innertubePlaylist = playlist,
                                                     values = playlistItemValues,
-                                                    navController = navController,
-                                                    modifier = Modifier.kruxxGlassCard()
+                                                    navController = navController
                                                 )
                                             }
                                         }
@@ -1091,7 +1084,6 @@ fun HomeQuickPicks(
                         navController = navController,
                         innertubeItems = emptyList(),
                         currentlyPlaying = currentMediaItem?.mediaId,
-                        itemModifier = Modifier.kruxxGlassCard(),
                         localPlaylists = databasePlaylists
                     )
                 }
@@ -1113,7 +1105,6 @@ fun HomeQuickPicks(
                             navController = navController,
                             innertubeItems = sectionItems,
                             currentlyPlaying = currentMediaItem?.mediaId,
-                            itemModifier = Modifier.kruxxGlassCard(),
                             useLogin = true,
                             localPlaylists = if( it.isAccountPlaylistSection() )
                                 databasePlaylists

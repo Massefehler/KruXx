@@ -60,6 +60,7 @@ import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.asSong
 import it.fast4x.rimusic.utils.forcePlay
+import it.fast4x.rimusic.ui.styling.kruxxTrackCard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -207,6 +208,7 @@ fun HistoryList(
                             hapticFeedback = hapticFeedback,
                             isPlaying = event.song.shallowCompare( currentMediaItem ),
                             values = songItemValues,
+                            modifier = Modifier.kruxxTrackCard(),
                             onClick = {
                                 player.forcePlay( event.song.asMediaItem )
                             },
@@ -241,6 +243,7 @@ fun HistoryList(
                             hapticFeedback = hapticFeedback,
                             isPlaying = mediaItem.shallowCompare( currentMediaItem ),
                             values = songItemValues,
+                            modifier = Modifier.kruxxTrackCard(),
                             onClick = {
                                 player.forcePlay( mediaItem )
                             },

@@ -213,11 +213,29 @@ fun Modifier.kruxxGlassCard(shape: Shape = KruxxGlass.cardShape): Modifier =
     else
         this
 
-/** Shared spacing and lightweight glass for tracks in library and detail lists. */
+/**
+ * Shared spacing and lightweight glass for tracks in library and detail lists.
+ * A row inside a glass menu or sheet, such as the queue, keeps that single pane
+ * instead of stacking one surface per track.
+ */
 @Composable
 fun Modifier.kruxxTrackCard(): Modifier =
-    if (isKruxxGlassEnabled)
+    if (isKruxxGlassEnabled && !LocalKruxxGlassSheet.current)
         padding(horizontal = 8.dp, vertical = 3.dp).kruxxGlassCard()
+    else
+        this
+
+/**
+ * Lightweight glass for album, artist and playlist tiles. It is applied once
+ * inside the shared item structures, so every screen showing such a tile looks
+ * the same instead of repeating the modifier at each call site. A tile that
+ * already sits on a glass menu or sheet reuses that pane rather than stacking
+ * a second one.
+ */
+@Composable
+fun Modifier.kruxxItemCard(): Modifier =
+    if (isKruxxGlassEnabled && !LocalKruxxGlassSheet.current)
+        kruxxGlassCard()
     else
         this
 

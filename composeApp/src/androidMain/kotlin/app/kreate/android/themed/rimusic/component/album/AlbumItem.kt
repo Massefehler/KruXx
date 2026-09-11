@@ -39,6 +39,7 @@ import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.ui.styling.Appearance
 import it.fast4x.rimusic.ui.styling.ColorPalette
 import it.fast4x.rimusic.ui.styling.Typography
+import it.fast4x.rimusic.ui.styling.kruxxItemCard
 import it.fast4x.rimusic.utils.asAlbum
 import it.fast4x.rimusic.utils.semiBold
 import it.fast4x.rimusic.utils.shimmerEffect
@@ -168,7 +169,8 @@ object AlbumItem: Visual(), MultiplatformItem {
     ) =
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.requiredWidth( widthDp )
+            modifier = modifier.kruxxItemCard()
+                               .requiredWidth( widthDp )
                                .combinedClickable(
                                    onClick = onClick,
                                    onLongClick = onLongClick
@@ -194,7 +196,8 @@ object AlbumItem: Visual(), MultiplatformItem {
         Row(
             horizontalArrangement = Arrangement.spacedBy( HORIZONTAL_SPACING.dp ),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier.requiredHeight( heightDp )
+            modifier = modifier.kruxxItemCard()
+                               .requiredHeight( heightDp )
                                .combinedClickable(
                                    onClick = onClick,
                                    onLongClick = onLongClick
@@ -205,7 +208,7 @@ object AlbumItem: Visual(), MultiplatformItem {
                 content = thumbnail
             )
 
-            Column( modifier.requiredHeight( heightDp ) ) {
+            Column( Modifier.requiredHeight( heightDp ) ) {
                 firstLine()
                 secondLine()
                 thirdLine()

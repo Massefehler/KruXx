@@ -58,7 +58,6 @@ import it.fast4x.rimusic.ui.components.themed.HeaderInfo
 import it.fast4x.rimusic.ui.components.themed.MultiFloatingActionsContainer
 import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.Dimensions
-import it.fast4x.rimusic.ui.styling.kruxxGlassCard
 import it.fast4x.rimusic.ui.styling.kruxxContentColor
 import it.fast4x.rimusic.ui.styling.LocalAppearance
 import it.fast4x.rimusic.utils.CheckMonthlyPlaylist
@@ -267,7 +266,6 @@ fun HomeLibrary(
                             values = playlistItemValues,
                             songCount = preview.songCount,
                             navController = navController,
-                            modifier = Modifier.kruxxGlassCard(),
                             sizeDp = sizeDp,
                             thumbnailUrl = preview.thumbnailUrl,
                             useLogin = preview.playlist.isYoutubePlaylist,

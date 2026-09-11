@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -51,6 +52,7 @@ import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.typography
 import it.fast4x.rimusic.ui.styling.LocalAppearance
+import it.fast4x.rimusic.ui.styling.LocalKruxxGlassSheet
 import it.fast4x.rimusic.utils.isNetworkConnected
 import it.fast4x.rimusic.utils.semiBold
 import kotlinx.coroutines.Dispatchers
@@ -351,14 +353,17 @@ fun PlaylistsItemGridMenu(
                         }
                         val sizeDp = DpSize(PlaylistItem.MENU_THUMBNAIL_SIZE.dp, PlaylistItem.MENU_THUMBNAIL_SIZE.dp)
 
-                        PlaylistItem.Horizontal(
-                            playlist = preview.playlist,
-                            values = playlistItemValues,
-                            modifier = Modifier.height( 90.dp ),
-                            sizeDp = sizeDp,
-                            songCount = preview.songCount,
-                            navController = null
-                        )
+                        // The surrounding menu already draws a glass pane; a tile card would stack a second one.
+                        CompositionLocalProvider( LocalKruxxGlassSheet provides true ) {
+                            PlaylistItem.Horizontal(
+                                playlist = preview.playlist,
+                                values = playlistItemValues,
+                                modifier = Modifier.height( 90.dp ),
+                                sizeDp = sizeDp,
+                                songCount = preview.songCount,
+                                navController = null
+                            )
+                        }
                     }
                 }
             ) {

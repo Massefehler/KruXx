@@ -53,6 +53,7 @@ import it.fast4x.rimusic.enums.NavRoutes
 import it.fast4x.rimusic.ui.styling.Appearance
 import it.fast4x.rimusic.ui.styling.ColorPalette
 import it.fast4x.rimusic.ui.styling.Typography
+import it.fast4x.rimusic.ui.styling.kruxxItemCard
 import it.fast4x.rimusic.ui.styling.onOverlay
 import it.fast4x.rimusic.ui.styling.overlay
 import it.fast4x.rimusic.utils.medium
@@ -290,7 +291,8 @@ object PlaylistItem: Visual(), MultiplatformItem {
     ) =
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.requiredWidth( widthDp )
+            modifier = modifier.kruxxItemCard()
+                               .requiredWidth( widthDp )
                                .combinedClickable(
                                    onClick = onClick,
                                    onLongClick = onLongClick
@@ -313,7 +315,8 @@ object PlaylistItem: Visual(), MultiplatformItem {
     ) =
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier.requiredHeight( heightDp )
+            modifier = modifier.kruxxItemCard()
+                               .requiredHeight( heightDp )
                                .combinedClickable(
                                    onClick = onClick,
                                    onLongClick = onLongClick
@@ -324,7 +327,7 @@ object PlaylistItem: Visual(), MultiplatformItem {
                 content = thumbnail
             )
 
-            Column( modifier.requiredHeight( heightDp ) ) {
+            Column( Modifier.requiredHeight( heightDp ) ) {
                 firstLine()
                 secondLine()
             }
