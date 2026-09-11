@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht · `1.2.3` vorbereitet, noch nicht veröffentlicht
+Stand: 11.09.2026 · KruXx `1.2.3` veröffentlicht
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -11,10 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | [`1.2.2`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2) |
-| In Vorbereitung | `1.2.3` / `1_000_007` – Wiedergabereihenfolge und Player-Aktionsleiste; noch nicht gebaut oder veröffentlicht |
-| Öffentlicher Android-Versionscode | `1_000_006` |
-| Schwerpunkt von 1.2.2 | Gemeinsame Glasflächen für Kacheln und Titellisten, Suchnavigation |
+| Öffentlicher Release | [`1.2.3`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3) |
+| Öffentlicher Android-Versionscode | `1_000_007` |
+| Schwerpunkt von 1.2.3 | Wiedergabereihenfolge geöffneter Alben, Zufallsmodus und Player-Aktionsleiste |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -213,7 +212,59 @@ zuerst umgesetzten Ansichten sie erhielten.
   Systemschrift und API 24–30. Ladeplatzhalter (`SongItem.Placeholder`) behalten bewusst ihre
   bisherige Darstellung ohne Karte.
 
-### Für 1.2.3 vorbereitet: Wiedergabereihenfolge und Player-Aktionsleiste vom 11.09.2026
+### Veröffentlichung von 1.2.3 am 11.09.2026
+
+KruXx `1.2.3` / `1000007` ist seit **20:48 Uhr MESZ** als neuester stabiler GitHub-Release
+veröffentlicht. Der Patch-Release bündelt die Korrekturen an der Wiedergabereihenfolge geöffneter
+Alben, am Zusammenspiel von Zufallsmodus und Warteschlangen-Nachschub sowie an der Aktionsleiste
+des Vollbild-Players. Die [Versionshinweise](changelogs/kruxx/1.2.3.txt) sind in die zwei
+Abschnitte „Playback“ und „Player“ gegliedert.
+
+- Annotiertes Tag `v1.2.3` zeigt exakt auf den sauber gebauten und in der APK eingebetteten Commit
+  `4beb2dd052f14436b8f20c5a27f7b906283a9fe8`. Submodul-Pins blieben unverändert.
+- **159 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder übersprungene Tests.
+  Vollständiger Release-Lint erfolgreich ohne Fehler, ohne Erweiterung der Baseline und ohne
+  Befund in einer der geänderten Dateien; unverändert 53 Warnungen.
+- [CI-Lauf 34634356755](https://github.com/Massefehler/KruXx/actions/runs/34634356755) für genau
+  diesen Quellcommit ist bestanden.
+- Paket `de.kruxx.music`, Version `1.2.3` / `1000007`, Mindest-/Ziel-API `24` / `36`, alle vier
+  ABIs, APK-v2/v3-Signaturen, ZIP-Integrität, 16-KiB-Ausrichtung und eingebettete Quellrevision
+  sind geprüft. Die eingebetteten Release Notes stimmen bytegenau mit dem Changelog überein
+  (im optimierten APK unter `res/ce.txt`). Das Release-Zertifikat hat weiterhin SHA-256
+  `5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673`.
+- Release zuerst als Entwurf erstellt und über die API auf annotiertes Tagobjekt, Quellcommit und
+  genau ein vollständig hochgeladenes Asset geprüft. Die öffentliche Latest-API bestätigt `v1.2.3`,
+  weder Entwurf noch Vorabversion, mit `KruXx-1.2.3-release.apk`, **23.640.999 Bytes** und
+  SHA-256 `79be01eaab5f30b893c7ace2977fa758e67ef8b15be9771e7d6a5235774ac81d`. Ein anonymer
+  erneuter Download ist bytegleich mit dem getesteten lokalen Archiv. Die APK ist zufällig exakt
+  so groß wie die von 1.2.1 und 1.2.2; Hash, Version und eingebettete Revision unterscheiden sie
+  eindeutig. Wie schon bei 1.2.2 musste `make_latest` nach dem Veröffentlichen einmal gesondert
+  gesetzt werden, damit der vom Self-Updater abgefragte Latest-Endpunkt auf `v1.2.3` zeigt; das
+  ist anschließend bestätigt.
+- Signierte Geräteprüfung auf Samsung SM-S931B / Android 16: Update über die installierte 1.2.2
+  mit Datenerhalt; Erstinstallationszeit bleibt **31.08.2026 12:29:18**, Update **20:34:36**.
+  Die aus der Installation gelesene `base.apk` hat exakt den oben genannten Release-Hash. Alle
+  24 vorhandenen öffentlichen Downloaddateien bleiben per SHA-256 unverändert. Der
+  Changelog-Dialog zeigt beide Abschnitte. Auf der Albumseite „Power Up“ (AC/DC, 12 Titel) startete
+  der angetippte dritte Titel „Shot In The Dark“ mit einer Warteschlange von genau 12 Einträgen;
+  nach dem Titelwechsel lief „Through The Mists Of Time“ als vierter Albumtitel, die Warteschlange
+  wuchs auf 55 Einträge und der laufende Titel blieb auf Albumposition 4. Der mittlere Knopf der
+  Aktionsleiste wechselte den Zufallsmodus samt Symbol (`shuffle` ↔ `shuffle_filled`) im Gleichlauf
+  mit der Medienbenachrichtigung und wurde anschließend zurückgesetzt. Die Leiste zeigt sieben
+  anklickbare Flächen à 126 × 126 px, bei Gerätedichte 420 exakt 48 dp, ohne Überlauf. Im Crash-,
+  ANR- und Dropbox-Puffer gibt es keinen Eintrag für das Paket; temporäre Dateien auf dem Gerät
+  wurden entfernt.
+- Offene Secret-Scanning-Alarme in App-, Innertube- und Metrolist-Spiegel waren vor der
+  Veröffentlichung leer. Es wurden keine Diagnoseexporte, privaten Gerätedaten oder
+  Schlüsseldateien veröffentlicht.
+
+Nachtests bleiben: die ausdrückliche Aktion „Radio starten“, der Abgleich des Zufallszustands mit
+Benachrichtigung und Android Auto in beide Richtungen, die Trefferflächen der Aktionsleiste im
+Querformat und mit zusätzlich aktivierten Aktionsknöpfen sowie unverändert Android Auto in DHU und
+Fahrzeug, physische SD-/USB-Anbieter, die breitere Download-/Fehler-/Interaktionsmatrix,
+subjektive Hör-/Synchronitätsprüfungen, Hellmodus, große Systemschrift und API 24–30.
+
+### Mit 1.2.3 veröffentlicht: Wiedergabereihenfolge und Player-Aktionsleiste vom 11.09.2026
 
 Gemeldet wurde, dass ein über Künstler → Album geöffnetes Album nicht in seiner Reihenfolge läuft:
 Nach dem angetippten Titel folgen willkürliche Titel, teilweise fremder Künstler. Zusätzlich war
@@ -310,8 +361,8 @@ Zufallsknopf. Die Analyse ergab vier getrennte Fehler; drei davon stammen aus ge
   „Radio starten“, der Zufallsknopf im Wechsel mit Benachrichtigung und Android Auto sowie die
   Trefferflächen der Aktionsleiste im Querformat und mit zusätzlich aktivierten Aktionsknöpfen.
   Hellmodus, große Systemschrift und API 24–30 bleiben wie bisher offen.
-- Versioniert als `1.2.3` / `1_000_007` mit eigenen Release Notes. Die Root-README beschreibt
-  weiterhin den veröffentlichten Stand `1.2.2` und wird erst nach der Veröffentlichung angepasst.
+- Versioniert als `1.2.3` / `1_000_007` mit eigenen Release Notes; die Veröffentlichung ist
+  unten dokumentiert.
 
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 
@@ -1346,28 +1397,33 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 - Der Benachrichtigungsschutz kann nur Android-Benachrichtigungstöne und Heads-up-Pop-ups über die
   Notification Policy steuern. Er blockiert weder Einträge im Benachrichtigungsbereich noch Medien,
   Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Für den aktuellen öffentlichen `v1.2.2` sind Quellstand, Tag, unveränderte Submodul-Pins und das
-  bytegleich veröffentlichte Archiv-APK in [§1](#veröffentlichung-von-122-am-11092026) belegt;
+- Für den aktuellen öffentlichen `v1.2.3` sind Quellstand, Tag, unveränderte Submodul-Pins und das
+  bytegleich veröffentlichte Archiv-APK in [§1](#veröffentlichung-von-123-am-11092026) belegt;
+  dasselbe gilt für `v1.2.2` in [§1](#veröffentlichung-von-122-am-11092026) und
   dasselbe gilt für `v1.2.0` in [§1](#veröffentlichung-von-120-am-07092026). Die nicht
   separat protokollierten Detailfälle bleiben Bestandteil der Regressionstest-Matrix.
   Der oben beschriebene API-24-Downloadfehler ist eine bekannte Einschränkung.
+- Für `1.2.3` bleiben zusätzlich offen: die ausdrückliche Aktion „Radio starten“, der Abgleich des
+  Zufallszustands mit Benachrichtigung und Android Auto in beide Richtungen sowie die
+  Trefferflächen der Player-Aktionsleiste im Querformat und mit zusätzlich aktivierten
+  Aktionsknöpfen.
 - Für `1.2.2` bleiben zusätzlich offen: die Sichtprüfung der Verlaufs- und Podcast-Titellisten,
   Hellmodus, große Systemschrift, Querformat mit rechter Navigationsleiste und die Überlaufpfeile
   der Suchleiste auf schmalen Displays.
-- **Die für `1.2.3` vorbereiteten Korrekturen an Wiedergabereihenfolge und Player-Aktionsleiste
-  vom 11.09.2026 sind auf dem Samsung-Zielgerät abgenommen, aber noch nicht veröffentlicht.** Sie beheben, dass der
+- **Die mit `1.2.3` veröffentlichten Korrekturen an Wiedergabereihenfolge und Player-Aktionsleiste
+  sind auf dem Samsung-Zielgerät abgenommen.** Sie beheben, dass der
   automatische Warteschlangen-Nachschub ein laufendes Album ersetzte statt es zu ergänzen, dass er
   im Zufallsmodus sofort fremde Künstler einstreute, und geben dem Zufallsknopf des
   Vollbild-Players denselben Zustand wie Benachrichtigung und Android Auto. Normale und zufällige
   Albumwiedergabe sind vom Nutzer bestätigt; „Radio starten“, das Albumende im Zufallsmodus und
   die Aktionsleiste im Querformat bleiben Nachtests. Umfang und Nachweise stehen in
-  [§1](#für-123-vorbereitet-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026).
+  [§1](#mit-123-veröffentlicht-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026).
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
-- Vor der Veröffentlichung von `1.2.2` am 11.09.2026 meldete die GitHub-API für alle drei
-  Repositories erneut **0 offene Secret-Scanning-Alarme**. Der Release enthält keine
-  Diagnoseexporte, privaten Gerätedaten oder Schlüsseldateien.
+- Vor der Veröffentlichung von `1.2.3` am 11.09.2026 meldete die GitHub-API für alle drei
+  Repositories erneut **0 offene Secret-Scanning-Alarme**; dasselbe galt zuvor für `1.2.2`.
+  Beide Releases enthalten keine Diagnoseexporte, privaten Gerätedaten oder Schlüsseldateien.
 - Die GitHub-API meldete am 03.09.2026 nach der Veröffentlichung für `Massefehler/KruXx`,
   `Massefehler/KruXx-innertube` und `Massefehler/KruXx-metrolist` jeweils **0 offene
   Secret-Scanning-Alarme**. Sechs Metrolist-Funde sind bewusst öffentliche, für den

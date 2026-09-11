@@ -1,26 +1,26 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht · `1.2.3` vorbereitet ·
+Stand: 11.09.2026 · KruXx `1.2.3` veröffentlicht ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx `1.2.2` (`1000006`) ist veröffentlicht.
-Alle 204 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
-signierte APK ist auf dem Samsung SM-S931B mit Android 16 geprüft: Update über 1.2.1 mit
+[`README.md`](README.md). KruXx `1.2.3` (`1000007`) ist veröffentlicht.
+Alle 217 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
+signierte APK ist auf dem Samsung SM-S931B mit Android 16 geprüft: Update über 1.2.2 mit
 erhaltenen App-Daten, unveränderten öffentlichen Downloaddateien und dem Release-Hash der aus der
-Installation gelesenen APK. Quellcommit `0a511e0acb56af971307528f92d82ce9562de5af`, annotiertes
-Tag `v1.2.2`, Submodul-Pins und die bytegenau geprüfte öffentliche APK sind unter
-<https://github.com/Massefehler/KruXx/releases/tag/v1.2.2> verfügbar.
+Installation gelesenen APK. Quellcommit `4beb2dd052f14436b8f20c5a27f7b906283a9fe8`, annotiertes
+Tag `v1.2.3`, Submodul-Pins und die bytegenau geprüfte öffentliche APK sind unter
+<https://github.com/Massefehler/KruXx/releases/tag/v1.2.3> verfügbar.
 
-**Für `1.2.3` vorbereitet, noch nicht veröffentlicht (11.09.2026):** Korrekturen an der Wiedergabereihenfolge und
+**Mit `1.2.3` veröffentlicht (11.09.2026):** Korrekturen an der Wiedergabereihenfolge und
 der Aktionsleiste des Vollbild-Players. Der automatische Warteschlangen-Nachschub ersetzte ein
 laufendes Album statt es zu ergänzen und streute im Zufallsmodus sofort fremde Künstler ein; der
 Zufallsknopf der Aktionsleiste hatte weder Wirkung bei aktivem Zufallsmodus noch sichtbaren
 Zustand. 159 App- und 58 Innertube-Tests sowie Release-Lint sind bestanden; normale und zufällige
 Albumwiedergabe einschließlich des anschließenden Radio-Nachschubs sind auf dem Samsung-Zielgerät
 abgenommen. Umfang und offene Prüfungen stehen im
-[IST-Stand](KRUXX-IST-STAND.md#für-123-vorbereitet-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026),
+[IST-Stand](KRUXX-IST-STAND.md#mit-123-veröffentlicht-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026),
 die technischen Regeln in §4.1.
 
 `1.2.2` vervollständigt die Glasflächen: Alben-, Künstler- und Playlist-Kacheln sowie die
@@ -279,7 +279,7 @@ importieren, danach YouTube neu anmelden (Anmeldedaten sind vom Export ausgeschl
 ### 3.1 Eigener Updatekanal
 
 - API: `https://api.github.com/repos/Massefehler/KruXx/releases/latest`
-- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.2`
+- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.3`
 - APK: exakt `KruXx-MAJOR.MINOR.PATCH-release.apk`
 - Standard: nachfragen; alternativ automatische Installation oder vollständig deaktiviert
 - automatische Prüfung: bei foreground-bereiter Oberfläche und validiertem Netzwerk; Netzrückkehr
@@ -460,7 +460,7 @@ Wichtige Konstanten/Stellen:
   darf sie nicht ungefragt überschreiben. Weil `de.kruxx.music` und `de.kruxx.music.debug` getrennte
   Preference-Speicher besitzen, kann nur eine Variante scheinbar abweichen, obwohl beide denselben
   Quellstandard enthalten.
-- **Warteschlange, Radio und Zufallsmodus (Korrektur vom 11.09.2026, noch nicht veröffentlicht):**
+- **Warteschlange, Radio und Zufallsmodus (veröffentlicht mit 1.2.3):**
   `StatefulPlayer.startRadio(mediaItem, append, endpoint)` hat zwei Bedeutungen. `append = false`
   ist die ausdrückliche Aktion „Radio starten“: `Player.keepOnlyCurrentMediaItem()` schiebt den
   laufenden Titel auf Position 0 und entfernt **ab Position 1** – die Entfernungsgrenze darf nicht
@@ -1366,7 +1366,7 @@ Terminzusage. Dort ist seit 08.09.2026 auch die optionale Friends-Funktion vorge
 zuerst Musikteilen verbessern, später persönliche Nachrichten und Musikkarten. Vor einer
 Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt ein Kandidat.
 
-- **Wiedergabekorrekturen vom 11.09.2026 – für `1.2.3` vorbereitet:** Die sechs Fehler
+- **Wiedergabekorrekturen vom 11.09.2026 – mit `1.2.3` veröffentlicht:** Die sechs Fehler
   in Warteschlangen-Nachschub (Ersetzen statt Anhängen, falscher Entfernungsbereich, Dubletten,
   Schwelle in Playlist- statt Abspielreihenfolge, eingestreute Titel in der Shuffle-Order),
   `forcePlayAtIndex` und Zufallsknopf sind behoben und durch dreizehn neue Tests abgesichert.

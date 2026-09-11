@@ -1,17 +1,15 @@
 # KruXx-Dokumentation
 
-Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht · `1.2.3` vorbereitet
+Stand: 11.09.2026 · KruXx `1.2.3` veröffentlicht
 
-[KruXx `1.2.2`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2) / `1000006`
-ist veröffentlicht. Der Release vervollständigt die Glasflächen von Kachel- und Titellisten und
-gibt der Hauptleiste in der Suche wieder ihre eigenen Kategorien. 204 Tests, Release-Lint und CI
-sind bestanden; die signierte APK ist auf dem Samsung-Zielgerät mit Android 16 als Update über
-1.2.1 geprüft und der öffentliche Download bytegleich mit dem lokalen Archiv.
+[KruXx `1.2.3`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3) / `1000007`
+ist veröffentlicht. Der Release stellt die Wiedergabereihenfolge geöffneter Alben wieder her,
+trennt Zufallsmodus und Warteschlangen-Nachschub sauber und gibt der Aktionsleiste des
+Vollbild-Players einen sichtbaren Zufallszustand samt vollen Trefferflächen. 217 Tests,
+Release-Lint und CI sind bestanden; die signierte APK ist auf dem Samsung-Zielgerät mit Android 16
+als Update über 1.2.2 geprüft und der öffentliche Download bytegleich mit dem lokalen Archiv.
 Der verbindliche Artefakt-, Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`.
 Offene Gerätefälle bleiben ausdrücklich dokumentiert.
-Als `1.2.3` / `1_000_007` vorbereitet, aber noch nicht gebaut oder veröffentlicht: die Korrekturen
-vom 11.09.2026 an der Wiedergabereihenfolge geöffneter Alben und an der Aktionsleiste des
-Vollbild-Players; sie sind auf dem Zielgerät abgenommen.
 Ab `1.2.0` setzt KruXx Android 7.0 / API 24 voraus. Android 6 wird nicht mehr unterstützt;
 der letzte dafür veröffentlichte Release bleibt `1.1.0`. Die historischen API-23-Prüfungen bleiben
 nachvollziehbar dokumentiert, gehören aber nicht mehr zur aktuellen Abnahmematrix.
@@ -24,7 +22,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 | Dokument | Zweck |
 |---|---|
 | [`../ROADMAP.md`](../ROADMAP.md) | Künftige Vorhaben, einschließlich Musikteilen und optionaler Friends-Funktion; ohne feste Release-Termine |
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.2 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.3 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
 | [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |
@@ -53,6 +51,8 @@ an Menüs, Untermenüs, Dialogen, Tracklisten, Statistiken und horizontalen Filt
 Umfang und konkrete Nachweise stehen im IST-Stand sowie in `DOWNLOADS.md` und `Design.md`.
 `1.2.2` schließt die verbliebenen Lücken dieser Glasschicht bei Alben-, Künstler-, Playlist- und
 Titellisten und nimmt die Suchnavigation aus `1.2.1` zurück; Details stehen in `Design.md`.
+`1.2.3` ist ein reiner Wiedergabe-Patch ohne Designänderung: Albumreihenfolge, Zufallsmodus und
+die Trefferflächen der Player-Aktionsleiste; Details stehen im IST-Stand und im Entwicklerhandbuch.
 
 ## Bewusst nicht als aktueller KruXx-Stand behandeln
 

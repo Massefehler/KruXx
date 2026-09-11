@@ -8,14 +8,14 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-[KruXx 1.2.2](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2)
-(`versionCode 1000006`, Android 7.0+) is the current public stable release, completing the glass
-skin across every list and restoring the search navigation bar's own categories. All 204 unit
+[KruXx 1.2.3](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3)
+(`versionCode 1000007`, Android 7.0+) is the current public stable release, restoring the playback
+order of an opened album and giving the player's shuffle action a real, shared state. All 217 unit
 tests, release lint and CI passed. The signed APK was tested on a Samsung with Android 16,
-updating from 1.2.1 with app data and existing download files retained. Its public download
+updating from 1.2.2 with app data and existing download files retained. Its public download
 matches the tested local archive byte for byte. Verification details and the remaining device
 checks are recorded in the [KruXx status report](docs/KRUXX-IST-STAND.md); the new in-app notes
-are in [`docs/changelogs/kruxx/1.2.2.txt`](docs/changelogs/kruxx/1.2.2.txt). Android Auto in a real
+are in [`docs/changelogs/kruxx/1.2.3.txt`](docs/changelogs/kruxx/1.2.3.txt). Android Auto in a real
 vehicle, physical SD/USB providers and the broader interaction matrix still require testing. The
 dedicated podcast section remains a separate future feature.
 
@@ -50,6 +50,22 @@ Update checks can be changed or disabled under **Settings → General → Update
 crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
+
+### New in 1.2.3
+
+- Opening an album from an artist and tapping a track plays the whole album in its own order again.
+  The automatic queue top-up extends the queue instead of replacing it, so the remaining album
+  tracks are no longer dropped in favour of unrelated songs.
+- With shuffle on, an album now plays through completely in random order before the top-up takes
+  over. The remaining queue is measured in playback order, and topped-up songs are appended behind
+  the queue instead of being mixed between tracks that have not been heard yet.
+- Tapping a track starts the track you actually tapped, even when a list contains the same video
+  twice.
+- The shuffle button in the player's action bar switches the same shuffle mode as the media
+  notification and Android Auto, and shows whether it is on. It previously reordered the queue
+  once and was always drawn as active.
+- Every action of the bar gets Android's full 48 dp touch target, so a tap next to an icon no
+  longer opens the queue instead of running the action.
 
 ### New in 1.2.2
 
