@@ -20,6 +20,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 
 | Dokument | Zweck |
 |---|---|
+| [`../ROADMAP.md`](../ROADMAP.md) | Künftige Vorhaben, einschließlich Musikteilen und optionaler Friends-Funktion; ohne feste Release-Termine |
 | [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.1 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
@@ -39,9 +40,10 @@ Bibliotheks-Reiter. Der Stand ist auf dem Samsung-Zielgerät geprüft; weiterfü
 Darstellungsmatrizen bleiben im Statusdokument transparent als Nachtests festgehalten. Der
 eigenständige Podcast-Bereich mit vollständiger Podcast-Funktion bleibt
 als separates späteres Vorhaben vorgemerkt und ist auch kein Bestandteil von `1.2.1`.
-Roadmap und Produktstatus stehen in `KRUXX-IST-STAND.md` §4 und im Entwicklerhandbuch §9; das
-Designkonzept konkretisiert Implementierungsstand, Abgrenzung und Abnahmekriterien. Historische
-Release Notes werden dafür nicht nachträglich geändert.
+Die [Roadmap](../ROADMAP.md) bündelt künftige Vorhaben. Produktstatus und detaillierte Nachtests
+stehen in `KRUXX-IST-STAND.md` §4 und im Entwicklerhandbuch §9; das Designkonzept konkretisiert
+Implementierungsstand, Abgrenzung und Abnahmekriterien. Historische Release Notes werden dafür
+nicht nachträglich geändert.
 
 Der veröffentlichte Release `1.2.0` ergänzt Downloads/MP3/Dateikopien sowie weitere Glass-Korrekturen
 an Menüs, Untermenüs, Dialogen, Tracklisten, Statistiken und horizontalen Filterleisten.

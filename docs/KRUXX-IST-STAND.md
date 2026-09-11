@@ -998,6 +998,12 @@ und Dateigröße von 22.666.213 Bytes wurden nach der Veröffentlichung verifizi
 
 ## 4. Bekannte Grenzen und Freigabekriterien
 
+Die Übersicht künftiger Vorhaben steht in der [Roadmap](../ROADMAP.md). Am 08.09.2026 wurde
+zusätzlich eine optionale Friends-Funktion vorgemerkt: zuerst Musikteilen verbessern, später
+persönliche Nachrichten und Musikkarten. Eine Messenger-Integration, etwa mit SimpleX, wird vor
+einer Technologieentscheidung durch einen begrenzten Prototyp geprüft. Das Vorhaben ist noch
+nicht umgesetzt und keinem Release-Termin zugeordnet.
+
 - **Android Auto ist seit 1.0.2 technisch überarbeitet, aber noch nicht vollständig praktisch
   abgenommen:** Als Nachtest müssen Browse-Baum, Auswahlposition und Queue,
   Sprachsuche (konkret und leer), Media-Buttons sowie Wiederaufnahme im Desktop Head Unit und in einem

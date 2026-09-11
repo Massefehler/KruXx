@@ -1296,6 +1296,11 @@ Suche, Dialoge, Wiedergabe und Downloads sind jetzt ab API 24 gemeinsam praktisc
 
 ## 9. Offene Punkte, Ideen und Release-Nachweise
 
+Die [Roadmap](../ROADMAP.md) bündelt die künftigen Vorhaben ohne feste Versions- oder
+Terminzusage. Dort ist seit 08.09.2026 auch die optionale Friends-Funktion vorgemerkt:
+zuerst Musikteilen verbessern, später persönliche Nachrichten und Musikkarten. Vor einer
+Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt ein Kandidat.
+
 - **1.2.0 – verbleibende Download-Gerätefälle:** Die Matrix in [`DOWNLOADS.md`](DOWNLOADS.md)
   umfasst Video mit Ton, Android-MP3-Konvertierung, alle Download-Einstiege, SD/USB, Abbruch,
   Neustart und Dateiintegrität. Signierte MP3-Exporte und Offline-Neustarts auf API 24 und 36 sind

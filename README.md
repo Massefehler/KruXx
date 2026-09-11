@@ -142,6 +142,8 @@ its [release notes](docs/changelogs/kruxx/1.2.0.txt) describe the scope.
 
 The [documentation index](docs/README.md) links the current status, detailed architecture, build
 steps, test matrix, release process and immutable version history.
+The [roadmap](ROADMAP.md) records future work, including improved music sharing and an optional
+Friends feature, with no release dates assigned yet.
 
 ## Build from source
 
