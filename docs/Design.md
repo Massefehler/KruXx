@@ -1,6 +1,6 @@
 # KruXx Glass – Designkonzept
 
-Stand: 08.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
+Stand: 11.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
 „Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen veröffentlicht mit
 [KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
 Die Leisten- und Header-Korrekturen vom 08.09.2026 sind mit
@@ -344,7 +344,7 @@ unverändert ohne Karte.
 
 Das entspricht dem Abnahmekriterium gemeinsamer Designbausteine statt abweichender
 Einzellösungen pro Screen. Der Prüfstand steht im
-[IST-Stand](KRUXX-IST-STAND.md#unveröffentlichte-glaskorrektur-an-kacheln-und-titellisten-vom-11092026);
+[IST-Stand](KRUXX-IST-STAND.md#mit-122-veröffentlicht-glaskorrektur-an-kacheln-und-titellisten-vom-11092026);
 der gemeldete Weg ist auf dem Samsung-Zielgerät bestätigt, Verlaufs- und Podcast-Liste sowie die
 breitere Darstellungsmatrix bleiben Nachtests.
 

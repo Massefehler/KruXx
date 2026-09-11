@@ -1,6 +1,6 @@
 # KruXx – Roadmap
 
-Stand: 08.09.2026 · nach Veröffentlichung von `1.2.1`
+Stand: 11.09.2026 · nach Veröffentlichung von `1.2.2`
 
 Diese Roadmap hält künftige Vorhaben fest. Versionsnummern und Termine sind noch offen.
 Der aktuelle Funktions-, Prüf- und Release-Status steht im

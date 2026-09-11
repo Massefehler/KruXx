@@ -1245,13 +1245,20 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 - Der Benachrichtigungsschutz kann nur Android-Benachrichtigungstöne und Heads-up-Pop-ups über die
   Notification Policy steuern. Er blockiert weder Einträge im Benachrichtigungsbereich noch Medien,
   Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Für den öffentlichen `v1.2.0` sind Quellstand, beide Submodul-Commits, Tag und das bytegleich
-  veröffentlichte Archiv-APK in [§1](#veröffentlichung-von-120-am-07092026) belegt. Die nicht
+- Für den aktuellen öffentlichen `v1.2.2` sind Quellstand, Tag, unveränderte Submodul-Pins und das
+  bytegleich veröffentlichte Archiv-APK in [§1](#veröffentlichung-von-122-am-11092026) belegt;
+  dasselbe gilt für `v1.2.0` in [§1](#veröffentlichung-von-120-am-07092026). Die nicht
   separat protokollierten Detailfälle bleiben Bestandteil der Regressionstest-Matrix.
   Der oben beschriebene API-24-Downloadfehler ist eine bekannte Einschränkung.
+- Für `1.2.2` bleiben zusätzlich offen: die Sichtprüfung der Verlaufs- und Podcast-Titellisten,
+  Hellmodus, große Systemschrift, Querformat mit rechter Navigationsleiste und die Überlaufpfeile
+  der Suchleiste auf schmalen Displays.
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
+- Vor der Veröffentlichung von `1.2.2` am 11.09.2026 meldete die GitHub-API für alle drei
+  Repositories erneut **0 offene Secret-Scanning-Alarme**. Der Release enthält keine
+  Diagnoseexporte, privaten Gerätedaten oder Schlüsseldateien.
 - Die GitHub-API meldete am 03.09.2026 nach der Veröffentlichung für `Massefehler/KruXx`,
   `Massefehler/KruXx-innertube` und `Massefehler/KruXx-metrolist` jeweils **0 offene
   Secret-Scanning-Alarme**. Sechs Metrolist-Funde sind bewusst öffentliche, für den

@@ -5,20 +5,20 @@ historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx `1.2.1` (`1000005`) ist veröffentlicht.
+[`README.md`](README.md). KruXx `1.2.2` (`1000006`) ist veröffentlicht.
 Alle 204 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
-signierte APK ist auf eigenen Android-7-/API-24- und Android-16-/API-36-Emulatoren geprüft,
-einschließlich Updates von 1.2.0 mit erhaltenen Testplaylists. Die vorherigen Samsung-Nachweise
-betreffen den Debug-Code; das Handy war für die finale signierte Prüfung nicht per ADB erreichbar.
-Quellcommit `756f5fb8a8a4282c136128569c7d5f46c759c949`, annotiertes Tag `v1.2.1`, Submodul-Pins
-und die bytegenau geprüfte öffentliche APK sind unter
-<https://github.com/Massefehler/KruXx/releases/tag/v1.2.1> verfügbar.
+signierte APK ist auf dem Samsung SM-S931B mit Android 16 geprüft: Update über 1.2.1 mit
+erhaltenen App-Daten, unveränderten öffentlichen Downloaddateien und dem Release-Hash der aus der
+Installation gelesenen APK. Quellcommit `0a511e0acb56af971307528f92d82ce9562de5af`, annotiertes
+Tag `v1.2.2`, Submodul-Pins und die bytegenau geprüfte öffentliche APK sind unter
+<https://github.com/Massefehler/KruXx/releases/tag/v1.2.2> verfügbar.
 
-`1.2.1` ergänzt die unten dokumentierten Navigations- und Download-Korrekturen, den gemeinsamen
-Startseiten-Klick auf Header-Icon und Wortmarke sowie die sichere Bereinigung des Wiedergabedienstes.
-Auf beiden APIs sind drei vollständige Dienst-Neuerstellungen im selben Prozess ohne verwaiste
-Mediensitzung bestanden; anschließende Wiedergabe, Benachrichtigung und Vordergrundbetrieb sind geprüft.
-Artefakte, Hashes und konkrete Nachweise stehen im [IST-Stand](KRUXX-IST-STAND.md).
+`1.2.2` vervollständigt die Glasflächen: Alben-, Künstler- und Playlist-Kacheln sowie die
+Titellisten von Albumseite, Verlauf und Podcast verwenden dieselben gemeinsamen Bausteine.
+In der Suche wählt die Hauptleiste wieder ihre eigenen Kategorien. `1.2.1` brachte davor die
+Navigations- und Download-Korrekturen, den Startseiten-Klick auf Header-Icon und Wortmarke sowie
+die sichere Bereinigung des Wiedergabedienstes. Artefakte, Hashes und konkrete Nachweise stehen
+im [IST-Stand](KRUXX-IST-STAND.md).
 
 Die Download-/Dateifunktionen und grundlegenden Glass-Ergänzungen stammen aus `1.2.0`. Die Veröffentlichung
 ist nach Offenlegung der übrigen Gerätefälle ausdrücklich beauftragt; insbesondere Android Auto,

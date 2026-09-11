@@ -1,10 +1,13 @@
 # Downloads, MP3 und Dateikopien
 
-Stand: 08.09.2026. Grundfunktion veröffentlicht mit [KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Stand: 11.09.2026. Grundfunktion veröffentlicht mit [KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
 Die unten beschriebenen Korrekturen an Downloadsymbol, Suchnavigation und Künstler-/Titelzuordnung
 vom 08.09.2026 sind mit [KruXx 1.2.1](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1)
 veröffentlicht. Signierte Prüfungen auf API 24 und API 36 bestätigen Konvertierung, Metadaten,
 Offline-Wiedergabe und interne Entfernung bei erhaltener öffentlicher Kopie.
+Die dort genannte Suchnavigation ist seit
+[KruXx 1.2.2](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2) wieder auf die eigenen
+Kategorien der Suchleiste zurückgenommen; die Downloadfunktionen selbst sind davon unberührt.
 Die unten aufgeführten offenen Gerätefälle bleiben Nachtests und gelten nicht als bestanden.
 Der verbindliche Prüfstatus steht in [KRUXX-IST-STAND.md](KRUXX-IST-STAND.md).
 KruXx `1.2.0` setzt Android 7.0 / API 24 voraus; Android 6 gehört seit der Supportentscheidung
