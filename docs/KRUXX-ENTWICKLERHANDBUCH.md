@@ -13,6 +13,16 @@ Installation gelesenen APK. Quellcommit `0a511e0acb56af971307528f92d82ce9562de5a
 Tag `v1.2.2`, Submodul-Pins und die bytegenau geprüfte öffentliche APK sind unter
 <https://github.com/Massefehler/KruXx/releases/tag/v1.2.2> verfügbar.
 
+**Lokal, noch nicht veröffentlicht (11.09.2026):** Korrekturen an der Wiedergabereihenfolge und
+der Aktionsleiste des Vollbild-Players. Der automatische Warteschlangen-Nachschub ersetzte ein
+laufendes Album statt es zu ergänzen und streute im Zufallsmodus sofort fremde Künstler ein; der
+Zufallsknopf der Aktionsleiste hatte weder Wirkung bei aktivem Zufallsmodus noch sichtbaren
+Zustand. 159 App- und 58 Innertube-Tests sowie Release-Lint sind bestanden; normale und zufällige
+Albumwiedergabe einschließlich des anschließenden Radio-Nachschubs sind auf dem Samsung-Zielgerät
+abgenommen. Umfang und offene Prüfungen stehen im
+[IST-Stand](KRUXX-IST-STAND.md#noch-nicht-veröffentlicht-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026),
+die technischen Regeln in §4.1.
+
 `1.2.2` vervollständigt die Glasflächen: Alben-, Künstler- und Playlist-Kacheln sowie die
 Titellisten von Albumseite, Verlauf und Podcast verwenden dieselben gemeinsamen Bausteine.
 In der Suche wählt die Hauptleiste wieder ihre eigenen Kategorien. `1.2.1` brachte davor die
@@ -450,6 +460,36 @@ Wichtige Konstanten/Stellen:
   darf sie nicht ungefragt überschreiben. Weil `de.kruxx.music` und `de.kruxx.music.debug` getrennte
   Preference-Speicher besitzen, kann nur eine Variante scheinbar abweichen, obwohl beide denselben
   Quellstandard enthalten.
+- **Warteschlange, Radio und Zufallsmodus (Korrektur vom 11.09.2026, noch nicht veröffentlicht):**
+  `StatefulPlayer.startRadio(mediaItem, append, endpoint)` hat zwei Bedeutungen. `append = false`
+  ist die ausdrückliche Aktion „Radio starten“: `Player.keepOnlyCurrentMediaItem()` schiebt den
+  laufenden Titel auf Position 0 und entfernt **ab Position 1** – die Entfernungsgrenze darf nicht
+  aus dem Index *vor* dem Verschieben abgeleitet werden. `append = true` gehört zur Einstellung
+  „Titel automatisch in die Warteschlange laden“ (`QUEUE_AUTO_APPEND`, Vorgabe an), die
+  `ExoPlayerListener.loadFromRadio()` ab zehn verbleibenden Titeln auslöst. Dort stand vorher die
+  parameterlose `startRadio()`, deren Vorgabe `append = false` ist; ein laufendes Album verlor
+  dadurch beim ersten Titelwechsel seinen Rest und lief mit fremden Künstlern weiter. Die
+  parameterlose Variante bleibt den nutzerausgelösten Radio-Kommandos aus
+  `MediaLibrarySessionCallback` und `PlayerServiceModern` vorbehalten. Bereits enthaltene
+  Radiotitel werden mit `filterNot` gegen die Warteschlange geprüft, die den Ersetzungsschritt
+  überlebt hat; `dropWhile` verwarf nur einen führenden Block und ließ spätere Dubletten durch.
+  Die Schwelle des Nachschubs (`SONGS_LEFT_BEFORE_RADIO`) misst über
+  `Player.remainingInPlayOrder()` in **Abspiel-**, nicht in Playlist-Reihenfolge:
+  `mediaItemCount - currentMediaItemIndex` ignoriert die Shuffle-Order, weshalb ein im
+  Zufallsmodus zufällig weit hinten in der Playlist liegender Titel die Warteschlange als fast
+  leer erscheinen ließ und sofort Radio nachlud. Nach dem Anhängen stellt
+  `ExoPlayer.appendedSongsPlayLast()` die Shuffle-Order wieder her, weil media3 neue Einträge über
+  `DefaultShuffleOrder.cloneAndInsert` an zufälligen Stellen einfügt; ein Nachschub soll die
+  Warteschlange hinten verlängern und nicht zwischen noch ungehörte Titel geraten.
+  `Player.forcePlayAtIndex()` entfernt Duplikate und muss den angetippten Titel deshalb in der
+  bereinigten Liste neu suchen, sonst startet der falsche Titel oder media3 wirft
+  `IllegalSeekPositionException`. Den Zufallsmodus steuert ausschließlich
+  `StatefulPlayer.toggleShuffleMode()`; dieselbe Quelle bedient Medienbenachrichtigung,
+  Android Auto und seit dem 11.09.2026 auch den Knopf der Player-Aktionsleiste. Das frühere
+  einmalige Umsortieren `Player.shuffleQueue()` ist entfallen: Es löschte den bereits gespielten
+  Verlauf und blieb bei aktivem Zufallsmodus wirkungslos, weil dann `getNextWindowIndex` der
+  Shuffle-Order folgt und nicht der Reihenfolge in der Playlist. Regressionstests:
+  `PlayerQueueOrderTest` und `StatefulPlayerLifecycleTest`.
 - Log-Tags (adb logcat): `InnerTubeXPlayer`, `dataspec`, `ExoPlayerListener`, `InnerTube`,
   `InnerTubeExtractor`, `YouTubeCipherService`, `RemotePlayerConfigStore`, `PoTokenGenerator`, `PoTokenWebView`.
 
@@ -1097,6 +1137,11 @@ keinen CrashReport-Dialog oder Link zum Upstream-Issue-Tracker.
 | „Miniaturansicht“ ist aktiv, beim Verlassen erscheint aber kein kleines Fenster | Thumbnail im großen Player wurde mit Android-PiP verwechselt; PiP-Hauptschalter/Systemfreigabe aus, Auto-Unteroption aus oder kein aktueller Titel | Einstellungen → Darstellung → „Schwebenden Player erlauben“ plus „Beim Verlassen automatisch öffnen“ aktivieren; Androids PiP-Freigabe für KruXx und laufenden Titel prüfen (§4.6) |
 | Fremde Benachrichtigung ertönt oder erscheint als Heads-up-Pop-up trotz aktiviertem Schutz | „Nicht stören“-Zugriff fehlt/wurde entzogen, Schalter oder Zugriff gelten nur für die andere Build-Variante, Wiedergabe ist pausiert oder der Ton ist Medien-, Wecker-, Anruf- bzw. Systemaudio und daher bewusst erlaubt | Systemzugriff und KruXx-Schalter für das tatsächlich laufende Paket prüfen; Debug und Release sind getrennte Apps. Danach Log/Status von `PlaybackNotificationSilencer` kontrollieren. Normale Einträge im Benachrichtigungsbereich bleiben sichtbar; der Schutz ist kein allgemeiner Audio-Mute (§4.1) |
 | Bei „Alle Tracks downloaden“ werden nur drei Titel markiert oder der Gesamtdurchsatz ist trotz gutem Netz gering | Media3s Standard sind drei aktive Downloads; weitere Einträge waren korrekt `QUEUED`, aber `SongItem` zeigte diesen Zustand früher nicht. Liedtext-Nebenabrufe können zusätzlich konkurrieren. Nach dem InnerTubeX-Umbau fehlte außerdem die Gesamtlänge im `DataSpec`, weshalb der CDN offene statt exakt begrenzter Range-Abrufe erhielt | Queue-/Restart-Zustände sind sichtbar, die Bulk-Übergabe ist geordnet, bis zu fünf Audiodownloads laufen parallel und höchstens ein Nebenabruf. Der eigene Download-Resolver setzt nun High-Qualität und exakte Länge. Bei echtem Stillstand Download-Benachrichtigung und Logs `DownloadHelperImpl`, `MyDownloadService`, `dataspec`, `InnerTubeXPlayer` prüfen; CDN-Drosselung bleibt extern möglich |
+| Ein geöffnetes Album spielt nur den angetippten Titel und läuft dann mit willkürlichen, teils fremden Titeln weiter | Der automatische Warteschlangen-Nachschub (`QUEUE_AUTO_APPEND`, Vorgabe an) rief die parameterlose `startRadio()` auf, deren Vorgabe `append = false` die gesamte Warteschlange ersetzt. Bei einem Album mit höchstens elf verbleibenden Titeln griff das schon beim ersten Titelwechsel; zusätzlich blieben durch eine falsch berechnete Entfernungsgrenze Reste der alten Warteschlange stehen | Seit dem 11.09.2026 verwendet `ExoPlayerListener.loadFromRadio()` ausdrücklich `append = true`, und `Player.keepOnlyCurrentMediaItem()` kapselt die Ersetzung (§4.1). Bei erneutem Auftreten zuerst prüfen, ob eine neue Aufrufstelle `startRadio()` ohne `append` verwendet; Einstellung „Titel automatisch in die Warteschlange laden“ zum Gegentest ausschalten |
+| Der angetippte Titel einer Liste startet nicht, sondern ein anderer – oder die Wiedergabe beginnt gar nicht | `forcePlayAtIndex()` entfernt Duplikate, übergab `setMediaItems` aber den Index aus der unbereinigten Liste. Bei doppelter Video-ID verschiebt sich jede spätere Position; fällt der Index aus der kürzeren Liste, wirft media3 `IllegalSeekPositionException` | Seit dem 11.09.2026 wird der angetippte Titel in der bereinigten Liste neu gesucht (§4.1). Bei eigenen neuen Listenaufrufern nie einen Index aus einer anderen Liste als der übergebenen weiterreichen; `PlayerQueueOrderTest` deckt die Fälle ab |
+| Der Zufallsknopf in der Aktionsleiste des Vollbild-Players scheint nichts zu tun | Er rief `shuffleQueue()` auf: ein einmaliges Umsortieren ohne sichtbaren Zustand, das bei aktivem Zufallsmodus wirkungslos blieb und den bereits gespielten Verlauf löschte | Seit dem 11.09.2026 schaltet er `toggleShuffleMode()` und zeigt den Zustand über `shuffle_filled` und die Akzentfarbe – dieselbe Quelle wie Benachrichtigung und Android Auto (§4.1) |
+| Ein Tipp auf ein Symbol der Player-Aktionsleiste öffnet die Warteschlange statt die Aktion auszulösen | Die Symbole waren 20–24 dp groß, während die gesamte Leiste mit `tapqueue` (Vorgabe an) selbst anklickbar ist und die Queue öffnet | Seit dem 11.09.2026 sitzt jede Aktion in einer mindestens 48 dp großen Fläche (`actionSlot` in `ActionBar.kt`), die über `weight(1f, fill = false)` auf ihren Anteil begrenzt bleibt. Bei vielen zusätzlich aktivierten Knöpfen schrumpfen die Flächen, statt die Leiste überlaufen zu lassen |
+| Zufallsmodus einschalten führt sofort in den Radio-Modus: nach dem Album eines Künstlers folgt ein fremder | Die Schwelle des Warteschlangen-Nachschubs rechnete `mediaItemCount - currentMediaItemIndex`, also in Playlist- statt Abspielreihenfolge. Im Zufallsmodus sind beide entkoppelt; startete die Shuffle-Order auf einem hinten liegenden Titel, galt die Warteschlange sofort als fast leer. Zusätzlich streute media3 die angehängten Titel über `DefaultShuffleOrder.cloneAndInsert` zwischen die noch ungehörten Albumtitel | Seit dem 11.09.2026 zählt `Player.remainingInPlayOrder()` in Abspielreihenfolge, und `ExoPlayer.appendedSongsPlayLast()` stellt die Shuffle-Order nach dem Anhängen wieder her (§4.1). Wer grundsätzlich keine fremden Titel möchte, schaltet Einstellungen → Allgemein → „Automatically load songs in queue“ aus |
 | Wiedergabe wirkt mono | Quelle ist selbst mono/zentriert oder Android/Gerät mischt nach dem Decoder zusammen; KruXx enthält keinen Downmix. Ein gewählter Hall/EQ kann die Räumlichkeit verändern | „Stats for Nerds“ aufklappen: `Decoder-Kanäle: 2 (Stereo)` belegt ein Stereo-Quellformat. Dann Android → Bedienungshilfen → Audio → Mono-Audio, System-/Hersteller-EQ, Bluetooth-Gerät und Kabel/Adapter prüfen; Hall in KruXx auf „Keiner“ setzen |
 | YouTube-Login/Bibliothek defekt | `modules/metrolist` (Metrolist-Innertube) | Submodul-Update (§6.3) |
 | Build: `Dependency … requires compileSdk 37` | Flag in `gradle.properties` fehlt | §2.1 / §6.4 |
@@ -1320,6 +1365,17 @@ Die [Roadmap](../ROADMAP.md) bündelt die künftigen Vorhaben ohne feste Version
 Terminzusage. Dort ist seit 08.09.2026 auch die optionale Friends-Funktion vorgemerkt:
 zuerst Musikteilen verbessern, später persönliche Nachrichten und Musikkarten. Vor einer
 Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt ein Kandidat.
+
+- **Wiedergabekorrekturen vom 11.09.2026 – abgenommen, aber unveröffentlicht:** Die sechs Fehler
+  in Warteschlangen-Nachschub (Ersetzen statt Anhängen, falscher Entfernungsbereich, Dubletten,
+  Schwelle in Playlist- statt Abspielreihenfolge, eingestreute Titel in der Shuffle-Order),
+  `forcePlayAtIndex` und Zufallsknopf sind behoben und durch dreizehn neue Tests abgesichert.
+  Auf dem Samsung-Zielgerät ist vom Nutzer bestätigt: normale Albumreihenfolge sowie der
+  vollständige Zufallsmodus-Ablauf — das Album läuft zufällig durch, ohne fremde Künstler
+  dazwischen, und erst danach übernimmt das Radio. Nachzuholen sind die ausdrückliche Aktion
+  „Radio starten“, der Zufallsknopf und sein Zustand über Benachrichtigung und Android Auto
+  hinweg sowie die 48-dp-Trefferflächen der Aktionsleiste im Querformat und mit zusätzlich
+  aktivierten Aktionsknöpfen. Der Stand trägt noch keine Versionsnummer.
 
 - **1.2.0 – verbleibende Download-Gerätefälle:** Die Matrix in [`DOWNLOADS.md`](DOWNLOADS.md)
   umfasst Video mit Ton, Android-MP3-Konvertierung, alle Download-Einstiege, SD/USB, Abbruch,

@@ -9,6 +9,8 @@ sind bestanden; die signierte APK ist auf dem Samsung-Zielgerät mit Android 16 
 1.2.1 geprüft und der öffentliche Download bytegleich mit dem lokalen Archiv.
 Der verbindliche Artefakt-, Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`.
 Offene Gerätefälle bleiben ausdrücklich dokumentiert.
+Lokal abgenommen, aber noch nicht veröffentlicht: die Korrekturen vom 11.09.2026 an
+der Wiedergabereihenfolge geöffneter Alben und an der Aktionsleiste des Vollbild-Players.
 Ab `1.2.0` setzt KruXx Android 7.0 / API 24 voraus. Android 6 wird nicht mehr unterstützt;
 der letzte dafür veröffentlichte Release bleibt `1.1.0`. Die historischen API-23-Prüfungen bleiben
 nachvollziehbar dokumentiert, gehören aber nicht mehr zur aktuellen Abnahmematrix.

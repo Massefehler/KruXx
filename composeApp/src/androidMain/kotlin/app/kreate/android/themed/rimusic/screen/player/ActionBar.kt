@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
@@ -42,6 +45,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -58,6 +62,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -97,13 +102,29 @@ import it.fast4x.rimusic.utils.manageDownload
 import it.fast4x.rimusic.utils.mediaItems
 import it.fast4x.rimusic.utils.playAtIndex
 import it.fast4x.rimusic.utils.semiBold
-import it.fast4x.rimusic.utils.shuffleQueue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.knighthat.component.player.PlaybackSpeed
 import me.knighthat.utils.Toaster
 import org.koin.compose.koinInject
+
+/**
+ * Android's 48 dp minimum touch target for one action of the player's bottom bar,
+ * while the icon keeps its own [iconSize].
+ *
+ * The bar itself is clickable and opens the queue, so everything that missed a 20-24 dp
+ * icon used to open the queue instead of running the action. [RowScope.weight] with
+ * `fill = false` caps a slot at its share of the row, so a bar full of optional actions
+ * shrinks instead of overflowing.
+ */
+private fun Modifier.actionSlot( row: RowScope, iconSize: Dp ): Modifier =
+    with( row ) {
+        this@actionSlot.weight( 1f, fill = false )
+                       .sizeIn( minWidth = 48.dp, minHeight = 48.dp )
+                       .wrapContentSize()
+                       .size( iconSize )
+    }
 
 private class PagerViewPort(
     private val showSongsState: MutableState<SongsNumber>,
@@ -455,7 +476,7 @@ fun BoxScope.ActionBar(
                         onClick = {
                             showSearchEntityState.value = true
                         },
-                        modifier = Modifier.size( 24.dp )
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
 
                 val showButtonPlayerDiscover by Preferences.PLAYER_ACTION_DISCOVER
@@ -466,8 +487,7 @@ fun BoxScope.ActionBar(
                         icon = R.drawable.star_brilliant,
                         color = if (discoverIsEnabled) colorPalette().text else colorPalette().textDisabled,
                         onClick = {},
-                        modifier = Modifier
-                            .size(24.dp)
+                        modifier = Modifier.actionSlot( this, 24.dp )
                             .combinedClickable(
                                 onClick = { discoverIsEnabled = !discoverIsEnabled },
                                 onLongClick = {
@@ -499,7 +519,7 @@ fun BoxScope.ActionBar(
                                 downloadState = true
                             )
                         },
-                        modifier = Modifier.size( 24.dp )
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
                 }
 
@@ -536,8 +556,7 @@ fun BoxScope.ActionBar(
                                 )
                             }
                         },
-                        modifier = Modifier
-                            .size(24.dp)
+                        modifier = Modifier.actionSlot( this, 24.dp )
                             .conditional(isSongMappedToPlaylist && showPlaylistIndicator) {
                                 background(color.accent, CircleShape).padding(all = 5.dp)
                             }
@@ -557,18 +576,34 @@ fun BoxScope.ActionBar(
                             if (effectRotationEnabled)
                                 rotateState.value = !rotateState.value
                         },
-                        modifier = Modifier.size( 24.dp )
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
                 }
 
                 val showButtonPlayerShuffle by Preferences.PLAYER_ACTION_SHUFFLE
-                if (showButtonPlayerShuffle)
+                if (showButtonPlayerShuffle) {
+                    /*
+                        This used to reorder the queue once, which leaves no trace in the
+                        bar and does nothing at all while shuffle mode is on, so the button
+                        looked dead. It now drives the same state as the media notification
+                        and Android Auto, and shows it.
+                     */
+                    var isShuffling by remember { mutableStateOf( player.shuffleModeEnabled ) }
+                    player.DisposableListener {
+                        object : Player.Listener {
+                            override fun onShuffleModeEnabledChanged( shuffleModeEnabled: Boolean ) {
+                                isShuffling = shuffleModeEnabled
+                            }
+                        }
+                    }
+
                     IconButton(
-                        icon = R.drawable.shuffle,
-                        color = colorPalette().accent,
-                        onClick = player::shuffleQueue,
-                        modifier = Modifier.size( 24.dp )
+                        icon = if ( isShuffling ) R.drawable.shuffle_filled else R.drawable.shuffle,
+                        color = if ( isShuffling ) colorPalette().accent else Color.Gray,
+                        onClick = player::toggleShuffleMode,
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
+                }
 
                 val showButtonPlayerLyrics by Preferences.PLAYER_ACTION_SHOW_LYRICS
                 if (showButtonPlayerLyrics)
@@ -581,7 +616,7 @@ fun BoxScope.ActionBar(
                                 isShowingVisualizer = !isShowingVisualizer
                             isShowingLyrics = !isShowingLyrics
                         },
-                        modifier = Modifier.size( 24.dp )
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
 
                 val playerType by Preferences.PLAYER_TYPE
@@ -597,7 +632,7 @@ fun BoxScope.ActionBar(
                             onClick = {
                                 expandedPlayer = !expandedPlayer
                             },
-                            modifier = Modifier.size( 20.dp )
+                            modifier = Modifier.actionSlot( this, 20.dp )
                         )
                 }
 
@@ -611,7 +646,7 @@ fun BoxScope.ActionBar(
                                 isShowingLyrics = !isShowingLyrics
                             isShowingVisualizer = !isShowingVisualizer
                         },
-                        modifier = Modifier.size( 24.dp )
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
 
 
@@ -625,7 +660,7 @@ fun BoxScope.ActionBar(
                         onClick = {
                             showSleepTimerState.value = true
                         },
-                        modifier = Modifier.size( 24.dp )
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
                 }
 
@@ -659,7 +694,7 @@ fun BoxScope.ActionBar(
                                 Toaster.e( R.string.info_not_find_application_audio )
                             }
                         },
-                        modifier = Modifier.size( 20.dp )
+                        modifier = Modifier.actionSlot( this, 20.dp )
                     )
                 }
 
@@ -671,7 +706,7 @@ fun BoxScope.ActionBar(
                         onClick = {
                             player.startRadio( mediaItem )
                         },
-                        modifier = Modifier.size( 24.dp )
+                        modifier = Modifier.actionSlot( this, 24.dp )
                     )
 
                 val showPlaybackSpeedButton by Preferences.AUDIO_SPEED
@@ -691,9 +726,7 @@ fun BoxScope.ActionBar(
                         onClick = {
                             showQueue = true
                         },
-                        modifier = Modifier
-                            //.padding(end = 12.dp)
-                            .size(24.dp),
+                        modifier = Modifier.actionSlot( this, 24.dp ),
                     )
 
                 val showButtonPlayerMenu by Preferences.PLAYER_ACTION_SHOW_MENU
@@ -713,8 +746,7 @@ fun BoxScope.ActionBar(
                                 )
                             }
                         },
-                        modifier = Modifier
-                            .size(24.dp)
+                        modifier = Modifier.actionSlot( this, 24.dp )
                             .graphicsLayer {
                                 rotationZ = if (isInLandscape) 90f else 0f
                             }

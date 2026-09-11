@@ -15,6 +15,8 @@ import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import co.touchlab.kermit.Logger
@@ -84,11 +86,79 @@ fun Player.seamlessPlay(mediaItem: MediaItem) {
 }
 
 
-fun Player.shuffleQueue() {
-    val mediaItems = currentTimeline.mediaItems.toMutableList().apply { removeAt(currentMediaItemIndex) }
-    if (currentMediaItemIndex > 0) removeMediaItems(0, currentMediaItemIndex)
-    if (currentMediaItemIndex < mediaItemCount - 1) removeMediaItems(currentMediaItemIndex + 1, mediaItemCount)
-    addMediaItems(mediaItems.shuffled())
+/**
+ * Number of songs queued after the current one **in the order they will actually play**,
+ * counted at most up to [limit].
+ *
+ * [Player.getCurrentMediaItemIndex] is a position in the playlist, not in the playback
+ * order. With shuffle mode on the two drift apart, so a plain `mediaItemCount - index`
+ * reports an almost empty queue as soon as shuffle happens to start on a song near the
+ * end of the playlist - even though most of the queue is still ahead.
+ */
+@UnstableApi
+fun Player.remainingInPlayOrder( limit: Int ): Int {
+    val timeline = currentTimeline
+    if( timeline.isEmpty ) return 0
+
+    var remaining = 0
+    var index = currentMediaItemIndex
+    while( remaining < limit ) {
+        index = timeline.getNextWindowIndex( index, REPEAT_MODE_OFF, shuffleModeEnabled )
+        if( index == C.INDEX_UNSET ) break
+
+        remaining++
+    }
+
+    return remaining
+}
+
+/**
+ * Moves the [addedCount] songs that were just appended to the **end of the shuffle order**.
+ *
+ * media3 splices new entries into random positions of the shuffle order
+ * ([DefaultShuffleOrder.cloneAndInsert]). A queue top-up would therefore play between
+ * songs the listener has not heard yet - shuffling an album started with a song of some
+ * other artist. Topping up is meant to extend the queue, so under shuffle it has to
+ * extend its end as well. Without shuffle the appended songs already come last.
+ */
+@UnstableApi
+fun ExoPlayer.appendedSongsPlayLast( addedCount: Int ) {
+    if( addedCount < 1 || !shuffleModeEnabled ) return
+
+    val timeline = currentTimeline
+    val total = timeline.windowCount
+    val firstAdded = total - addedCount
+    // Nothing worth preserving when the whole queue is new
+    if( firstAdded < 1 ) return
+
+    val order = ArrayList<Int>( total )
+    var index = timeline.getFirstWindowIndex( true )
+    while( index != C.INDEX_UNSET ) {
+        if( index < firstAdded )
+            order.add( index )
+
+        index = timeline.getNextWindowIndex( index, REPEAT_MODE_OFF, true )
+    }
+    // Bail out instead of handing media3 an order of the wrong length
+    if( order.size != firstAdded ) return
+
+    order.addAll( (firstAdded until total).shuffled() )
+    setShuffleOrder( DefaultShuffleOrder( order.toIntArray(), System.currentTimeMillis() ) )
+}
+
+/**
+ * Keeps the currently playing song, at index `0`, and drops every other entry so that
+ * a freshly resolved radio queue can be appended behind it.
+ *
+ * The removal range has to be derived **after** the move. Using the original index
+ * instead left that many songs of the replaced queue in front of the new ones.
+ */
+@UnstableApi
+fun Player.keepOnlyCurrentMediaItem() {
+    if( mediaItemCount <= 1 ) return
+
+    moveMediaItem( currentMediaItemIndex, 0 )
+    removeMediaItems( 1, mediaItemCount )
 }
 
 @SuppressLint("Range")
@@ -171,9 +241,22 @@ fun Player.forcePlayAtIndex(mediaItems: List<MediaItem>, mediaItemIndex: Int) {
     // This will prevent UI from freezing up during conversion
     CoroutineScope( Dispatchers.Default ).launch {
         val cleanedMediaItems = mediaItems.fastDistinctBy( MediaItem::mediaId )
+        /*
+            [mediaItemIndex] addresses the original list. Dropping duplicates shifts
+            every later position, so the requested song has to be located again -
+            otherwise a list with duplicates starts the wrong song, or media3 throws
+            IllegalSeekPositionException once the index falls outside the shorter list.
+         */
+        val startIndex = mediaItems.getOrNull( mediaItemIndex )
+                                   ?.mediaId
+                                   ?.let { mediaId ->
+                                       cleanedMediaItems.indexOfFirst { it.mediaId == mediaId }
+                                   }
+                                   ?.takeIf { it > -1 }
+                                   ?: 0
 
         runBlocking( Dispatchers.Main ) {
-            setMediaItems( cleanedMediaItems, mediaItemIndex, C.TIME_UNSET )
+            setMediaItems( cleanedMediaItems, startIndex, C.TIME_UNSET )
             prepare()
             restoreGlobalVolume()
             playWhenReady = true

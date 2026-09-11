@@ -37,6 +37,7 @@ import it.fast4x.rimusic.service.UnknownException
 import it.fast4x.rimusic.service.UnplayableException
 import it.fast4x.rimusic.utils.mediaItems
 import it.fast4x.rimusic.utils.playNext
+import it.fast4x.rimusic.utils.remainingInPlayOrder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -147,11 +148,26 @@ class ExoPlayerListener(
             || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED
         ) return
 
-        val positionToLast = player.mediaItemCount - player.currentMediaItemIndex
         // Make sure only add when about 10 songs to the last song in queue
         // TODO: Add slider in settings to let user change number of songs
-        if( positionToLast <= 10 && !player.isLoadingRadio() )
-            player.startRadio()
+        /*
+            Counted in playback order, not in playlist order. `mediaItemCount - index`
+            ignores the shuffle order: switching shuffle on while a song near the end of
+            the playlist plays made this look like an almost empty queue, so the radio
+            appended immediately and the rest of the album was never reached.
+         */
+        if( player.remainingInPlayOrder( SONGS_LEFT_BEFORE_RADIO ) >= SONGS_LEFT_BEFORE_RADIO
+            || player.isLoadingRadio()
+        ) return
+
+        /*
+            This setting only tops the queue up, so the radio must append.
+            The parameterless [StatefulPlayer.startRadio] defaults to append=false,
+            which replaces the queue: playing an album dropped its remaining tracks
+            and continued with unrelated songs after the very first transition.
+            That variant stays reserved for an explicit "start radio" action.
+         */
+        player.currentMediaItem?.let { player.startRadio( it, append = true ) }
     }
 
     private enum class Recovery {
@@ -343,6 +359,8 @@ class ExoPlayerListener(
 
     private companion object {
         const val MAX_RECOVERY_ATTEMPTS = 3
+        /** Queue top-up starts once fewer than this many songs follow the current one. */
+        const val SONGS_LEFT_BEFORE_RADIO = 10
         /** Extractor choked on the bytes, or CacheDataSource tripped over its own index/files. */
         val CORRUPT_CACHE_ERROR_CODES = setOf(
             PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,

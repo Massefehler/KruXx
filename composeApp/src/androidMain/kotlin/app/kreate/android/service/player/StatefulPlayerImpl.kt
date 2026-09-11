@@ -45,8 +45,10 @@ import it.fast4x.rimusic.Database
 import it.fast4x.rimusic.service.MyDownloadHelper
 import it.fast4x.rimusic.service.modern.PlayerServiceModern.Companion.SleepTimerNotificationId
 import it.fast4x.rimusic.utils.TimerJob
+import it.fast4x.rimusic.utils.appendedSongsPlayLast
 import it.fast4x.rimusic.utils.asMediaItem
 import it.fast4x.rimusic.utils.forcePlay
+import it.fast4x.rimusic.utils.keepOnlyCurrentMediaItem
 import it.fast4x.rimusic.utils.manageDownload
 import it.fast4x.rimusic.utils.mediaItems
 import it.fast4x.rimusic.utils.setGlobalVolume
@@ -285,39 +287,40 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
                 }
 
                 // Any call to [player] must happen on Main thread
-                val currentQueue = withContext( Dispatchers.Main ) {
-                    player.mediaItems.fastMap( MediaItem::mediaId )
-                }
+                withContext( Dispatchers.Main ) {
+                    /*
+                        There are 2 possible outcomes when append is not enabled.
+                        User starts radio on currently playing song,
+                        or on a completely different song.
 
-                // Songs with the same id as provided [Song] should be removed.
-                // The song usually lives at the the first index, but this
-                // way is safer to implement, as it can live through changes in position.
-                relatedSongs.dropWhile { it.id == mediaItem.mediaId || it.id in currentQueue }
-                            .fastMap( InnertubeSong::toMediaItem )
-                            .also {
-                                // Any call to [player] must happen on Main thread
-                                withContext( Dispatchers.Main ) {
-                                    /*
-                                        There are 2 possible outcomes when append is not enabled.
-                                        User starts radio on currently playing song,
-                                        or on a completely different song.
+                        When radio is activated on the same song, remain position
+                        of currently playing song, delete next songs, and append
+                        it with new songs.
 
-                                        When radio is activated on the same song, remain position
-                                        of currently playing song, delete next songs, and append
-                                        it with new songs.
+                        When new song is used for radio, replace entire queue with new songs.
+                      */
+                    if( !append )
+                        player.keepOnlyCurrentMediaItem()
 
-                                        When new song is used for radio, replace entire queue with new songs.
-                                      */
-                                    val curIndex = player.currentMediaItemIndex
-                                    val endIndex = player.mediaItemCount
-                                    if( !append && player.mediaItemCount > 1 ) {
-                                        player.moveMediaItem( curIndex, 0 )
-                                        player.removeMediaItems( curIndex + 1, endIndex )
-                                    }
+                    /*
+                        Only the queue that survived the step above may suppress a related
+                        song; when the queue is replaced, its songs are legitimate radio
+                        results again. [dropWhile] also stopped at the first song that is
+                        not in the queue, so later duplicates were added a second time.
+                     */
+                    val currentQueue = player.mediaItems
+                                             .fastMap( MediaItem::mediaId )
+                                             .toHashSet()
 
-                                    player.addMediaItems(it)
+                    relatedSongs.filterNot { it.id == mediaItem.mediaId || it.id in currentQueue }
+                                .fastMap( InnertubeSong::toMediaItem )
+                                .also {
+                                    player.addMediaItems( it )
+                                    // A top-up extends the queue; under shuffle it must
+                                    // extend its end instead of being spliced in between.
+                                    player.appendedSongsPlayLast( it.size )
                                 }
-                            }
+                }
             }.onFailure { err ->
                 logger.e( "", err )
                 Toaster.e( R.string.error_song_radio_failed )

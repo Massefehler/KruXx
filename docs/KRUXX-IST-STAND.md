@@ -1,6 +1,7 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht
+Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht · lokale Korrekturen an Wiedergabereihenfolge
+und Player-Aktionsleiste auf dem Zielgerät abgenommen, aber noch nicht veröffentlicht
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -211,6 +212,107 @@ zuerst umgesetzten Ansichten sie erhielten.
 - Offen bleiben die Verlaufs- und Podcast-Liste als Sichtprüfung sowie Hellmodus, große
   Systemschrift und API 24–30. Ladeplatzhalter (`SongItem.Placeholder`) behalten bewusst ihre
   bisherige Darstellung ohne Karte.
+
+### Noch nicht veröffentlicht: Wiedergabereihenfolge und Player-Aktionsleiste vom 11.09.2026
+
+Gemeldet wurde, dass ein über Künstler → Album geöffnetes Album nicht in seiner Reihenfolge läuft:
+Nach dem angetippten Titel folgen willkürliche Titel, teilweise fremder Künstler. Zusätzlich war
+zu prüfen, ob die Aktionsleiste des Vollbild-Players überhaupt funktioniert, besonders der mittlere
+Zufallsknopf. Die Analyse ergab vier getrennte Fehler; drei davon stammen aus geerbtem Kreate-Code.
+
+- **Automatischer Warteschlangen-Nachschub ersetzte die Warteschlange.** `ExoPlayerListener`
+  ruft für die Einstellung „Titel automatisch in die Warteschlange laden“ (Vorgabe **an**)
+  ab zehn verbleibenden Titeln die parameterlose `startRadio()` auf. Deren Vorgabe ist jedoch
+  `append = false`, also „ganze Warteschlange ersetzen“. Bei einem Album mit zwölf Titeln griff
+  das schon beim ersten Titelwechsel: Die restlichen Albumtitel wurden gelöscht, die bereits
+  gespielten in veränderter Reihenfolge stehen gelassen und Radiotitel fremder Künstler angehängt.
+  Der Nachschub verwendet jetzt ausdrücklich `append = true`; die ersetzende Variante bleibt der
+  bewussten Aktion „Radio starten“ vorbehalten.
+- **Die Ersetzung selbst rechnete mit dem falschen Index.** `startRadio` verschob den laufenden
+  Titel auf Position 0 und entfernte anschließend ab `curIndex + 1` – also gemessen an der
+  Reihenfolge *vor* dem Verschieben. Dadurch blieben genau `curIndex` Titel der ersetzten
+  Warteschlange stehen. Der gemeinsame Baustein `Player.keepOnlyCurrentMediaItem()` entfernt
+  jetzt ab Position 1.
+- **Doppelte Radiotitel.** `dropWhile` überspringt nur einen führenden Block bereits enthaltener
+  Titel und behält alle späteren. Es ist durch `filterNot` ersetzt. Der Abgleich erfolgt jetzt
+  außerdem gegen die Warteschlange, die den Ersetzungsschritt überlebt hat; vorher wurden beim
+  ausdrücklichen Radiostart Titel der ohnehin verworfenen Warteschlange fälschlich unterdrückt.
+- **`forcePlayAtIndex` adressierte die falsche Liste.** Die Funktion entfernt Duplikate, übergab
+  `setMediaItems` aber weiterhin den Index aus der ursprünglichen Liste. Bei doppelten Video-IDs
+  startete dadurch der falsche Titel; fiel der Index aus der verkürzten Liste heraus, warf media3
+  `IllegalSeekPositionException`. Der angetippte Titel wird jetzt in der bereinigten Liste
+  gesucht.
+- **Der Nachschub maß in Playlist- statt in Abspielreihenfolge.** Die Schwelle rechnete
+  `mediaItemCount - currentMediaItemIndex`. Bei eingeschaltetem Zufallsmodus sind beide Größen
+  entkoppelt: Startete die Zufallsreihenfolge auf einem Titel, der zufällig hinten in der Playlist
+  liegt, sah die Warteschlange fast leer aus und das Radio hängte sofort an — auf dem Gerät
+  gemeldet als „nach AC/DC kam Scorpions“. `Player.remainingInPlayOrder(limit)` zählt jetzt über
+  `Timeline.getNextWindowIndex` in der tatsächlichen Abspielreihenfolge und bricht bei `limit` ab.
+  Die Schwelle selbst ist als `SONGS_LEFT_BEFORE_RADIO = 10` benannt und unverändert.
+- **Angehängte Radiotitel wurden in die Zufallsreihenfolge eingestreut.** media3 fügt neue Einträge
+  über `DefaultShuffleOrder.cloneAndInsert` an zufälligen Stellen der Shuffle-Order ein. Ein
+  Nachschub konnte dadurch zwischen noch nicht gehörten Albumtiteln laufen — im Zufallsmodus also
+  fremde Künstler mitten im Album. `ExoPlayer.appendedSongsPlayLast(addedCount)` stellt die
+  Shuffle-Order nach dem Anhängen so wieder her, dass die bisherige Warteschlange ihre Reihenfolge
+  behält und die neuen Titel geschlossen dahinter stehen. Das entspricht der Beschreibung der
+  Einstellung („fügt Titel hinzu, wenn die Warteschlange zu Ende geht“). Ohne Zufallsmodus stehen
+  angehängte Titel ohnehin hinten; die Funktion kehrt dann sofort zurück.
+- **Aktionsleiste des Vollbild-Players.** Alle Knöpfe sind verdrahtet; der mittlere Zufallsknopf
+  rief `shuffleQueue()` auf. Das mischte die Warteschlange einmalig um, löschte dabei den bereits
+  gespielten Verlauf und blieb bei aktivem Zufallsmodus vollständig wirkungslos, weil ExoPlayer
+  dann seiner eigenen Zufallsreihenfolge folgt. Sichtbaren Zustand gab es nicht. Auf
+  Nutzerentscheidung schaltet der Knopf jetzt `toggleShuffleMode()` – denselben Zustand wie
+  Medienbenachrichtigung und Android Auto – und zeigt ihn über `shuffle_filled` und die
+  Akzentfarbe an. `shuffleQueue()` ist entfallen.
+- **Trefferflächen der Aktionsleiste.** Die Symbole waren 20–24 dp groß, während die gesamte
+  Leiste selbst anklickbar ist und die Warteschlange öffnet (`tapqueue`, Vorgabe an). Ein knapp
+  daneben gesetzter Tipp öffnete daher die Queue statt die Aktion auszulösen. Jede Aktion sitzt
+  jetzt in einer Fläche von mindestens 48 dp; die Symbolgrößen bleiben unverändert und bleiben
+  optisch zentriert. Die Fläche ist über `weight(1f, fill = false)` auf ihren Anteil der Leiste
+  begrenzt, sodass viele zusätzlich aktivierte Knöpfe schrumpfen statt überzulaufen.
+  Der Knopf für die Wiedergabegeschwindigkeit nimmt keinen Modifier entgegen und behält seine
+  bisherige Fläche.
+- Automatische Prüfung: **159 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder
+  übersprungene Tests. Universal-Debug gebaut; vollständiger Release-Lint erfolgreich ohne Fehler,
+  ohne Erweiterung der Baseline und ohne Befund in einer der geänderten Dateien (unverändert
+  53 Warnungen). Dreizehn der App-Tests sind neu: elf in `PlayerQueueOrderTest` für
+  Albumreihenfolge, Duplikate, Indexüberlauf, Queue-Ersetzung, Anhängen, die Restzählung in
+  Abspielreihenfolge mit und ohne Zufallsmodus sowie die Position angehängter Titel in der
+  Shuffle-Order; zwei in `StatefulPlayerLifecycleTest` für den geteilten Zufallsmodus und dessen
+  Ausschluss mit dem Wiederholmodus. Der Shuffle-Order-Test verwendet je zwölf Album- und
+  Radiotitel, damit eine zufällig korrekte Einfügung ihn nicht bestehen lässt; ohne den Fix
+  schlägt er fehl.
+- **Geräteprüfung auf Samsung SM-S931B / Android 16 (Teilabnahme):** Debug-Build mit Datenerhalt
+  installiert, Erstinstallationszeit unverändert **03.09.2026 01:12:20**; die stabile App wurde
+  nicht verändert. Über Künstler → Black Sabbath → „Headless Cross (2024 Remaster)“ (9 Titel)
+  wurde Titel 3 angetippt: Es startete „Devil & Daughter“, die Warteschlange umfasste exakt die
+  9 Albumtitel. Nach dem Titelwechsel lief „When Death Calls“ als Titel 4, die Warteschlange wuchs
+  auf 54 Einträge und der laufende Titel blieb auf Position 4 (`active item id=3`) — die Titel 1–3
+  stehen also weiterhin davor. Mit dem alten Code wäre er auf Index 0 verschoben und der Albumrest
+  gelöscht worden. Die Aktionsleiste zeigt sieben anklickbare Flächen à 126 × 126 px, bei der
+  Gerätedichte 420 exakt 48 dp, alle ohne Überlauf. Ein Tipp auf den mittleren Knopf wechselte das
+  Symbol der Medienbenachrichtigung von `shuffle` (`0x7f080288`) auf `shuffle_filled`
+  (`0x7f080289`); bei frisch gestartetem Prozess zeigt der Knopf die graue Aus-Darstellung.
+  Kein Eintrag im Crash-, ANR- oder Dropbox-Puffer des Debug-Pakets; temporäre Dateien auf dem
+  Gerät wurden entfernt.
+- Die beiden zuletzt beschriebenen Zufallsmodus-Fehler wurden **erst bei dieser Geräteprüfung durch
+  den Nutzer** gefunden, nachdem die normale Albumreihenfolge bereits bestätigt war. Der Nutzer
+  meldete sie als „Zufallsmodus geht direkt in den Radio-Mode, nach AC/DC kam Scorpions“ und
+  präzisierte die Erwartung: Der Zufallsmodus soll das geöffnete Album zufällig abspielen, ohne
+  fremde Künstler dazwischen.
+- **Nutzerabnahme auf demselben Samsung-Gerät bestanden.** Nach dem korrigierten Debug-Build hat
+  der Nutzer die normale Albumreihenfolge bestätigt und anschließend den vollständigen
+  Zufallsmodus-Ablauf: Das Album läuft in zufälliger Reihenfolge vollständig durch, ohne dass
+  fremde Künstler dazwischen geraten, und **erst danach übernimmt das Radio**. Damit sind die
+  gemeldeten Fehlerbilder und das Zusammenspiel von Zufallsmodus und Warteschlangen-Nachschub auf
+  dem Zielgerät abgenommen.
+- **Offen: die restliche Geräteprüfung.** Nicht abgenommen sind: die ausdrückliche Aktion
+  „Radio starten“, der Zufallsknopf im Wechsel mit Benachrichtigung und Android Auto sowie die
+  Trefferflächen der Aktionsleiste im Querformat und mit zusätzlich aktivierten Aktionsknöpfen.
+  Hellmodus, große Systemschrift und API 24–30 bleiben wie bisher offen. Eine Versionsnummer ist
+  noch nicht vergeben und der Stand ist nicht veröffentlicht.
+- Die Root-README beschreibt weiterhin den veröffentlichten Stand `1.2.2` und wird erst mit dem
+  nächsten Release angepasst; eine Versionsnummer ist für diese Korrekturen noch nicht vergeben.
 
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 
@@ -1253,6 +1355,14 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 - Für `1.2.2` bleiben zusätzlich offen: die Sichtprüfung der Verlaufs- und Podcast-Titellisten,
   Hellmodus, große Systemschrift, Querformat mit rechter Navigationsleiste und die Überlaufpfeile
   der Suchleiste auf schmalen Displays.
+- **Die lokalen Korrekturen an Wiedergabereihenfolge und Player-Aktionsleiste vom 11.09.2026 sind
+  auf dem Samsung-Zielgerät abgenommen, aber noch nicht veröffentlicht.** Sie beheben, dass der
+  automatische Warteschlangen-Nachschub ein laufendes Album ersetzte statt es zu ergänzen, dass er
+  im Zufallsmodus sofort fremde Künstler einstreute, und geben dem Zufallsknopf des
+  Vollbild-Players denselben Zustand wie Benachrichtigung und Android Auto. Normale und zufällige
+  Albumwiedergabe sind vom Nutzer bestätigt; „Radio starten“, das Albumende im Zufallsmodus und
+  die Aktionsleiste im Querformat bleiben Nachtests. Umfang und Nachweise stehen in
+  [§1](#noch-nicht-veröffentlicht-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026).
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
