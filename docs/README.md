@@ -1,6 +1,6 @@
 # KruXx-Dokumentation
 
-Stand: 11.09.2026 · KruXx `1.2.1` veröffentlicht · `1.2.2` vorbereitet, noch nicht veröffentlicht
+Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht
 
 [KruXx `1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) / `1000005`
 ist veröffentlicht. Der Release bündelt Korrekturen an Navigation, Download-Entfernung,

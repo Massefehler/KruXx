@@ -8,16 +8,16 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-[KruXx 1.2.1](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1)
-(`versionCode 1000005`, Android 7.0+) is the current public stable release, with navigation,
-download and playback stability fixes. All 204 unit tests, release lint and CI passed.
-The signed APK was tested on Android 7 and Android 16 emulators, including updates from 1.2.0
-with app data retained. Its public download matches the tested local archive byte for byte.
-Verification details and the remaining device checks are recorded in the
-[KruXx status report](docs/KRUXX-IST-STAND.md); the new in-app notes are in
-[`docs/changelogs/kruxx/1.2.1.txt`](docs/changelogs/kruxx/1.2.1.txt). Android Auto in a real vehicle,
-physical SD/USB providers and the broader interaction matrix still require testing. The dedicated
-podcast section remains a separate future feature.
+[KruXx 1.2.2](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2)
+(`versionCode 1000006`, Android 7.0+) is the current public stable release, completing the glass
+skin across every list and restoring the search navigation bar's own categories. All 204 unit
+tests, release lint and CI passed. The signed APK was tested on a Samsung with Android 16,
+updating from 1.2.1 with app data and existing download files retained. Its public download
+matches the tested local archive byte for byte. Verification details and the remaining device
+checks are recorded in the [KruXx status report](docs/KRUXX-IST-STAND.md); the new in-app notes
+are in [`docs/changelogs/kruxx/1.2.2.txt`](docs/changelogs/kruxx/1.2.2.txt). Android Auto in a real
+vehicle, physical SD/USB providers and the broader interaction matrix still require testing. The
+dedicated podcast section remains a separate future feature.
 
 **KruXx 1.2.0 and later require Android 7.0 (API 24) or newer.** Android 6 support has ended;
 1.1.0 is the last published version compatible with it. Existing Android 6 installations can
@@ -50,6 +50,21 @@ Update checks can be changed or disabled under **Settings → General → Update
 crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
+
+### New in 1.2.2
+
+- Album, artist and playlist tiles use the same glass card everywhere. Artist pages, their album
+  subpages, album pages, search results, statistics, new releases and moods no longer show them
+  flat.
+- Album track lists, both history lists and podcast episodes use the shared track card, matching the
+  song, playlist, artist, search and statistics lists.
+- Where a tile or row already sits on a glass pane — menus, the queue sheet, the player's video
+  search — that single pane is kept instead of stacking a second surface.
+- The search navigation bar selects its own categories again: Online, Library and Link on the
+  search entry, and Songs, Albums, Artists, Videos and Playlists on the results page. Choosing a
+  category no longer leaves the search; the header icon and wordmark remain the way home.
+- The tappable arrows, equal tab widths, visible active selection and right-hand navigation spacing
+  introduced in 1.2.1 stay active.
 
 ### New in 1.2.1
 

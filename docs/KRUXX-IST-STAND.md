@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 11.09.2026 · KruXx `1.2.1` veröffentlicht · `1.2.2` vorbereitet, noch nicht veröffentlicht
+Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -11,10 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | [`1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) |
-| In Vorbereitung | `1.2.2` / `1_000_006` – Glasflächen und Suchnavigation; noch nicht gebaut oder veröffentlicht |
-| Öffentlicher Android-Versionscode | `1_000_005` |
-| Schwerpunkt von 1.2.1 | Navigation, Download-Metadaten und -Entfernung, stabiler Wiedergabedienst |
+| Öffentlicher Release | [`1.2.2`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2) |
+| Öffentlicher Android-Versionscode | `1_000_006` |
+| Schwerpunkt von 1.2.2 | Gemeinsame Glasflächen für Kacheln und Titellisten, Suchnavigation |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -98,7 +97,51 @@ Release-Hash. Im Crashpuffer gibt es keinen KruXx-Absturz. Der manuelle Upgrade-
 ist ebenfalls geprüft; die unten historisch belegte TLS-Grenze des alten System-Downloadmanagers
 bleibt dokumentiert. Weitere Updater-Fehlerkombinationen werden durch diesen Nachtest nicht abgedeckt.
 
-### Für 1.2.2 vorbereitet: Rücknahme der Suchnavigation vom 11.09.2026
+### Veröffentlichung von 1.2.2 am 11.09.2026
+
+KruXx `1.2.2` / `1000006` ist seit **14:32 Uhr MESZ** als neuester stabiler GitHub-Release
+veröffentlicht. Der Release bündelt die gemeinsamen Glasflächen für Kachel- und Titellisten sowie
+die zurückgenommene Suchnavigation. Die [Versionshinweise](changelogs/kruxx/1.2.2.txt) sind in die
+zwei Abschnitte „Design“ und „Search“ gegliedert.
+
+- Annotiertes Tag `v1.2.2` zeigt exakt auf den sauber gebauten und in der APK eingebetteten Commit
+  `0a511e0acb56af971307528f92d82ce9562de5af`. Submodul-Pins blieben unverändert.
+- **146 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder übersprungene Tests.
+  Vollständiger Release-Lint erfolgreich ohne Fehler, ohne Erweiterung der Baseline und ohne
+  Befund in einer der geänderten Dateien.
+- [CI-Lauf 34594970405](https://github.com/Massefehler/KruXx/actions/runs/34594970405) für genau
+  diesen Quellcommit ist bestanden.
+- Paket `de.kruxx.music`, Version `1.2.2` / `1000006`, Mindest-/Ziel-API `24` / `36`, alle vier
+  ABIs, APK-v2/v3-Signaturen, ZIP-Integrität, 16-KiB-Ausrichtung und eingebettete Quellrevision
+  sind geprüft. Die eingebetteten Release Notes stimmen bytegenau mit dem Changelog überein
+  (im optimierten APK unter `res/ce.txt`). Das Release-Zertifikat hat weiterhin SHA-256
+  `5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673`.
+- Release zuerst als Entwurf erstellt und über die API auf annotiertes Tag, Quellcommit und genau
+  ein vollständig hochgeladenes Asset geprüft. Die öffentliche Latest-API bestätigt `v1.2.2`,
+  weder Entwurf noch Vorabversion, mit `KruXx-1.2.2-release.apk`, **23.640.999 Bytes** und
+  SHA-256 `c63596c0e0700c966e8e2929ed1f4b2b21f0fe78ae1df9f954ab2d548737033a`. Ein anonymer
+  erneuter Download ist bytegleich mit dem getesteten lokalen Archiv. Die APK ist zufällig exakt
+  so groß wie die von 1.2.1; Hash, Version und eingebettete Revision unterscheiden sie eindeutig.
+  `make_latest` musste nach dem Veröffentlichen einmal gesondert gesetzt werden, damit der vom
+  Self-Updater abgefragte Latest-Endpunkt auf `v1.2.2` zeigt; das ist anschließend bestätigt.
+- Signierte Geräteprüfung auf Samsung SM-S931B / Android 16: Update über die installierte 1.2.1
+  mit Datenerhalt; Erstinstallationszeit bleibt **31.08.2026 12:29:18**, Update **14:27:49**.
+  Die aus der Installation gelesene `base.apk` hat exakt den oben genannten Release-Hash. Alle
+  24 vorhandenen öffentlichen Downloaddateien bleiben per SHA-256 unverändert. Der Changelog-Dialog
+  zeigt beide Abschnitte. Die Suchergebnisse zu „chris liebing“ führen Titel, Alben, Künstler,
+  Videos und Playlists in der Hauptleiste; die geöffnete Albumseite zeigt die neuen Titelkarten.
+  Im vollständigen Logcat gibt es keinen `FATAL EXCEPTION`-, `E AndroidRuntime`-, ANR- oder
+  Force-Finishing-Eintrag; der Dropbox-Puffer ist für das Paket leer.
+- Offene Secret-Scanning-Alarme in App-, Innertube- und Metrolist-Spiegel waren vor der
+  Veröffentlichung leer. Es wurden keine Diagnoseexporte, privaten Gerätedaten oder Schlüsseldateien
+  veröffentlicht.
+
+Nachtests bleiben: Android Auto in DHU und Fahrzeug, physische SD-/USB-Anbieter, die breitere
+Download-/Fehler-/Interaktionsmatrix, subjektive Hör-/Synchronitätsprüfungen sowie die Sichtprüfung
+von Verlaufs- und Podcast-Liste, Hellmodus, große Systemschrift, Querformat mit rechter
+Navigationsleiste und API 24–30.
+
+### Mit 1.2.2 veröffentlicht: Rücknahme der Suchnavigation vom 11.09.2026
 
 Auf Nutzerentscheidung gehört die Hauptleiste in der Suche wieder ihren eigenen Kategorien, wie
 vor 1.2.1. Die Sucheingabe zeigt dort Online/Bibliothek/Link, die Ergebnisseite
@@ -130,7 +173,7 @@ verlassen. Die mit 1.2.1 ergänzte zweite Filterzeile entfällt dadurch wieder.
 - Die Root-README beschreibt unter „New in 1.2.1“ weiterhin den veröffentlichten Stand und wird
   erst mit dem nächsten Release angepasst.
 
-### Für 1.2.2 vorbereitet: Glaskorrektur an Kacheln und Titellisten vom 11.09.2026
+### Mit 1.2.2 veröffentlicht: Glaskorrektur an Kacheln und Titellisten vom 11.09.2026
 
 Gemeldet wurde eine fehlende Glasfläche unter Startseite → Künstler → „Albums“ und „Singles & EPs“.
 Die Prüfung ergab zwei getrennte, jeweils systematische Lücken aus dem Glass-Rollout von `1.1.0`:

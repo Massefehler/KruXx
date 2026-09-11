@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 11.09.2026 · KruXx `1.2.1` veröffentlicht · `1.2.2` vorbereitet ·
+Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -269,7 +269,7 @@ importieren, danach YouTube neu anmelden (Anmeldedaten sind vom Export ausgeschl
 ### 3.1 Eigener Updatekanal
 
 - API: `https://api.github.com/repos/Massefehler/KruXx/releases/latest`
-- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.1`
+- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.2`
 - APK: exakt `KruXx-MAJOR.MINOR.PATCH-release.apk`
 - Standard: nachfragen; alternativ automatische Installation oder vollständig deaktiviert
 - automatische Prüfung: bei foreground-bereiter Oberfläche und validiertem Netzwerk; Netzrückkehr
