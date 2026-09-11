@@ -269,7 +269,7 @@ importieren, danach YouTube neu anmelden (Anmeldedaten sind vom Export ausgeschl
 ### 3.1 Eigener Updatekanal
 
 - API: `https://api.github.com/repos/Massefehler/KruXx/releases/latest`
-- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.0`
+- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.1`
 - APK: exakt `KruXx-MAJOR.MINOR.PATCH-release.apk`
 - Standard: nachfragen; alternativ automatische Installation oder vollständig deaktiviert
 - automatische Prüfung: bei foreground-bereiter Oberfläche und validiertem Netzwerk; Netzrückkehr

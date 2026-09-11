@@ -292,7 +292,7 @@ Nur die Auswahlbuttons scrollen seitlich, die Glasfläche bleibt stehen. Quellen
 Künstlern und Alben erhalten einen eigenen Platz rechts innerhalb der Leiste und können lange
 Reiter nicht überdecken. Es entsteht kein zusätzlicher Blur-Durchlauf pro Button.
 
-Unveröffentlichte Ergänzung vom 08.09.2026: Alle `ButtonsRow`-Filter verwenden dieselben
+Mit 1.2.1 veröffentlichte Ergänzung vom 08.09.2026: Alle `ButtonsRow`-Filter verwenden dieselben
 antippbaren `<<`-/`>>`-Hinweise wie die horizontale Hauptnavigation. Das umfasst Titel, Künstler,
 Alben, Playlists, Downloads, Verlauf, Statistik sowie Suchquellen und Suchergebnisse. Die Hinweise
 erscheinen nur bei tatsächlichem Überlauf und nur in noch erreichbare Richtungen. Beim Wechsel
@@ -318,17 +318,18 @@ nachgeprüft. Die Nachweise stehen im
 
 ## Bedingte Erweiterung der Hauptnavigation
 
-Unveröffentlichte Ergänzung vom 08.09.2026: App-Icon und Wortmarke im Header sind gemeinsam als
-„Zur Startseite“-Schaltfläche bedienbar. Ein Tipp wählt die Startseite ausdrücklich aus und verlässt
-offene Unterseiten. Die zusammenhängende Trefferfläche ist mindestens 48 dp hoch. Wiederholtes
-Tippen legt keine weiteren Seiten an; die geerbten versteckten Spielaktionen des Icons entfallen
-in KruXx. Bei bewusst ausgeschalteter Startseite gilt der vorhandene Titel-Fallback.
+Mit 1.2.1 veröffentlichte Ergänzung vom 08.09.2026: App-Icon und Wortmarke im Header sind
+gemeinsam als „Zur Startseite“-Schaltfläche bedienbar. Ein Tipp wählt die Startseite ausdrücklich
+aus und verlässt offene Unterseiten. Die zusammenhängende Trefferfläche ist mindestens 48 dp hoch.
+Wiederholtes Tippen legt keine weiteren Seiten an; die geerbten versteckten Spielaktionen des Icons
+entfallen in KruXx. Bei bewusst ausgeschalteter Startseite gilt der vorhandene Titel-Fallback.
 
-Unveröffentlichte Korrektur vom 08.09.2026: Startseite, Sucheingabe und Suchergebnisse verwenden
-dieselbe Hauptleiste einschließlich „Playlists“ und „Downloads“. Suchquellen und Ergebniskategorien
-stehen als separate Filterleiste oberhalb des Inhalts. Die übernommenen, nicht unterstützten
-Suchkategorien „Vorgestellt“ und „Podcasts“ entfallen in KruXx. Ein Klick auf die Hauptleiste öffnet
-den jeweiligen Bereich der Startseite; die Suche gibt keinen Home-Reiter als ausgewählt aus.
+Mit 1.2.1 veröffentlichte Korrektur vom 08.09.2026: Startseite, Sucheingabe und Suchergebnisse
+verwenden dieselbe Hauptleiste einschließlich „Playlists“ und „Downloads“. Suchquellen und
+Ergebniskategorien stehen als separate Filterleiste oberhalb des Inhalts. Die übernommenen, nicht
+unterstützten Suchkategorien „Vorgestellt“ und „Podcasts“ entfallen in KruXx. Ein Klick auf die
+Hauptleiste öffnet den jeweiligen Bereich der Startseite; die Suche gibt keinen Home-Reiter als
+ausgewählt aus.
 
 Die untere Hauptnavigation bleibt horizontal scrollbar. Solange alle Reiter vollständig in die
 verfügbare Breite passen, werden keine zusätzlichen Richtungshinweise angezeigt. Erst bei einem
