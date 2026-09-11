@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht ·
+Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht · `1.2.3` vorbereitet ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -13,14 +13,14 @@ Installation gelesenen APK. Quellcommit `0a511e0acb56af971307528f92d82ce9562de5a
 Tag `v1.2.2`, Submodul-Pins und die bytegenau geprüfte öffentliche APK sind unter
 <https://github.com/Massefehler/KruXx/releases/tag/v1.2.2> verfügbar.
 
-**Lokal, noch nicht veröffentlicht (11.09.2026):** Korrekturen an der Wiedergabereihenfolge und
+**Für `1.2.3` vorbereitet, noch nicht veröffentlicht (11.09.2026):** Korrekturen an der Wiedergabereihenfolge und
 der Aktionsleiste des Vollbild-Players. Der automatische Warteschlangen-Nachschub ersetzte ein
 laufendes Album statt es zu ergänzen und streute im Zufallsmodus sofort fremde Künstler ein; der
 Zufallsknopf der Aktionsleiste hatte weder Wirkung bei aktivem Zufallsmodus noch sichtbaren
 Zustand. 159 App- und 58 Innertube-Tests sowie Release-Lint sind bestanden; normale und zufällige
 Albumwiedergabe einschließlich des anschließenden Radio-Nachschubs sind auf dem Samsung-Zielgerät
 abgenommen. Umfang und offene Prüfungen stehen im
-[IST-Stand](KRUXX-IST-STAND.md#noch-nicht-veröffentlicht-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026),
+[IST-Stand](KRUXX-IST-STAND.md#für-123-vorbereitet-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026),
 die technischen Regeln in §4.1.
 
 `1.2.2` vervollständigt die Glasflächen: Alben-, Künstler- und Playlist-Kacheln sowie die
@@ -1366,7 +1366,7 @@ Terminzusage. Dort ist seit 08.09.2026 auch die optionale Friends-Funktion vorge
 zuerst Musikteilen verbessern, später persönliche Nachrichten und Musikkarten. Vor einer
 Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt ein Kandidat.
 
-- **Wiedergabekorrekturen vom 11.09.2026 – abgenommen, aber unveröffentlicht:** Die sechs Fehler
+- **Wiedergabekorrekturen vom 11.09.2026 – für `1.2.3` vorbereitet:** Die sechs Fehler
   in Warteschlangen-Nachschub (Ersetzen statt Anhängen, falscher Entfernungsbereich, Dubletten,
   Schwelle in Playlist- statt Abspielreihenfolge, eingestreute Titel in der Shuffle-Order),
   `forcePlayAtIndex` und Zufallsknopf sind behoben und durch dreizehn neue Tests abgesichert.
@@ -1375,7 +1375,7 @@ Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt 
   dazwischen, und erst danach übernimmt das Radio. Nachzuholen sind die ausdrückliche Aktion
   „Radio starten“, der Zufallsknopf und sein Zustand über Benachrichtigung und Android Auto
   hinweg sowie die 48-dp-Trefferflächen der Aktionsleiste im Querformat und mit zusätzlich
-  aktivierten Aktionsknöpfen. Der Stand trägt noch keine Versionsnummer.
+  aktivierten Aktionsknöpfen.
 
 - **1.2.0 – verbleibende Download-Gerätefälle:** Die Matrix in [`DOWNLOADS.md`](DOWNLOADS.md)
   umfasst Video mit Ton, Android-MP3-Konvertierung, alle Download-Einstiege, SD/USB, Abbruch,

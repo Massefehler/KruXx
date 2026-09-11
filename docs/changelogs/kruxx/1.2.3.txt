@@ -1,0 +1,10 @@
+Playback:
+- Opening an album and tapping a track now plays the whole album in its own order; the automatic queue top-up extends the queue instead of replacing it
+- Keeps every song of the current queue when an explicit radio replaces it, and no longer adds related songs twice
+- Starts the track you actually tapped, even when a list contains the same video twice
+- Measures the remaining queue in playback order, so turning shuffle on no longer pulls in a radio right away
+- Appends topped-up songs behind the queue under shuffle as well, so a shuffled album finishes before other artists follow
+
+Player:
+- The shuffle button in the player's action bar now switches the same shuffle mode as the media notification and Android Auto, and shows whether it is on; it previously reordered the queue once, dropped the play history and was always drawn as active
+- Gives every action of the bar the full 48 dp touch target while keeping the icon size, so a tap next to an icon no longer opens the queue instead

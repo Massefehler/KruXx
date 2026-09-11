@@ -1,7 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht · lokale Korrekturen an Wiedergabereihenfolge
-und Player-Aktionsleiste auf dem Zielgerät abgenommen, aber noch nicht veröffentlicht
+Stand: 11.09.2026 · KruXx `1.2.2` veröffentlicht · `1.2.3` vorbereitet, noch nicht veröffentlicht
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,6 +12,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 |---|---|
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.2`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2) |
+| In Vorbereitung | `1.2.3` / `1_000_007` – Wiedergabereihenfolge und Player-Aktionsleiste; noch nicht gebaut oder veröffentlicht |
 | Öffentlicher Android-Versionscode | `1_000_006` |
 | Schwerpunkt von 1.2.2 | Gemeinsame Glasflächen für Kacheln und Titellisten, Suchnavigation |
 | Release-Paket | `de.kruxx.music` |
@@ -213,7 +213,7 @@ zuerst umgesetzten Ansichten sie erhielten.
   Systemschrift und API 24–30. Ladeplatzhalter (`SongItem.Placeholder`) behalten bewusst ihre
   bisherige Darstellung ohne Karte.
 
-### Noch nicht veröffentlicht: Wiedergabereihenfolge und Player-Aktionsleiste vom 11.09.2026
+### Für 1.2.3 vorbereitet: Wiedergabereihenfolge und Player-Aktionsleiste vom 11.09.2026
 
 Gemeldet wurde, dass ein über Künstler → Album geöffnetes Album nicht in seiner Reihenfolge läuft:
 Nach dem angetippten Titel folgen willkürliche Titel, teilweise fremder Künstler. Zusätzlich war
@@ -309,10 +309,9 @@ Zufallsknopf. Die Analyse ergab vier getrennte Fehler; drei davon stammen aus ge
 - **Offen: die restliche Geräteprüfung.** Nicht abgenommen sind: die ausdrückliche Aktion
   „Radio starten“, der Zufallsknopf im Wechsel mit Benachrichtigung und Android Auto sowie die
   Trefferflächen der Aktionsleiste im Querformat und mit zusätzlich aktivierten Aktionsknöpfen.
-  Hellmodus, große Systemschrift und API 24–30 bleiben wie bisher offen. Eine Versionsnummer ist
-  noch nicht vergeben und der Stand ist nicht veröffentlicht.
-- Die Root-README beschreibt weiterhin den veröffentlichten Stand `1.2.2` und wird erst mit dem
-  nächsten Release angepasst; eine Versionsnummer ist für diese Korrekturen noch nicht vergeben.
+  Hellmodus, große Systemschrift und API 24–30 bleiben wie bisher offen.
+- Versioniert als `1.2.3` / `1_000_007` mit eigenen Release Notes. Die Root-README beschreibt
+  weiterhin den veröffentlichten Stand `1.2.2` und wird erst nach der Veröffentlichung angepasst.
 
 ### Korrekturen für 1.2.1 vom 08.09.2026 – Suche und Downloads
 
@@ -1355,14 +1354,14 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 - Für `1.2.2` bleiben zusätzlich offen: die Sichtprüfung der Verlaufs- und Podcast-Titellisten,
   Hellmodus, große Systemschrift, Querformat mit rechter Navigationsleiste und die Überlaufpfeile
   der Suchleiste auf schmalen Displays.
-- **Die lokalen Korrekturen an Wiedergabereihenfolge und Player-Aktionsleiste vom 11.09.2026 sind
-  auf dem Samsung-Zielgerät abgenommen, aber noch nicht veröffentlicht.** Sie beheben, dass der
+- **Die für `1.2.3` vorbereiteten Korrekturen an Wiedergabereihenfolge und Player-Aktionsleiste
+  vom 11.09.2026 sind auf dem Samsung-Zielgerät abgenommen, aber noch nicht veröffentlicht.** Sie beheben, dass der
   automatische Warteschlangen-Nachschub ein laufendes Album ersetzte statt es zu ergänzen, dass er
   im Zufallsmodus sofort fremde Künstler einstreute, und geben dem Zufallsknopf des
   Vollbild-Players denselben Zustand wie Benachrichtigung und Android Auto. Normale und zufällige
   Albumwiedergabe sind vom Nutzer bestätigt; „Radio starten“, das Albumende im Zufallsmodus und
   die Aktionsleiste im Querformat bleiben Nachtests. Umfang und Nachweise stehen in
-  [§1](#noch-nicht-veröffentlicht-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026).
+  [§1](#für-123-vorbereitet-wiedergabereihenfolge-und-player-aktionsleiste-vom-11092026).
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
