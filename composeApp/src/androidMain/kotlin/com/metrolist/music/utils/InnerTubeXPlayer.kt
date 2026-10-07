@@ -9,6 +9,7 @@ import app.kreate.android.utils.innertube.GEO_LOCATION
 import app.kreate.android.utils.innertube.HOST_LANGUAGE
 import co.touchlab.kermit.Logger
 import com.metrolist.innertubex.InnerTube
+import com.metrolist.innertubex.InnerTubeHttpException
 import com.metrolist.innertubex.InnerTubeLogLevel
 import com.metrolist.innertubex.InnerTubeLogger
 import com.metrolist.innertubex.cipher.PlayerConfigRepository
@@ -53,8 +54,8 @@ import com.metrolist.innertubex.extraction.AudioQuality as InnerTubeXAudioQualit
  *
  * Stream extraction (client selection, PO-token contracts, signature/n-parameter cipher via
  * QuickJS + yt-dlp EJS, remote player configs) is delegated to the InnerTubeX library, which is
- * maintained together with Metrolist. Updating YouTube-side breakage therefore boils down to
- * bumping `innertubex` in `gradle/libs.versions.toml`.
+ * maintained together with Metrolist. Library updates handle protocol and cipher changes;
+ * this adapter also owns session recovery and Kreate's stream/cache contract.
  *
  * Ported from Metrolist's `InnerTubeXPlayer`; Kreate specifics are the session sync from
  * [Preferences] (cookie / visitorData / dataSyncId set by the YouTube login flow) and the
@@ -64,6 +65,7 @@ object InnerTubeXPlayer {
     private const val TAG = "InnerTubeXPlayer"
     private const val WEB_REMIX_FAILURE_TTL_MS = 5 * 60 * 1000L
     private const val DEFAULT_STREAM_TTL_SECONDS = 5 * 60
+    private const val ANONYMOUS_PLAYBACK_PREFERENCE_MS = 5 * 60 * 1000L
     private const val SESSION_PREFS = "innertubex_session"
     private const val KEY_ANONYMOUS_VISITOR_DATA = "anonymous_visitor_data"
 
@@ -74,6 +76,9 @@ object InnerTubeXPlayer {
 
     @Volatile
     private var currentBundle: ExtractionBundle? = null
+
+    @Volatile
+    private var anonymousPlaybackPreference: AnonymousPlaybackPreference? = null
 
     private val bundleMutex = Mutex()
     private val webRemixFailures = ConcurrentHashMap<String, Long>()
@@ -125,7 +130,17 @@ object InnerTubeXPlayer {
             }
 
             engine {
-                preconfigured = okHttpClient
+                preconfigured = okHttpClient.newBuilder()
+                    .addInterceptor { chain ->
+                        val response = chain.proceed(chain.request())
+                        if (!response.isSuccessful &&
+                            response.request.url.encodedPath == "/youtubei/v1/player"
+                        ) {
+                            logger.w("YouTube player request rejected [httpStatus=${response.code}]")
+                        }
+                        response
+                    }
+                    .build()
             }
 
             defaultRequest {
@@ -261,8 +276,14 @@ object InnerTubeXPlayer {
                 if( hasRecentWebRemixFailure( videoId ) ) add( "WEB_REMIX" )
             }
 
-            val stream = requireNotNull(
-                bundle().extractor.extract(
+            val extraction = bundle()
+            val accountSession = innerTube.sessionSnapshot()
+            val preference = anonymousPlaybackPreference?.takeIf {
+                it.accountSession == accountSession &&
+                    System.currentTimeMillis() - it.createdAtMs in 0 until ANONYMOUS_PLAYBACK_PREFERENCE_MS
+            }
+            suspend fun resolve(extractor: InnerTubeExtractor) = requireNotNull(
+                extractor.extract(
                     videoId = videoId,
                     hints = hints,
                     excludedClients = excludedClients,
@@ -273,6 +294,35 @@ object InnerTubeXPlayer {
                     clientPlaybackNonce = generateClientPlaybackNonce(),
                 )
             ) { "InnerTubeX returned no playable stream" }
+            val stream = withAnonymousPlaybackFallback(
+                hasAccountSession = !innerTube.cookie.isNullOrBlank(),
+                preferAnonymous = preference != null,
+                resolve = {
+                    resolve(extraction.extractor).also { anonymousPlaybackPreference = null }
+                },
+                resolveAnonymously = {
+                    // Account cookies and login visitor data can expire independently. Do not
+                    // copy either into the public-content retry or change the saved login.
+                    val anonymous = InnerTube(httpClient, logger = innerTubeLogger)
+                    try {
+                        anonymous.locale = innerTube.locale
+                        checkNotNull(anonymous.fetchFreshVisitorData()) {
+                            "Could not establish an anonymous playback session"
+                        }
+                        logger.w("Resolving playback with a fresh anonymous session")
+                        resolve(createExtractor(anonymous, extraction.remoteStore, extraction.cipherService)).also {
+                            // Avoid repeating the rejected account's complete client chain for
+                            // every song. A login change invalidates this preference immediately;
+                            // account-only content can still fall back to the account attempt.
+                            anonymousPlaybackPreference = preference ?: AnonymousPlaybackPreference(
+                                accountSession, System.currentTimeMillis(),
+                            )
+                        }
+                    } finally {
+                        anonymous.close()
+                    }
+                },
+            )
             // allowSabr=false above should already prevent this; ExoPlayer can only read plain https urls
             check( !stream.audioUrl.startsWith( "sabr://" ) ) { "SABR is not supported by this playback engine" }
             // Same contract for allowBoundedRange=false: the resolver must be able to hand ExoPlayer
@@ -366,20 +416,35 @@ object InnerTubeXPlayer {
 
             val remoteStore = RemotePlayerConfigStore( httpClient, configRepository, innerTubeLogger )
             val cipherService = YouTubeCipherService( httpClient, remoteStore, innerTubeLogger )
-            val extractor = InnerTubeExtractor(
-                configParser = YtConfigParserImpl( httpClient, innerTube, remoteStore, innerTubeLogger ),
-                cipherService = cipherService,
-                innerTube = innerTube,
-                tokenProvider = tokenProvider,
-                logger = innerTubeLogger,
-            )
-            ExtractionBundle( cipherService, extractor ).also { currentBundle = it }
+            val extractor = createExtractor(innerTube, remoteStore, cipherService)
+            ExtractionBundle( cipherService, remoteStore, extractor ).also { currentBundle = it }
         }
     }
 
+    private fun createExtractor(
+        session: InnerTube,
+        remoteStore: RemotePlayerConfigStore,
+        cipherService: YouTubeCipherService,
+    ) = InnerTubeExtractor(
+        configParser = YtConfigParserImpl(
+            httpClient, session, remoteStore, innerTubeLogger,
+            cipherService = cipherService,
+        ),
+        cipherService = cipherService,
+        innerTube = session,
+        tokenProvider = tokenProvider,
+        logger = innerTubeLogger,
+    )
+
     private data class ExtractionBundle(
         val cipherService: YouTubeCipherService,
+        val remoteStore: RemotePlayerConfigStore,
         val extractor: InnerTubeExtractor,
+    )
+
+    private data class AnonymousPlaybackPreference(
+        val accountSession: InnerTube.SessionSnapshot,
+        val createdAtMs: Long,
     )
 
     private fun AudioQualityFormat.toInnerTubeX(
@@ -500,4 +565,46 @@ object InnerTubeXPlayer {
         }
     }
     //</editor-fold>
+}
+
+/** A failed saved login must not prevent playback of otherwise public music. */
+internal suspend fun <T> withAnonymousPlaybackFallback(
+    hasAccountSession: Boolean,
+    preferAnonymous: Boolean = false,
+    resolve: suspend () -> T,
+    resolveAnonymously: suspend () -> T,
+): T {
+    if (hasAccountSession && preferAnonymous) {
+        try {
+            return resolveAnonymously()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Private or restricted content may still need the saved account. This is
+            // the second and final attempt; do not repeat the anonymous request again.
+            return resolve()
+        }
+    }
+    return try {
+        resolve()
+    } catch (failure: StreamResolveException) {
+        val rejectedSession = when (failure.reason) {
+            StreamResolveException.Reason.NO_PLAYABLE_STREAM,
+            StreamResolveException.Reason.EXPLICIT_UNSUPPORTED -> true
+            StreamResolveException.Reason.NETWORK ->
+                (failure.cause as? InnerTubeHttpException)?.status?.value in setOf(400, 401, 403)
+            else -> false
+        }
+        if (!hasAccountSession || !rejectedSession) throw failure
+
+        try {
+            resolveAnonymously()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Preserve the original classification (including login requirements) if the
+            // public-content retry cannot play the track either. Never loop or clear credentials.
+            throw failure
+        }
+    }
 }

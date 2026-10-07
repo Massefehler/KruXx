@@ -51,6 +51,15 @@ crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
 
+### Local patch in testing: 1.2.4
+
+Updates InnerTubeX to `v0.7.4` and retries public tracks with a fresh anonymous session when
+the saved account session prevents playback. The login is retained, and a successful recovery
+is briefly preferred for subsequent tracks. All 227 unit tests and release lint pass. This
+version is not published. Its in-app release notes include German and English tabs;
+signed device verification is recorded in the
+[status report](docs/KRUXX-IST-STAND.md#lokaler-wiedergabe-patch-124-vom-07102026).
+
 ### New in 1.2.3
 
 - Opening an album from an artist and tapping a track plays the whole album in its own order again.

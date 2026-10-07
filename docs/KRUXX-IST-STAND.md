@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 11.09.2026 · KruXx `1.2.3` veröffentlicht
+Stand: 07.10.2026 · KruXx `1.2.3` veröffentlicht · `1.2.4` lokal in Prüfung
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,6 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.3`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3) |
 | Öffentlicher Android-Versionscode | `1_000_007` |
+| Lokaler Wiedergabe-Patch | `1.2.4` / `1_000_008`, noch nicht veröffentlicht |
 | Schwerpunkt von 1.2.3 | Wiedergabereihenfolge geöffneter Alben, Zufallsmodus und Player-Aktionsleiste |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
@@ -27,6 +28,65 @@ KruXx ist ein eigenständiger Fork. Es gibt keine automatische Übernahme neuer 
 keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, Metrolist und weitere
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
+
+### Lokaler Wiedergabe-Patch 1.2.4 vom 07.10.2026
+
+Die gemeldeten Stream-Ausfälle wurden zuerst am angeschlossenen Samsung SM-S931B mit
+**Android 17** untersucht. Die parallel installierte Debug-App konnte Amon Amarth wiedergeben,
+während die normale App denselben Titel auch nach Kaltstart nicht auflösen konnte. Ein bloßes
+Bibliotheksupdate beseitigte den Unterschied nicht. Frische, auf den App-Prozess begrenzte
+USB-Diagnosen zeigten HTTP **400** für VISIONOS und **401** für Web-Clients mit der gespeicherten
+Sitzung. Ein frischer anonymer Zugriff spielte „Across the Rainbow Bridge“ dagegen erfolgreich
+über `WEB_REMIX__po`, ohne die Anmeldung zu löschen. Das grenzt den reproduzierten Fehler auf
+die Wiedergabe mit der gespeicherten Sitzung ein; welche ihrer Daten ungültig geworden sind und
+ob YouTube am Meldetag global etwas geändert hat, ist damit nicht nachgewiesen.
+
+- InnerTubeX ist von `v0.3.0` auf `v0.7.4` aktualisiert. Der
+  [Upstream-Changelog](https://github.com/MetrolistGroup/innertubex/blob/v0.7.4/CHANGELOG.md)
+  beschreibt überarbeitete Player-/Visitor-Fallbacks. `YtConfigParserImpl` und Extraktor verwenden
+  denselben Cipher-Dienst. Ktor bleibt auf `3.5.2`, OkHttp auf `5.4.0`; `v0.8.3` wird wegen der
+  zusätzlich nötigen HTTP-/Android-17-Kompatibilitätsabnahme nicht ungeprüft übernommen.
+- Wenn die gespeicherte Kontositzung keine spielbare Antwort liefert, versucht der Adapter
+  genau einmal eine getrennte anonyme Sitzung mit frisch bezogenen Visitor-Daten. Cookies,
+  Login-Visitor und Sync-ID werden nicht übernommen und die gespeicherten Kontodaten bleiben
+  erhalten. Ein erfolgreicher Rückfall wird höchstens fünf Minuten für genau diese Sitzung
+  bevorzugt. Konto-/Locale-Wechsel verwerfen die Präferenz; schlägt die bevorzugte anonyme
+  Anfrage fehl, bleibt ein Versuch mit dem Konto möglich.
+- Abbruchsignale bleiben erhalten. Offline-/Timeout-/Drosselungsfehler und bereits erkannte
+  Altersbeschränkungen lösen keinen zusätzlichen anonymen Versuch aus. Scheitert auch dieser,
+  bleibt die ursprüngliche Fehlerklassifikation erhalten. HLS, SABR und Bounded Range bleiben
+  für Audio-Wiedergabe ausgeschlossen; URL-/Byte-Cache und CDN-Recovery sind unverändert.
+- **169 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder übersprungene Tests.
+  Darunter sind zehn neue Regressionstests für Sitzungsrückfall, bevorzugte anonyme Wiedergabe,
+  Konto-Inhalte, Fehlererhaltung, Abbruch und das Vermeiden weiterer Versuche. Vollständiger
+  Release-Lint erfolgreich: 64 Warnungen und zwei Baseline-Hinweise, Baseline unverändert.
+- Signierte Geräteprüfung: Die Vorab-APK spielt den vorher fehlgeschlagenen Titel „Across the
+  Rainbow Bridge“ mit nachgewiesenem `PLAYING`-Zustand auch nach einem Sprung über Minute drei
+  weiter. Die abschließende APK mit der Sitzungspräferenz ist erfolgreich als Update installiert
+  und löst „Where Silent Gods Stand Guard“ über `VISIONOS_0_1__nopo` auf. Danach brach ADB ab,
+  obwohl das Handy per USB/MTP sichtbar blieb; auch ein Neustart des ADB-Servers stellte die
+  Verbindung nicht wieder her. Der `PLAYING`-Nachweis der letzten APK, der nächste Titel ohne
+  erneute Konto-Fehlerkette und der zusätzliche Gegencheck mit „Salt The Wound“ bleiben offen.
+- Die bislang geprüfte APK stammt aus dem sauberen Quellcommit
+  `121c1caa1a501bbd28d78b2f9a5e5ca242e34170`, im ursprünglichen Repo als lokaler Branch
+  `fix/youtube-streams-20261007` erhalten. Produktionscode, Versionskatalog und Release Notes
+  stimmen mit den Arbeitsdateien überein. Signatur/Paket/Version, alle vier ABIs, ZIP-Integrität,
+  eingebettete Revision und bytegleiche Versionshinweise sind geprüft. Die lokale APK liegt
+  im Nachbarverzeichnis `Kreate-APKs/KruXx-1.2.4-release.apk`, SHA-256
+  `83fab4e9bdcc0dbabc5534f8ab2def5fd550963cb26c1a332738943d5959f485`.
+  Das Release-Zertifikat ist unverändert; die passende Debug-APK stammt aus demselben Commit.
+- Es wurden weder App-Daten gelöscht noch Konten abgemeldet. Die vor dem letzten Update
+  nachgelesene Erstinstallationszeit blieb `31.08.2026 12:29:18`. Das zweite Testhandy und dessen
+  leere Startseite sind auf Nutzerwunsch vorerst zurückgestellt; dieser Playback-Patch gilt
+  nicht als Nachweis für dessen Behebung. Auch Konto-/Premium-/Altersfälle und die breitere
+  Geräte-/Netzmatrix sind mit dieser Diagnose nicht vollständig abgenommen.
+
+Die Veröffentlichung von `1.2.4` mit deutschen und englischen Hinweisen ist am 07.10.2026
+beauftragt, sobald die abschließende Wiedergabeprüfung bestanden ist. Die App-Hinweise verwenden
+die beiden Reiter `Deutsch` und `English`; dafür wird eine neue APK aus sauberem Quellstand
+gebaut und erneut geprüft. Bis zur erfolgreichen Geräteprüfung bleibt `1.2.4` ein lokaler
+Teststand; es gibt dafür keinen öffentlichen Release oder neuen Tag.
+Die historische Abnahme und die Artefakte von `1.2.3` bleiben unverändert dokumentiert.
 
 ### Veröffentlichung von 1.2.1 am 08.09.2026
 

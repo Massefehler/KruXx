@@ -1,0 +1,11 @@
+Deutsch:
+- Aktualisiert die YouTube-Stream-Auflösung und die Behandlung von Visitor-Sitzungen
+- Versucht öffentliche Titel mit einer frischen, getrennten Wiedergabesitzung erneut, wenn YouTube die gespeicherte Kontositzung ablehnt
+- Behält Deine Anmeldung bei und bevorzugt einen erfolgreichen Ersatzzugriff kurzzeitig auch für die nächsten Titel
+- Reduziert wiederholte Anfragen bei nicht auflösbaren Streams
+
+English:
+- Updates YouTube stream resolution and visitor session handling
+- Retries public tracks with a fresh, separate playback session when YouTube rejects the saved account session
+- Keeps your login and briefly prefers a successful recovery for subsequent tracks
+- Reduces repeated requests when a stream cannot be resolved

@@ -1,6 +1,11 @@
 # KruXx-Dokumentation
 
-Stand: 11.09.2026 · KruXx `1.2.3` veröffentlicht
+Stand: 07.10.2026 · KruXx `1.2.3` veröffentlicht · `1.2.4` lokaler Teststand
+
+Lokal entsteht `1.2.4` / `1000008`: InnerTubeX `v0.7.4` und ein anonymer Wiedergabe-Rückfall
+für abgelehnte gespeicherte Sitzungen. 227 Tests und Release-Lint sind bestanden;
+die signierte Geräteabnahme steht im [IST-Stand](KRUXX-IST-STAND.md#lokaler-wiedergabe-patch-124-vom-07102026).
+`1.2.4` ist noch nicht veröffentlicht. Die Startseiten-Diagnose am zweiten Handy ist zurückgestellt.
 
 [KruXx `1.2.3`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3) / `1000007`
 ist veröffentlicht. Der Release stellt die Wiedergabereihenfolge geöffneter Alben wieder her,

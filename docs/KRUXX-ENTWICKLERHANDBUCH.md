@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 11.09.2026 · KruXx `1.2.3` veröffentlicht ·
+Stand: 07.10.2026 · KruXx `1.2.3` veröffentlicht · `1.2.4` lokaler Wiedergabe-Patch ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -12,6 +12,13 @@ erhaltenen App-Daten, unveränderten öffentlichen Downloaddateien und dem Relea
 Installation gelesenen APK. Quellcommit `4beb2dd052f14436b8f20c5a27f7b906283a9fe8`, annotiertes
 Tag `v1.2.3`, Submodul-Pins und die bytegenau geprüfte öffentliche APK sind unter
 <https://github.com/Massefehler/KruXx/releases/tag/v1.2.3> verfügbar.
+
+**Lokal in Prüfung: `1.2.4` / `1000008` (07.10.2026).** InnerTubeX `v0.7.4` und ein
+getrennter anonymer Wiedergabe-Rückfall behandeln abgelehnte gespeicherte Sitzungen, ohne die
+Anmeldung zu löschen. 169 App- und 58 Innertube-Tests sowie vollständiger Release-Lint sind
+bestanden. Reproduktion, signierte Geräteprüfung und die ausdrücklich zurückgestellte
+Startseiten-Diagnose am zweiten Handy stehen im
+[IST-Stand](KRUXX-IST-STAND.md#lokaler-wiedergabe-patch-124-vom-07102026).
 
 **Mit `1.2.3` veröffentlicht (11.09.2026):** Korrekturen an der Wiedergabereihenfolge und
 der Aktionsleiste des Vollbild-Players. Der automatische Warteschlangen-Nachschub ersetzte ein
@@ -54,8 +61,8 @@ KruXx ist ein eigenständiger, öffentlicher Fork von
 unter <https://github.com/Massefehler/KruXx>. Drei zentrale Unterschiede zum Original:
 
 1. **Playback läuft über die Bibliothek [InnerTubeX](https://github.com/MetrolistGroup/innertubex)**
-   statt über den eingefrorenen WebView-Cipher-Port – YouTube-Änderungen werden durch ein
-   Versions-Update der Bibliothek behoben, nicht durch Handarbeit am Cipher-Code.
+   statt über den eingefrorenen WebView-Cipher-Port. Bibliotheksupdates übernehmen Protokoll-
+   und Cipher-Anpassungen; der App-Adapter verantwortet Sitzungsrückfall und Cache-Vertrag.
 2. **Eigenes Branding als Produkt-Flavor `kruxx`**: App-ID `de.kruxx.music`, Name „KruXx“ und
    eigenes Icon. Installiert sich neben der offiziellen Kreate.
 3. **Eigene Release-Linie und eigener Updater**: SemVer ab `1.0.0`; ausschließlich Releases aus
@@ -132,9 +139,9 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 
 | Datei | Änderung |
 |---|---|
-| `gradle/libs.versions.toml` | `innertubex = "v0.3.0"` (JitPack `com.github.MetrolistGroup.innertubex:innertubex`), Ktor 3.5.0 → 3.5.2 (Vorgabe der Bibliothek), `nanojson` entfernt |
+| `gradle/libs.versions.toml` | Lokal `innertubex = "v0.7.4"` (JitPack `com.github.MetrolistGroup.innertubex:innertubex`); veröffentlichtes `1.2.3` verwendet `v0.3.0`. Ktor bleibt `3.5.2`, OkHttp `5.4.0`; `nanojson` ist entfernt |
 | `composeApp/build.gradle.kts` | `implementation(libs.innertubex)` in `androidMain` |
-| `gradle.properties` | `android.experimental.disableCompileSdkChecks=true` – das InnerTubeX-AAR deklariert `minCompileSdk=37`, Google hat aber noch kein `platforms;android-37` veröffentlicht. **Entfernen, sobald compileSdk ≥ 37 möglich ist.** |
+| `gradle.properties` | `android.experimental.disableCompileSdkChecks=true` – das InnerTubeX-AAR deklariert `minCompileSdk=37`, das Projekt baut mit API 36. **Nach einem gesondert geprüften Wechsel auf compileSdk ≥ 37 entfernen.** |
 | `composeApp/proguard-rules.pro` | `-keep` für `com.metrolist.innertubex.**` und `com.dokar.quickjs.**` |
 | `com/metrolist/music/utils/InnerTubeXPlayer.kt` | **neu** – einziger Einstieg zur Stream-Auflösung (Spiegel von Metrolists gleichnamiger Datei, damit Diffs gegen Metrolist einfach bleiben) |
 | `app/kreate/di/InnertubeResolvingDataSource.kt`, `PlaybackResolutionPolicy.kt` | neu geschrieben: Cache mit Ablauf und 30-s-Sicherheitsabstand, CDN-Header, getestetes Fehler-Mapping – **ohne** Bounded-Range-Chunking (§4). Playback-URLs werden zusätzlich nach Qualitäts-/Netzrichtlinie getrennt; der Resolver übernimmt das Explicit-Flag des erzeugenden `MediaItem`, bevor ein paralleler Room-Upsert beendet sein muss. Das itag der gecachten Bytes liegt in den Cache-Metadaten (`kruxx_itag`); bei Formatwechsel wird der Byte-Cache per `CachedFormatMismatchException` verworfen |
@@ -379,6 +386,22 @@ Fehler zur Laufzeit → ErrorHandlingPolicy + ExoPlayerListener.tryRecoverPlayba
 
 Wichtige Konstanten/Stellen:
 
+- **Sitzungsrückfall ab lokalem `1.2.4`:** `syncSession()` lädt weiterhin die gespeicherte
+  Kontositzung. Bei `NO_PLAYABLE_STREAM`, `EXPLICIT_UNSUPPORTED` oder einer als `NETWORK`
+  klassifizierten Player-Ablehnung mit HTTP 400/401/403 folgt höchstens ein anonymer Versuch.
+  Dieser nutzt eine eigene `InnerTube`-Instanz, frische Visitor-Daten und den gemeinsamen
+  Cipher-/Konfigurationsdienst; `close()` beendet ihre Bibliotheksarbeit auch bei Abbruch.
+  Cookies, Login-Visitor und Sync-ID werden weder kopiert noch gelöscht. Nach Erfolg bevorzugt
+  `anonymousPlaybackPreference` diesen Weg bis zu fünf Minuten für denselben vollständigen
+  Session-Snapshot. Konto-/Locale-Wechsel oder Ablauf heben die Präferenz auf. Scheitert eine
+  bevorzugte anonyme Anfrage, folgt einmal das Konto, ohne weitere Schleife. Ohne Präferenz
+  bleiben Offline-/Timeout-/429- und bereits erkannte Altersfehler bei ihrem ursprünglichen Pfad.
+  `PlaybackSessionRecoveryTest` prüft Reihenfolge, Fehlererhaltung und Abbruch. Die gezielte
+  HTTP-Diagnose protokolliert ausschließlich den Statuscode einer abgelehnten Player-Anfrage.
+- **Bibliotheks-Pin:** `v0.7.4` hält die vorhandene Ktor-/OkHttp-Linie bei. Der Versuch mit
+  `v0.8.3` / Ktor `3.6.0` zog OkHttp `5.5.0` nach und scheiterte unter Robolectric/API 36 an
+  `android.net.ssl.InvalidEchDataException`. Ein künftiges Upgrade braucht eine eigene Abnahme;
+  Tests nicht durch eine künstlich niedrigere SDK-Vorgabe an diesem Befund vorbeiführen.
 - Remote-Konfigtabelle (Player-Hashes): `InnerTubeXPlayer.AndroidPlayerConfigRepository.PLAYER_CONFIG_URL`
   = `https://raw.githubusercontent.com/MetrolistGroup/faraday/master/registry/player_configs.json`.
   **InnerTubeX akzeptiert nur `MetrolistGroup/faraday`-URLs** (`RemotePlayerConfigStore.validatedSourceUrlOrNull`);
