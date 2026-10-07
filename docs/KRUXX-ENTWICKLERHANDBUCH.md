@@ -1,19 +1,20 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 07.10.2026 · KruXx `1.2.3` veröffentlicht · `1.2.4` lokaler Wiedergabe-Patch ·
+Stand: 07.10.2026 · KruXx `1.2.4` veröffentlicht ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx `1.2.3` (`1000007`) ist veröffentlicht.
-Alle 217 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
-signierte APK ist auf dem Samsung SM-S931B mit Android 16 geprüft: Update über 1.2.2 mit
-erhaltenen App-Daten, unveränderten öffentlichen Downloaddateien und dem Release-Hash der aus der
-Installation gelesenen APK. Quellcommit `4beb2dd052f14436b8f20c5a27f7b906283a9fe8`, annotiertes
-Tag `v1.2.3`, Submodul-Pins und die bytegenau geprüfte öffentliche APK sind unter
-<https://github.com/Massefehler/KruXx/releases/tag/v1.2.3> verfügbar.
+[`README.md`](README.md). KruXx `1.2.4` (`1000008`) ist veröffentlicht.
+Alle 227 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
+signierte APK ist auf dem Samsung SM-S931B mit Android 17 geprüft: Update mit erhaltenen
+App-Daten und Anmeldung, Wiedergabe nach Kaltstart, Titelwechsel, Spulen und Pause/Fortsetzen.
+Die aus der Installation gelesene APK und der öffentliche Download sind bytegleich mit dem
+Archiv. Quellcommit `467102f83c8920897362416b314c6383c2ff61d2`, annotiertes Tag `v1.2.4`,
+Submodul-Pins und die APK mit deutschen und englischen Versionshinweisen sind unter
+<https://github.com/Massefehler/KruXx/releases/tag/v1.2.4> verfügbar.
 
-**Lokal in Prüfung: `1.2.4` / `1000008` (07.10.2026).** InnerTubeX `v0.7.4` und ein
+**Mit `1.2.4` veröffentlicht (07.10.2026):** InnerTubeX `v0.7.4` und ein
 getrennter anonymer Wiedergabe-Rückfall behandeln abgelehnte gespeicherte Sitzungen, ohne die
 Anmeldung zu löschen. 169 App- und 58 Innertube-Tests sowie vollständiger Release-Lint sind
 bestanden. Reproduktion, signierte Geräteprüfung und die ausdrücklich zurückgestellte
@@ -139,7 +140,7 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 
 | Datei | Änderung |
 |---|---|
-| `gradle/libs.versions.toml` | Lokal `innertubex = "v0.7.4"` (JitPack `com.github.MetrolistGroup.innertubex:innertubex`); veröffentlichtes `1.2.3` verwendet `v0.3.0`. Ktor bleibt `3.5.2`, OkHttp `5.4.0`; `nanojson` ist entfernt |
+| `gradle/libs.versions.toml` | Seit `1.2.4`: `innertubex = "v0.7.4"` (JitPack `com.github.MetrolistGroup.innertubex:innertubex`); `1.2.3` verwendete `v0.3.0`. Ktor bleibt `3.5.2`, OkHttp `5.4.0`; `nanojson` ist entfernt |
 | `composeApp/build.gradle.kts` | `implementation(libs.innertubex)` in `androidMain` |
 | `gradle.properties` | `android.experimental.disableCompileSdkChecks=true` – das InnerTubeX-AAR deklariert `minCompileSdk=37`, das Projekt baut mit API 36. **Nach einem gesondert geprüften Wechsel auf compileSdk ≥ 37 entfernen.** |
 | `composeApp/proguard-rules.pro` | `-keep` für `com.metrolist.innertubex.**` und `com.dokar.quickjs.**` |
@@ -386,7 +387,7 @@ Fehler zur Laufzeit → ErrorHandlingPolicy + ExoPlayerListener.tryRecoverPlayba
 
 Wichtige Konstanten/Stellen:
 
-- **Sitzungsrückfall ab lokalem `1.2.4`:** `syncSession()` lädt weiterhin die gespeicherte
+- **Sitzungsrückfall ab `1.2.4`:** `syncSession()` lädt weiterhin die gespeicherte
   Kontositzung. Bei `NO_PLAYABLE_STREAM`, `EXPLICIT_UNSUPPORTED` oder einer als `NETWORK`
   klassifizierten Player-Ablehnung mit HTTP 400/401/403 folgt höchstens ein anonymer Versuch.
   Dieser nutzt eine eigene `InnerTube`-Instanz, frische Visitor-Daten und den gemeinsamen

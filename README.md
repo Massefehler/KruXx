@@ -8,16 +8,18 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-[KruXx 1.2.3](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3)
-(`versionCode 1000007`, Android 7.0+) is the current public stable release, restoring the playback
-order of an opened album and giving the player's shuffle action a real, shared state. All 217 unit
-tests, release lint and CI passed. The signed APK was tested on a Samsung with Android 16,
-updating from 1.2.2 with app data and existing download files retained. Its public download
-matches the tested local archive byte for byte. Verification details and the remaining device
-checks are recorded in the [KruXx status report](docs/KRUXX-IST-STAND.md); the new in-app notes
-are in [`docs/changelogs/kruxx/1.2.3.txt`](docs/changelogs/kruxx/1.2.3.txt). Android Auto in a real
-vehicle, physical SD/USB providers and the broader interaction matrix still require testing. The
-dedicated podcast section remains a separate future feature.
+[KruXx 1.2.4](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4)
+(`versionCode 1000008`, Android 7.0+) is the current public stable release. It restores playback
+of public tracks when YouTube rejects the saved account session, while retaining the login.
+All 227 unit tests, release lint and CI passed. The signed APK was tested on a Samsung with
+Android 17, updating in place with app data retained. Playback, next track, seeking and
+pause/resume passed; the public download matches the tested APK byte for byte. Verification
+details and the remaining device checks are recorded in the
+[KruXx status report](docs/KRUXX-IST-STAND.md). The release notes are available in German and
+English on GitHub and [in the app](docs/changelogs/kruxx/1.2.4.txt). The empty home page on a
+second phone still needs investigation. Android Auto in a real vehicle, physical SD/USB
+providers and the broader interaction matrix still require testing. The dedicated podcast
+section remains a separate future feature.
 
 **KruXx 1.2.0 and later require Android 7.0 (API 24) or newer.** Android 6 support has ended;
 1.1.0 is the last published version compatible with it. Existing Android 6 installations can
@@ -51,13 +53,12 @@ crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
 
-### Local patch in testing: 1.2.4
+### New in 1.2.4
 
 Updates InnerTubeX to `v0.7.4` and retries public tracks with a fresh anonymous session when
 the saved account session prevents playback. The login is retained, and a successful recovery
-is briefly preferred for subsequent tracks. All 227 unit tests and release lint pass. This
-version is not published. Its in-app release notes include German and English tabs;
-signed device verification is recorded in the
+is briefly preferred for subsequent tracks. Its in-app release notes include German and English
+tabs; diagnosis, signed device verification and publication are recorded in the
 [status report](docs/KRUXX-IST-STAND.md#lokaler-wiedergabe-patch-124-vom-07102026).
 
 ### New in 1.2.3

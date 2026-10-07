@@ -1,18 +1,22 @@
 # KruXx-Dokumentation
 
-Stand: 07.10.2026 · KruXx `1.2.3` veröffentlicht · `1.2.4` lokaler Teststand
+Stand: 07.10.2026 · KruXx `1.2.4` veröffentlicht
 
-Lokal entsteht `1.2.4` / `1000008`: InnerTubeX `v0.7.4` und ein anonymer Wiedergabe-Rückfall
-für abgelehnte gespeicherte Sitzungen. 227 Tests und Release-Lint sind bestanden;
-die signierte Geräteabnahme steht im [IST-Stand](KRUXX-IST-STAND.md#lokaler-wiedergabe-patch-124-vom-07102026).
-`1.2.4` ist noch nicht veröffentlicht. Die Startseiten-Diagnose am zweiten Handy ist zurückgestellt.
+[KruXx `1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) / `1000008`
+ist als neuester stabiler Release veröffentlicht: InnerTubeX `v0.7.4` und ein anonymer
+Wiedergabe-Rückfall für abgelehnte gespeicherte Sitzungen, ohne die Anmeldung zu löschen.
+227 Tests, Release-Lint und CI sind bestanden. Die signierte APK ist auf dem Samsung-Zielgerät
+mit Android 17 geprüft; der öffentliche Download ist bytegleich mit der getesteten APK.
+GitHub und App enthalten deutsche und englische Versionshinweise. Die Geräteabnahme und
+Veröffentlichung stehen im [IST-Stand](KRUXX-IST-STAND.md#lokaler-wiedergabe-patch-124-vom-07102026).
+Die Startseiten-Diagnose am zweiten Handy ist zurückgestellt.
 
 [KruXx `1.2.3`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3) / `1000007`
-ist veröffentlicht. Der Release stellt die Wiedergabereihenfolge geöffneter Alben wieder her,
-trennt Zufallsmodus und Warteschlangen-Nachschub sauber und gibt der Aktionsleiste des
-Vollbild-Players einen sichtbaren Zufallszustand samt vollen Trefferflächen. 217 Tests,
-Release-Lint und CI sind bestanden; die signierte APK ist auf dem Samsung-Zielgerät mit Android 16
-als Update über 1.2.2 geprüft und der öffentliche Download bytegleich mit dem lokalen Archiv.
+stellte zuvor die Wiedergabereihenfolge geöffneter Alben wieder her,
+trennte Zufallsmodus und Warteschlangen-Nachschub sauber und gab der Aktionsleiste des
+Vollbild-Players einen sichtbaren Zufallszustand samt vollen Trefferflächen. Seine 217 Tests,
+Release-Lint und CI sind bestanden; die damalige signierte APK ist auf dem Samsung-Zielgerät mit
+Android 16 als Update über 1.2.2 geprüft und der öffentliche Download bytegleich mit dem lokalen Archiv.
 Der verbindliche Artefakt-, Prüf- und Nachteststatus steht in `KRUXX-IST-STAND.md`.
 Offene Gerätefälle bleiben ausdrücklich dokumentiert.
 Ab `1.2.0` setzt KruXx Android 7.0 / API 24 voraus. Android 6 wird nicht mehr unterstützt;
@@ -27,7 +31,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 | Dokument | Zweck |
 |---|---|
 | [`../ROADMAP.md`](../ROADMAP.md) | Künftige Vorhaben, einschließlich Musikteilen und optionaler Friends-Funktion; ohne feste Release-Termine |
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.3 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.4 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
 | [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |

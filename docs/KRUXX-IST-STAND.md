@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 07.10.2026 · KruXx `1.2.3` veröffentlicht · `1.2.4` lokal in Prüfung
+Stand: 07.10.2026 · KruXx `1.2.4` veröffentlicht
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -11,10 +11,9 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | [`1.2.3`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3) |
-| Öffentlicher Android-Versionscode | `1_000_007` |
-| Lokaler Wiedergabe-Patch | `1.2.4` / `1_000_008`, noch nicht veröffentlicht |
-| Schwerpunkt von 1.2.3 | Wiedergabereihenfolge geöffneter Alben, Zufallsmodus und Player-Aktionsleiste |
+| Öffentlicher Release | [`1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) |
+| Öffentlicher Android-Versionscode | `1_000_008` |
+| Schwerpunkt von 1.2.4 | Stream-Auflösung bei abgelehnter gespeicherter Kontositzung, deutsche und englische Versionshinweise |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -60,33 +59,56 @@ ob YouTube am Meldetag global etwas geändert hat, ist damit nicht nachgewiesen.
   Darunter sind zehn neue Regressionstests für Sitzungsrückfall, bevorzugte anonyme Wiedergabe,
   Konto-Inhalte, Fehlererhaltung, Abbruch und das Vermeiden weiterer Versuche. Vollständiger
   Release-Lint erfolgreich: 64 Warnungen und zwei Baseline-Hinweise, Baseline unverändert.
-- Signierte Geräteprüfung: Die Vorab-APK spielt den vorher fehlgeschlagenen Titel „Across the
-  Rainbow Bridge“ mit nachgewiesenem `PLAYING`-Zustand auch nach einem Sprung über Minute drei
-  weiter. Die abschließende APK mit der Sitzungspräferenz ist erfolgreich als Update installiert
-  und löst „Where Silent Gods Stand Guard“ über `VISIONOS_0_1__nopo` auf. Danach brach ADB ab,
-  obwohl das Handy per USB/MTP sichtbar blieb; auch ein Neustart des ADB-Servers stellte die
-  Verbindung nicht wieder her. Der `PLAYING`-Nachweis der letzten APK, der nächste Titel ohne
-  erneute Konto-Fehlerkette und der zusätzliche Gegencheck mit „Salt The Wound“ bleiben offen.
-- Die bislang geprüfte APK stammt aus dem sauberen Quellcommit
-  `121c1caa1a501bbd28d78b2f9a5e5ca242e34170`, im ursprünglichen Repo als lokaler Branch
-  `fix/youtube-streams-20261007` erhalten. Produktionscode, Versionskatalog und Release Notes
-  stimmen mit den Arbeitsdateien überein. Signatur/Paket/Version, alle vier ABIs, ZIP-Integrität,
-  eingebettete Revision und bytegleiche Versionshinweise sind geprüft. Die lokale APK liegt
-  im Nachbarverzeichnis `Kreate-APKs/KruXx-1.2.4-release.apk`, SHA-256
-  `83fab4e9bdcc0dbabc5534f8ab2def5fd550963cb26c1a332738943d5959f485`.
-  Das Release-Zertifikat ist unverändert; die passende Debug-APK stammt aus demselben Commit.
-- Es wurden weder App-Daten gelöscht noch Konten abgemeldet. Die vor dem letzten Update
-  nachgelesene Erstinstallationszeit blieb `31.08.2026 12:29:18`. Das zweite Testhandy und dessen
+- Signierte Geräteprüfung: Die Vorab-APK spielte den vorher fehlgeschlagenen Titel „Across the
+  Rainbow Bridge“ auch nach einem Sprung über Minute drei weiter. Nach dem zwischenzeitlichen
+  USB-Abbruch wurde die Verbindung wiederhergestellt und die endgültige zweisprachige APK als
+  Update installiert. „Masters of War“ von Amon Amarth erreicht nach HTTP 401 mit dem Konto und
+  erfolgreichem anonymem `WEB_REMIX__po` den Zustand `PLAYING`, Position 11.934 ms. Der nächste
+  Titel „First Kill“ verwendet sofort die bevorzugte anonyme Sitzung (`VISIONOS_0_1__nopo`),
+  ohne erneute HTTP-401-Kette, und spielt ebenfalls. Nach dem Sprung steht die Wiedergabe auf
+  199.699 ms, gepuffert bis 245.821 ms, weiterhin `PLAYING`. Nach Kaltstart spielt auch
+  „Salt The Wound“ von Malevolence nach dem Rückfall über `VISIONOS_0_1__nopo`; Pause und
+  Fortsetzen wechseln korrekt zwischen `PAUSED` und `PLAYING`, die Position läuft weiter.
+  Ein weiterer Kaltstart mit „Guardians Of Asgaard“ von Amon Amarth ist ebenfalls bestanden.
+  In den gezielt aufgezeichneten Wiedergabe-Prüffenstern gibt es keine Fatal-/Playback-Fehler.
+- Die endgültige zweisprachige APK stammt aus dem sauberen Quellcommit
+  `467102f83c8920897362416b314c6383c2ff61d2` auf `main`. Signatur/Paket/Version, Mindest-/Ziel-API
+  `24` / `36`, alle vier ABIs, ZIP-Integrität, 16-KiB-ZIP-Ausrichtung, eingebettete Revision und
+  bytegleiche Versionshinweise sind geprüft. Die beiden Changelog-Reiter `Deutsch` und `English`
+  enthalten jeweils vier Einträge. Die APK liegt im Nachbarverzeichnis
+  `Kreate-APKs/KruXx-1.2.4-release.apk`, **23.686.055 Bytes**, SHA-256
+  `a568206dd35bf15c7fe32413966585a65b87693c2b6699775affa099483db8ae`.
+  Die aus der Installation gelesene `base.apk` hat exakt denselben Hash. Das Release-Zertifikat
+  ist unverändert; die passende Debug-APK stammt aus demselben Commit. Die früheren lokalen
+  Vorab-APKs wurden vor dem Neubau im temporären Diagnoseverzeichnis erhalten.
+- Es wurden weder App-Daten gelöscht noch Konten abgemeldet. Die nach dem letzten Update
+  nachgelesene Erstinstallationszeit bleibt `31.08.2026 12:29:18`, Update `07.10.2026 14:59:49`.
+  Das zweite Testhandy und dessen
   leere Startseite sind auf Nutzerwunsch vorerst zurückgestellt; dieser Playback-Patch gilt
   nicht als Nachweis für dessen Behebung. Auch Konto-/Premium-/Altersfälle und die breitere
   Geräte-/Netzmatrix sind mit dieser Diagnose nicht vollständig abgenommen.
 
-Die Veröffentlichung von `1.2.4` mit deutschen und englischen Hinweisen ist am 07.10.2026
-beauftragt, sobald die abschließende Wiedergabeprüfung bestanden ist. Die App-Hinweise verwenden
-die beiden Reiter `Deutsch` und `English`; dafür wird eine neue APK aus sauberem Quellstand
-gebaut und erneut geprüft. Bis zur erfolgreichen Geräteprüfung bleibt `1.2.4` ein lokaler
-Teststand; es gibt dafür keinen öffentlichen Release oder neuen Tag.
-Die historische Abnahme und die Artefakte von `1.2.3` bleiben unverändert dokumentiert.
+### Veröffentlichung von 1.2.4 am 07.10.2026
+
+Die beauftragte Veröffentlichung ist nach bestandener abschließender Wiedergabeprüfung und CI
+um **15:14:15 Uhr MESZ** erfolgt. [KruXx `1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4)
+ist öffentlich, stabil und als neuester Release verfügbar. GitHub-Beschreibung und eingebettete
+Versionshinweise sind auf Deutsch und Englisch vorhanden.
+
+- Das annotierte Tag `v1.2.4` zeigt auf den sauber gebauten Quellcommit
+  `467102f83c8920897362416b314c6383c2ff61d2`; Quellstand und Tag sind zu
+  `Massefehler/KruXx` gepusht. Die anschließende Dokumentation ändert weder Tag noch APK.
+- [CI-Lauf 37625548993](https://github.com/Massefehler/KruXx/actions/runs/37625548993)
+  für genau diesen Quellcommit ist bestanden, einschließlich Unit-Tests und Debug-Build.
+- Genau ein Asset ist veröffentlicht: `KruXx-1.2.4-release.apk`, **23.686.055 Bytes**,
+  SHA-256 `a568206dd35bf15c7fe32413966585a65b87693c2b6699775affa099483db8ae`.
+  Der ohne Anmeldung heruntergeladene öffentliche Anhang ist bytegleich mit der installierten
+  und getesteten APK; der vom Updater verwendete öffentliche `releases/latest`-Endpunkt liefert
+  `v1.2.4` mit passendem Assetnamen, Größe und Digest. Die Debug-APK wurde nicht hochgeladen.
+
+Die historische Abnahme und die Artefakte von `1.2.3` bleiben unverändert dokumentiert. Die
+zurückgestellte Startseiten-Diagnose am zweiten Handy und die oben genannten weiteren Gerätefälle
+bleiben offen.
 
 ### Veröffentlichung von 1.2.1 am 08.09.2026
 
