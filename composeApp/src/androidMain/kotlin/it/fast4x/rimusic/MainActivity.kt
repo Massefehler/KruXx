@@ -476,14 +476,27 @@ MainActivity :
                 mutableStateOf(player.currentMediaItem, referentialEqualityPolicy())
             }
             DisposableEffect(player, !lightTheme) {
+                // Enum preferences persist their defaults on first access. The radio scaffold
+                // does not read the legacy navigation settings, and MiniPlayer is composed only
+                // after playback starts. Initialize these before listening and ignore delayed
+                // notifications for the same values, otherwise first playback recreates the
+                // activity and its existing onDestroy cleanup clears the queue.
+                val restartPreferenceValues = mapOf(
+                    Preferences.Key.MAIN_THEME to Preferences.MAIN_THEME.value.name,
+                    Preferences.Key.NAVIGATION_BAR_POSITION to Preferences.NAVIGATION_BAR_POSITION.value.name,
+                    Preferences.Key.NAVIGATION_BAR_TYPE to Preferences.NAVIGATION_BAR_TYPE.value.name,
+                    Preferences.Key.MINI_PLAYER_TYPE to Preferences.MINI_PLAYER_TYPE.value.name,
+                )
                 val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
                     when (key) {
                         Preferences.Key.MAIN_THEME,
                         Preferences.Key.NAVIGATION_BAR_POSITION,
                         Preferences.Key.NAVIGATION_BAR_TYPE,
                         Preferences.Key.MINI_PLAYER_TYPE -> {
-                            this@MainActivity.recreate()
-                            println("MainActivity.recreate()")
+                            if (sharedPreferences.getString(key, null) != restartPreferenceValues[key]) {
+                                this@MainActivity.recreate()
+                                println("MainActivity.recreate()")
+                            }
                         }
 
                         Preferences.Key.COLOR_PALETTE,

@@ -3,6 +3,7 @@ Deutsch:
 - Ergänzt Einstellungen → Benutzeroberfläche → Bildschirm-Layout mit Automatisch, Handy und Autoradio
 - Zeigt im Radio-Player das vollständige Cover links und große Wiedergabetasten rechts vor einem unscharfen Coverhintergrund, auch unter Android 11
 - Nutzt seitliche Navigation, größere Schrift und an die Fensterbreite angepasste Bibliotheksraster; berücksichtigt Systemleisten und große Systemschrift
+- Verhindert, dass die erste Wiedergabe nach einer frischen Installation durch die Initialisierung des Mini-Players abbricht
 - Enthält den HTTPS-Wiedergabe-Fix aus 1.2.5
 
 English:
@@ -10,4 +11,5 @@ English:
 - Adds Settings → User interface → Display layout with Automatic, Phone and Car radio
 - Shows the full cover on the left and large playback controls on the right against a blurred cover background, including Android 11
 - Uses side navigation, larger text and library grids adapted to window width; respects system bars and larger system fonts
+- Prevents the first playback after a fresh installation from stopping when the mini player initializes
 - Includes the HTTPS playback fix from 1.2.5

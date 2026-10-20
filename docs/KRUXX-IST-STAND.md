@@ -58,6 +58,11 @@ die separate Android-Auto-Schnittstelle wird dafür nicht geändert.
 - Die neue Darstellung und ihre Einstellung sind auf `BuildConfig.INDEPENDENT_FORK` begrenzt.
   Wiedergabedienst, Datenmodell, Downloads und Android Auto verwenden die bestehenden Wege.
   Der HTTPS-Fix aus `1.2.5` ist enthalten. Es wurde kein Release veröffentlicht oder hochgeladen.
+- Die erste Wiedergabe einer frischen Installation initialisiert den Mini-Player, dessen
+  gespeicherter Standard bisher einen Activity-Neustart samt Leeren der Warteschlange auslöste.
+  Die vier vorhandenen UI-Einstellungen mit Neustart werden jetzt vor der Listener-Anmeldung
+  initialisiert; verzögerte Benachrichtigungen mit unverändertem Wert lösen keinen Neustart aus.
+  Bewusste Änderungen dieser Einstellungen behalten ihr bisheriges Neustart-Verhalten.
 - Debug-Sichtprüfung im frischen Android-11-/API-30-Emulator: 1280 × 720 und 1024 × 600 bei 160 dpi,
   1024 × 600 bei 240 dpi mit manuellem Radio-Modus; 1024 × 600 zusätzlich mit 150 % Systemschrift.
   Vollständiges Cover, echte Hintergrundunschärfe und erreichbare Player-Tasten sind sichtbar.

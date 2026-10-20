@@ -99,11 +99,17 @@ Schrift reduzieren Zusatztext; Metadaten sind scrollbar. `CustomModalBottomSheet
 hebt für den Radio-Player die Material-Breitenbegrenzung auf und lässt dessen Queue die volle
 Breite verwenden. Radio-Sheets berücksichtigen auch im Querformat die Navigationsleiste.
 
+Die MainActivity liest ihre vier UI-Einstellungen mit Neustart vor der Listener-Anmeldung und
+ignoriert Benachrichtigungen mit identischem Wert. `Preferences.Enum` schreibt beim ersten Lesen
+fehlende Standardwerte; deren verzögerte Benachrichtigung darf beim ersten Mini-Player keinen
+Activity-Neustart auslösen, da das bestehende `onDestroy` die Wiedergabe und Queue beendet.
+
 Gezielter Test: `:composeApp:testKruxxUniversalProdDebugUnitTest` enthält acht zusätzliche
 `AdaptiveLayoutTest`-Fälle für beide Radioformate, Handy-Hoch-/Querformat, Resize-Grenzen,
 manuelle Auswahl, nicht gemessene Fenster und Spalten bei größerer Schrift. Praktisch unter
 Android 11 mit 1280 × 720 und 1024 × 600, Dichte 160 und 240, Schriftfaktor 1,0 und 1,5 prüfen;
-bei 240 dpi die manuelle Auswahl verwenden. Außerdem Handy-Modus, Hell-/Dunkelmodus, Neustart,
+bei 240 dpi die manuelle Auswahl verwenden. Auch die allererste Titelauswahl in einer frischen
+Installation muss sofort abspielen. Außerdem Handy-Modus, Hell-/Dunkelmodus, Neustart,
 Queue, Wiederholung, Zufall, Titelwechsel, Spulen und unveränderte Kontodaten prüfen. Die konkrete
 Prüftiefe und Grenzen sind im [IST-Stand](KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026)
 festgehalten; ein Emulator ersetzt die Geräteabnahme am direkt installierten Autoradio nicht.
