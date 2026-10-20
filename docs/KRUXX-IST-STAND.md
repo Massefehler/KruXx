@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Wiedergabe-Patch `1.2.5` in Prüfung
+Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Wiedergabe-Patch `1.2.5` auf dem Samsung geprüft
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,7 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) |
 | Öffentlicher Android-Versionscode | `1_000_008` |
-| Lokaler Build in Prüfung | `1.2.5` / `1_000_009`, noch nicht veröffentlicht |
+| Lokal installierter und geprüfter Build | `1.2.5` / `1_000_009`, noch nicht veröffentlicht |
 | Schwerpunkt von 1.2.4 | Stream-Auflösung bei abgelehnter gespeicherter Kontositzung, deutsche und englische Versionshinweise |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
@@ -53,10 +53,29 @@ werden weder hier noch in Testausgaben gespeichert.
   Fehler oder übersprungene Tests; Metrolist meldet keine Testquellen. Vollständiger Release-Lint
   erfolgreich: 67 Warnungen zu verfügbaren Abhängigkeitsversionen und überflüssigen SDK-Prüfungen
   sowie zwei Baseline-Hinweise, ohne Fehler oder Änderung der Baseline. Die zwei neuen reinen
-  Testabhängigkeiten verwenden dieselbe OkHttp-Version wie die App. Signierte Geräteprüfung
-  steht noch aus.
+  Testabhängigkeiten verwenden dieselbe OkHttp-Version wie die App.
 - Der lokale Build erhält `1.2.5` / `1_000_009` und zweisprachige Versionshinweise.
   Es wurde noch kein GitHub-Release veröffentlicht.
+- Die signierte Release-APK aus dem sauberen Quellcommit
+  `9da6906e580be0e79c26759d94bafaa988a05259` wurde um **18:13 Uhr MESZ** als Update auf dem
+  Samsung SM-S931B mit Android 17 installiert. Erstinstallationszeit weiterhin
+  `31.08.2026 12:29:18`; App-Daten und Kontenanmeldung bleiben erhalten.
+- „Voice of Rebellion“ läuft mit demselben `VISIONOS_0_1__nopo` und Itag `140` wie beim Fehler.
+  `MediaTransport` bestätigt die sichere Weiterleitung zu demselben zuvor blockierten CDN-Host.
+  Auch der Sprung auf **151.186 ms** lädt über diese HTTPS-Weiterleitung. Danach `PLAYING`
+  bei **202.130 ms**, gepuffert bis **214.469 ms**; Pause bei **205.002 ms** und Fortsetzen
+  bei **205.007 ms** wechseln korrekt zwischen `PAUSED` und `PLAYING`. Die spätere Kontrolle
+  erreicht **237.501 ms**, gepuffert bis zum Titelende bei **241.343 ms**, ohne Fehler.
+  Im gezielt auf den App-Prozess begrenzten Prüffenster gibt es keine Playback-/Fatal-Fehler.
+  Vollständiges separates Cover und vergrößerter verschwommener Hintergrund sind sichtbar;
+  die zuvor über die Oberfläche korrigierte Cover-Einstellung bleibt nach dem Update erhalten.
+- Archiv: `Kreate-APKs/KruXx-1.2.5-release.apk`, **23.686.055 Bytes**, SHA-256
+  `3506d694a0bc5302ac6f3f93e947ed1bc3ca00490b2d95993f75900956e0233a`.
+  Die aus der Installation gelesene `base.apk` ist bytegleich. Paket, Version, bekannte
+  Release-Signatur, eingebetteter Quellcommit, API `24` / `36`, alle vier ABIs, ZIP-Integrität,
+  16-KiB-ZIP-Ausrichtung und bytegleiche zweisprachige Versionshinweise sind geprüft.
+  Der normale lokale Build hat auch die passende Debug-APK aus demselben sauberen Quellstand
+  archiviert. Weitere Geräte- und Netzfälle bleiben separat abzuprüfen.
 
 ### Lokaler Wiedergabe-Patch 1.2.4 vom 07.10.2026
 
