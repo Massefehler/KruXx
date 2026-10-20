@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Autoradio-Build `1.2.6` in Prüfung
+Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Autoradio-Build `1.2.6` signiert und im Android-11-Emulator geprüft
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,7 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) |
 | Öffentlicher Android-Versionscode | `1_000_008` |
-| Lokaler Entwicklungsstand | `1.2.6` / `1_000_010`, Autoradio-Layout; noch nicht veröffentlicht |
+| Lokaler Entwicklungsstand | `1.2.6` / `1_000_010`, signiertes und im Emulator geprüftes Autoradio-Layout; noch nicht veröffentlicht |
 | Zuletzt auf dem Samsung geprüft | `1.2.5` / `1_000_009`, HTTPS-Wiedergabe-Patch |
 | Schwerpunkt von 1.2.4 | Stream-Auflösung bei abgelehnter gespeicherter Kontositzung, deutsche und englische Versionshinweise |
 | Release-Paket | `de.kruxx.music` |
@@ -72,7 +72,22 @@ die separate Android-Auto-Schnittstelle wird dafür nicht geändert.
   Metrolist meldet keine Testquellen. Vollständiger Release-Lint erfolgreich: 67 bestehende
   Warnungen und zwei Baseline-Hinweise, Baseline unverändert. Die neuen 22 UI-Texte sind auf
   Deutsch und Englisch vorhanden; andere Sprachen verwenden Englisch als Rückfall.
-  Abschließende signierte Release- und Artefaktnachweise werden nach dem Build ergänzt.
+- Frischinstallation im Android-11-Emulator mit Debug- und endgültiger signierter Release-APK:
+  Die erste Auswahl von „Voice of Rebellion“ startet unmittelbar die Wiedergabe, ohne einen
+  Activity-Neustart oder eine leere Warteschlange. Die Release-APK ist bei 1280 × 720 und
+  1024 × 600 mit 150 % Systemschrift geprüft. Vollständiges Cover und unscharfer Hintergrund
+  sind sichtbar; auch die Werkzeugleiste der Warteschlange liegt oberhalb der Systemnavigation.
+  Spulen auf 151.790 ms und Pausieren funktionieren ohne Wiedergabefehler.
+- Der normale lokale Build hat Release- und Debug-APK aus demselben sauberen Quellcommit
+  `3736ebff004fa5eb6e947fbf84bc969d9cd5927e` gebaut. Die signierte Release-APK liegt im
+  Nachbarverzeichnis `Kreate-APKs/KruXx-1.2.6-release.apk`, **23.718.823 Bytes**, SHA-256
+  `73919aa19b491c0b71eb88980877c661fd626e33bd937700b29850ec8fec76f8`.
+  Die aus der Emulator-Installation gelesene `base.apk` ist bytegleich mit diesem Archiv.
+  Paket `de.kruxx.music`, Version `1.2.6` / `1000010`, bekannte Release-Signatur
+  (`5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673`), eingebetteter
+  Quellcommit, Mindest-/Ziel-API `24` / `36`, alle vier ABIs, ZIP-Integrität,
+  16-KiB-ZIP-Ausrichtung und bytegleiche deutsche und englische Versionshinweise mit jeweils
+  sechs Einträgen sind geprüft. Der abschließende Dokumentationscommit ändert diese Artefakte nicht.
 - Das physische Autoradio ist nicht angeschlossen. Dessen tatsächliche Dichte, Herstellerleisten,
   Hardwaretasten, Audioausgabe und Leistung müssen am Radio nachgeprüft werden. Der Autoradio-Test
   ersetzt keine Android-Auto-Abnahme im Fahrzeug; die übrigen offenen Gerätefälle bleiben bestehen.
