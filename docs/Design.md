@@ -26,7 +26,7 @@ Eine Designänderung darf daher keine neue fachliche Logik in UI-Komponenten ver
 bestehenden Bedienabläufe verändern. Der umgesetzte Umfang wurde nach bestandenem Release-Gate als
 KruXx `1.1.0` „Glass Update“ veröffentlicht.
 
-## Ergänzung: native Autoradio-Darstellung (20.10.2026, lokal 1.2.6)
+## Ergänzung: native Autoradio-Darstellung (20.10.2026, veröffentlicht mit 1.2.6)
 
 Die ursprüngliche Skin-Abgrenzung oben beschreibt das veröffentlichte Glass-Redesign.
 Der Nutzer hat für die direkt auf einem Android-11-Autoradio installierte App ausdrücklich eine

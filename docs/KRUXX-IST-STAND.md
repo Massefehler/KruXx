@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Autoradio-Build `1.2.6` signiert und im Android-11-Emulator geprüft
+Stand: 20.10.2026 · Öffentlich `1.2.6`, signierte APK und öffentlicher Download geprüft
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -11,11 +11,11 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | [`1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) |
-| Öffentlicher Android-Versionscode | `1_000_008` |
-| Lokaler Entwicklungsstand | `1.2.6` / `1_000_010`, signiertes und im Emulator geprüftes Autoradio-Layout; noch nicht veröffentlicht |
+| Öffentlicher Release | [`1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) |
+| Öffentlicher Android-Versionscode | `1_000_010` |
+| Lokaler Entwicklungsstand | `1.2.6` / `1_000_010`; veröffentlichter App-Quellstand `3736ebff004fa5eb6e947fbf84bc969d9cd5927e`, danach nur Dokumentation |
 | Zuletzt auf dem Samsung geprüft | `1.2.5` / `1_000_009`, HTTPS-Wiedergabe-Patch |
-| Schwerpunkt von 1.2.4 | Stream-Auflösung bei abgelehnter gespeicherter Kontositzung, deutsche und englische Versionshinweise |
+| Schwerpunkt von 1.2.6 | Native Autoradio-Oberfläche, vollständiges Cover mit Blur, erste Wiedergabe und HTTPS-CDN-Weiterleitungen |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -31,6 +31,10 @@ Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizen
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
 
 ### Lokaler Autoradio-Build 1.2.6 vom 20.10.2026
+
+Seit **20.10.2026** als stabiler Release
+[`1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) veröffentlicht;
+der folgende lokale Build- und Prüfstand beschreibt genau dessen APK.
 
 Vom Nutzer beauftragt für ein Autoradio mit direkt installierter App, Android 11 und typischerweise
 1280 × 720 beziehungsweise 1024 × 600 Pixeln. Das ist die native App-Oberfläche auf dem Radio;
@@ -57,7 +61,7 @@ die separate Android-Auto-Schnittstelle wird dafür nicht geändert.
   Gerätetitel behalten ihren vorhandenen Einspalten-Browser. Der Handy-Modus verwendet die bisherige UI.
 - Die neue Darstellung und ihre Einstellung sind auf `BuildConfig.INDEPENDENT_FORK` begrenzt.
   Wiedergabedienst, Datenmodell, Downloads und Android Auto verwenden die bestehenden Wege.
-  Der HTTPS-Fix aus `1.2.5` ist enthalten. Es wurde kein Release veröffentlicht oder hochgeladen.
+  Der HTTPS-Fix aus dem lokalen `1.2.5` ist im veröffentlichten Release `1.2.6` enthalten.
 - Die erste Wiedergabe einer frischen Installation initialisiert den Mini-Player, dessen
   gespeicherter Standard bisher einen Activity-Neustart samt Leeren der Warteschlange auslöste.
   Die vier vorhandenen UI-Einstellungen mit Neustart werden jetzt vor der Listener-Anmeldung
@@ -87,10 +91,32 @@ die separate Android-Auto-Schnittstelle wird dafür nicht geändert.
   (`5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673`), eingebetteter
   Quellcommit, Mindest-/Ziel-API `24` / `36`, alle vier ABIs, ZIP-Integrität,
   16-KiB-ZIP-Ausrichtung und bytegleiche deutsche und englische Versionshinweise mit jeweils
-  sechs Einträgen sind geprüft. Der abschließende Dokumentationscommit ändert diese Artefakte nicht.
+  sechs Einträgen sind geprüft. Spätere Dokumentationscommits ändern diese Artefakte nicht.
 - Das physische Autoradio ist nicht angeschlossen. Dessen tatsächliche Dichte, Herstellerleisten,
   Hardwaretasten, Audioausgabe und Leistung müssen am Radio nachgeprüft werden. Der Autoradio-Test
   ersetzt keine Android-Auto-Abnahme im Fahrzeug; die übrigen offenen Gerätefälle bleiben bestehen.
+
+#### Veröffentlichung von 1.2.6 am 20.10.2026
+
+- Das annotierte Tag `v1.2.6` (`30de136c5af6b4b6023d7b1f8b5c707d63725621`) zeigt exakt auf den
+  gebauten Quellcommit `3736ebff004fa5eb6e947fbf84bc969d9cd5927e`. Tag und Quellstand sind
+  ausschließlich im KruXx-Repository veröffentlicht.
+- [CI-Lauf 39467676713](https://github.com/Massefehler/KruXx/actions/runs/39467676713) hat
+  App-/Innertube-Tests und Debug-Build bestanden. Sein Commit
+  `a0753b7211a394d51ab85f95cb99938214002ac0` ergänzt zum APK-Quellstand nur Dokumentation;
+  der App-Quellstand ist identisch.
+- Der Release wurde zunächst als Entwurf mit genau einer vollständig hochgeladenen APK erstellt.
+  Tag-Ziel, deutsche und englische Beschreibung, Assetname, **23.718.823 Bytes** und GitHubs
+  `sha256:`-Digest stimmen mit dem geprüften Archiv überein. In App- und Innertube-Repository
+  gab es vor der Veröffentlichung keine offenen Secret-Scanning-Alarme.
+- [GitHub-Release 1.2.6](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) ist seit
+  **20:03:57 Uhr MESZ** öffentlich, stabil und als neueste Version gesetzt; die Latest-API
+  bestätigt `v1.2.6`, weder Entwurf noch Vorabversion.
+- Ein erneuter **anonymer Download** um **20:04 Uhr MESZ** ist bytegleich mit dem lokalen,
+  im Android-11-Emulator geprüften Archiv. SHA-256 weiterhin
+  `73919aa19b491c0b71eb88980877c661fd626e33bd937700b29850ec8fec76f8`.
+  Damit gelten auch dessen Signatur-, Paket-, Versions-, Quellcommit- und ZIP-Nachweise für
+  die öffentlich angebotene APK. Das physische Autoradio bleibt als Nachtest offen.
 
 ### Lokaler HTTPS-Wiedergabe-Patch 1.2.5 vom 20.10.2026
 
@@ -118,7 +144,7 @@ werden weder hier noch in Testausgaben gespeichert.
   sowie zwei Baseline-Hinweise, ohne Fehler oder Änderung der Baseline. Die zwei neuen reinen
   Testabhängigkeiten verwenden dieselbe OkHttp-Version wie die App.
 - Der lokale Build erhält `1.2.5` / `1_000_009` und zweisprachige Versionshinweise.
-  Es wurde noch kein GitHub-Release veröffentlicht.
+  Es wurde kein separater GitHub-Release `1.2.5` veröffentlicht; der Patch ist in `1.2.6` enthalten.
 - Die signierte Release-APK aus dem sauberen Quellcommit
   `9da6906e580be0e79c26759d94bafaa988a05259` wurde um **18:13 Uhr MESZ** als Update auf dem
   Samsung SM-S931B mit Android 17 installiert. Erstinstallationszeit weiterhin

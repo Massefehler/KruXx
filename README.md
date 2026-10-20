@@ -8,26 +8,24 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-[KruXx 1.2.4](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4)
-(`versionCode 1000008`, Android 7.0+) is the current public stable release. It restores playback
-of public tracks when YouTube rejects the saved account session, while retaining the login.
-All 227 unit tests, release lint and CI passed. The signed APK was tested on a Samsung with
-Android 17, updating in place with app data retained. Playback, next track, seeking and
-pause/resume passed; the public download matches the tested APK byte for byte. Verification
-details and the remaining device checks are recorded in the
+[KruXx 1.2.6](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6)
+(`versionCode 1000010`, Android 7.0+) is the current public stable release. It adds an adaptive
+interface for Android car radios running KruXx directly, restores full cover artwork over a
+blurred background on Android 11, fixes first playback after a fresh installation and includes
+the HTTPS playback fix from local 1.2.5.
+All 240 unit tests, release lint and CI passed. The final signed APK was tested in an Android 11
+emulator at 1280 × 720 and 1024 × 600, including larger system text. The anonymous public download
+matches the tested APK byte for byte. Verification details and remaining device checks are in the
 [KruXx status report](docs/KRUXX-IST-STAND.md). The release notes are available in German and
-English on GitHub and [in the app](docs/changelogs/kruxx/1.2.4.txt). The empty home page on a
-second phone still needs investigation. Android Auto in a real vehicle, physical SD/USB
+English on GitHub and [in the app](docs/changelogs/kruxx/1.2.6.txt). The physical car radio still
+needs testing, and the empty home page on a second phone still needs investigation.
+Android Auto in a real vehicle, physical SD/USB
 providers and the broader interaction matrix still require testing. The dedicated podcast
 section remains a separate future feature.
 
-The local, unpublished **1.2.6** build adds an adaptive interface for Android car radios running
-KruXx directly: side navigation, larger controls, adaptive library grids and a full cover beside
-the playback controls over a blurred cover background, including Android 11. Select
+The car radio layout uses side navigation, larger controls and adaptive library grids. Select
 **Settings → User interface → Display layout → Automatic / Phone / Car radio**. Automatic uses
 available window space in dp; the manual option accommodates unusual radio display densities.
-The HTTPS playback fix from local 1.2.5 is included. Build verification and device limits are in
-the [status report](docs/KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026).
 
 **KruXx 1.2.0 and later require Android 7.0 (API 24) or newer.** Android 6 support has ended;
 1.1.0 is the last published version compatible with it. Existing Android 6 installations can
@@ -60,6 +58,14 @@ Update checks can be changed or disabled under **Settings → General → Update
 crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
+
+### New in 1.2.6
+
+Adds the adaptive car radio layout, full cover artwork over a blurred cover background on Android 11,
+and the display layout setting. Fixes first playback after a fresh installation and prevents Google
+Video redirects from causing a `CLEARTEXT communication` playback error. The signed APK, annotated
+tag, bilingual notes and publication evidence are recorded in the
+[status report](docs/KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026).
 
 ### New in 1.2.4
 

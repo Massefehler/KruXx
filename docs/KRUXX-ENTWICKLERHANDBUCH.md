@@ -1,18 +1,19 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 20.10.2026 · KruXx `1.2.4` veröffentlicht, lokal `1.2.6` ·
+Stand: 20.10.2026 · KruXx `1.2.6` veröffentlicht ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx `1.2.4` (`1000008`) ist veröffentlicht.
-Alle 227 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die exakt archivierte,
-signierte APK ist auf dem Samsung SM-S931B mit Android 17 geprüft: Update mit erhaltenen
-App-Daten und Anmeldung, Wiedergabe nach Kaltstart, Titelwechsel, Spulen und Pause/Fortsetzen.
-Die aus der Installation gelesene APK und der öffentliche Download sind bytegleich mit dem
-Archiv. Quellcommit `467102f83c8920897362416b314c6383c2ff61d2`, annotiertes Tag `v1.2.4`,
-Submodul-Pins und die APK mit deutschen und englischen Versionshinweisen sind unter
-<https://github.com/Massefehler/KruXx/releases/tag/v1.2.4> verfügbar.
+[`README.md`](README.md). KruXx `1.2.6` (`1000010`) ist veröffentlicht.
+Alle 240 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die endgültige signierte
+APK ist im Android-11-Emulator bei 1280 × 720 und 1024 × 600 geprüft, einschließlich großer
+Systemschrift, erster Wiedergabe, Warteschlange, Spulen und Pausieren. Der anonyme öffentliche
+Download ist bytegleich mit dem Archiv. Quellcommit
+`3736ebff004fa5eb6e947fbf84bc969d9cd5927e`, annotiertes Tag `v1.2.6`, Submodul-Pins und die APK
+mit deutschen und englischen Versionshinweisen sind unter
+<https://github.com/Massefehler/KruXx/releases/tag/v1.2.6> verfügbar.
+Die Prüfung am physischen Autoradio bleibt offen; die bisherige Samsung-Abnahme gilt für `1.2.5`.
 
 **Mit `1.2.4` veröffentlicht (07.10.2026):** InnerTubeX `v0.7.4` und ein
 getrennter anonymer Wiedergabe-Rückfall behandeln abgelehnte gespeicherte Sitzungen, ohne die
@@ -71,7 +72,7 @@ unter <https://github.com/Massefehler/KruXx>. Drei zentrale Unterschiede zum Ori
 
 ---
 
-## Native Autoradio-Oberfläche (lokal 1.2.6)
+## Native Autoradio-Oberfläche (seit 1.2.6)
 
 `Preferences.APP_LAYOUT_MODE` speichert `Automatic`, `Phone` oder `CarRadio`. Die MainActivity
 ermittelt aus ihren tatsächlichen Compose-Constraints und Systemleisten die freie Fenstergröße
