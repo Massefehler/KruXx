@@ -29,7 +29,7 @@ import it.fast4x.rimusic.utils.isAtLeastAndroid8
 import it.fast4x.rimusic.ytAccountThumbnail
 
 @Composable
-private fun HamburgerMenu(
+internal fun HamburgerMenu(
     expanded: Boolean,
     onItemClick: (NavRoutes) -> Unit,
     onDismissRequest: () -> Unit

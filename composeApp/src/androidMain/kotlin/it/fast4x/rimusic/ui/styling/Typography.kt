@@ -119,3 +119,17 @@ fun typographyOf(color: Color, useSystemFont: Boolean, applyFontPadding: Boolean
         xlxl = textStyle.copy(fontSize = 34.sp)
     )
 }
+
+/** Increase reading sizes in radio mode while retaining the chosen font, weights and colors. */
+fun Typography.forCarRadio() = copy(
+    xxxs = xxxs.copy(fontSize = maxOf(xxxs.fontSize.value, 14f).sp),
+    xxs = xxs.copy(fontSize = maxOf(xxs.fontSize.value, 14f).sp),
+    xs = xs.copy(fontSize = maxOf(xs.fontSize.value, 18f).sp),
+    s = s.copy(fontSize = maxOf(s.fontSize.value, 18f).sp),
+    m = m.copy(fontSize = maxOf(m.fontSize.value, 20f).sp),
+    l = l.copy(fontSize = maxOf(l.fontSize.value, 22f).sp),
+    xl = xl.copy(fontSize = maxOf(xl.fontSize.value, 24f).sp),
+    xxl = xxl.copy(fontSize = maxOf(xxl.fontSize.value, 28f).sp),
+    xxxl = xxxl.copy(fontSize = maxOf(xxxl.fontSize.value, 30f).sp),
+    xlxl = xlxl.copy(fontSize = maxOf(xlxl.fontSize.value, 34f).sp),
+)

@@ -26,6 +26,27 @@ Eine Designänderung darf daher keine neue fachliche Logik in UI-Komponenten ver
 bestehenden Bedienabläufe verändern. Der umgesetzte Umfang wurde nach bestandenem Release-Gate als
 KruXx `1.1.0` „Glass Update“ veröffentlicht.
 
+## Ergänzung: native Autoradio-Darstellung (20.10.2026, lokal 1.2.6)
+
+Die ursprüngliche Skin-Abgrenzung oben beschreibt das veröffentlichte Glass-Redesign.
+Der Nutzer hat für die direkt auf einem Android-11-Autoradio installierte App ausdrücklich eine
+adaptive grafische Darstellung beauftragt. Dafür darf die native UI bei breiten Querformatfenstern
+seitliche Navigation und einen zweispaltigen Player verwenden. Datenfluss, Wiedergabedienst,
+Bibliotheksreihenfolge und Android-Auto-Schnittstelle bleiben bei den vorhandenen Komponenten.
+
+Die Auswahl `Automatisch / Handy / Autoradio` berücksichtigt die nutzbare Fenstergröße in dp.
+Automatisch greift ab 840 dp Querformatbreite und 320 dp Höhe; die manuelle Auswahl unterstützt
+abweichende Herstellerdichten und bietet ab 600 dp Querformatbreite ebenfalls zwei Spalten.
+Der Radio-Player zeigt das ganze Cover links, Metadaten und große Tasten rechts und ein unabhängig
+vergrößertes, echt unscharfes Cover im Hintergrund. Bitmap-Unschärfe unterstützt Android 7–11.
+Wenig Höhe und große Schrift reduzieren Zusatztext; Metadaten bleiben scrollbar. Primäre Tasten
+sind 56 dp groß, Play/Pause 72 beziehungsweise 88 dp. Systemleisten bleiben außerhalb der Tasten.
+Die gemeinsame Leseschrift und Bibliothekskacheln wachsen; Titellisten verwenden je nach Breite
+und Schriftfaktor ein bis drei Spalten. Das Glass-Farbsystem und die gewählte Schrift bleiben erhalten.
+
+Sichtprüfung, signierter Build und die ausdrücklich noch nötige Prüfung am physischen Radio stehen
+im [IST-Stand](KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026).
+
 ## Visuelle Richtung
 
 - Tiefes Graphit als Hintergrund, ergänzt durch sehr dezente rot-blaue Lichtverläufe.

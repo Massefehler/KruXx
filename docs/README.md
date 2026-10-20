@@ -1,6 +1,6 @@
 # KruXx-Dokumentation
 
-Stand: 07.10.2026 · KruXx `1.2.4` veröffentlicht
+Stand: 20.10.2026 · Öffentlich `1.2.4`, lokal `1.2.6`
 
 [KruXx `1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) / `1000008`
 ist als neuester stabiler Release veröffentlicht: InnerTubeX `v0.7.4` und ein anonymer
@@ -10,6 +10,15 @@ mit Android 17 geprüft; der öffentliche Download ist bytegleich mit der getest
 GitHub und App enthalten deutsche und englische Versionshinweise. Die Geräteabnahme und
 Veröffentlichung stehen im [IST-Stand](KRUXX-IST-STAND.md#lokaler-wiedergabe-patch-124-vom-07102026).
 Die Startseiten-Diagnose am zweiten Handy ist zurückgestellt.
+
+Lokal ergänzt `1.2.6` die native Autoradio-Darstellung für direkt installierte Android-Apps:
+Fenstererkennung, Auswahl `Automatisch / Handy / Autoradio`, seitliche Navigation, größere
+Schrift und Player-Tasten, adaptive Bibliotheksraster und vollständiges Cover vor echtem Blur,
+auch unter Android 11. Der HTTPS-Fix aus lokal `1.2.5` ist enthalten. Das ist noch kein
+öffentlicher Release. Prüfstand und Artefakte stehen im
+[IST-Stand](KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026), die Architektur im
+[Entwicklerhandbuch](KRUXX-ENTWICKLERHANDBUCH.md#native-autoradio-oberfläche-lokal-126).
+Das physische Autoradio ist nicht angeschlossen; dessen Abnahme bleibt offen.
 
 [KruXx `1.2.3`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.3) / `1000007`
 stellte zuvor die Wiedergabereihenfolge geöffneter Alben wieder her,

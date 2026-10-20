@@ -40,6 +40,8 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
@@ -130,9 +132,10 @@ fun HomeAlbums(
         Sort(menuState, Preferences.HOME_ALBUMS_SORT_BY, Preferences.HOME_ALBUM_SORT_ORDER)
     }
     val itemSize = remember { ItemSize(Preferences.HOME_ALBUM_ITEM_SIZE, menuState) }
-    val sizeDp by remember {derivedStateOf {
-        DpSize(itemSize.size.dp, itemSize.size.dp)
-    }}
+    val radio = LocalAdaptiveLayout.current.isCarRadio
+    val fontScale = LocalDensity.current.fontScale
+    val tileSize = if (radio) maxOf(itemSize.size.dp, (160 * fontScale).dp) else itemSize.size.dp
+    val sizeDp = DpSize(tileSize, tileSize)
 
     val randomizer = object: Randomizer<Album> {
         override fun getItems(): List<Album> = itemsOnDisplay
@@ -201,7 +204,7 @@ fun HomeAlbums(
                 .background(kruxxContentColor(colorPalette().background0))
                 .fillMaxHeight()
                 .fillMaxWidth(
-                    if( NavigationBarPosition.Right.isCurrent() )
+                    if( !radio && NavigationBarPosition.Right.isCurrent() )
                         Dimensions.contentWidthRightBar
                     else
                         1f
@@ -274,13 +277,13 @@ fun HomeAlbums(
 
                 LazyVerticalGrid(
                     state = lazyGridState,
-                    columns = GridCells.Adaptive( itemSize.size.dp ),
+                    columns = GridCells.Adaptive( tileSize ),
                     //contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
                     modifier = Modifier.background(
                         kruxxContentColor(colorPalette().background0)
                     )
                                        .fillMaxSize(),
-                    contentPadding = PaddingValues( bottom = Dimensions.bottomSpacer ),
+                    contentPadding = PaddingValues( bottom = if (radio) 12.dp else Dimensions.bottomSpacer ),
                     verticalArrangement = Arrangement.spacedBy(AlbumItem.ROW_SPACING.dp )
                 ) {
                     items(

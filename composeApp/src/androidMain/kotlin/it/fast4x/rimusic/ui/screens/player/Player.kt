@@ -211,6 +211,10 @@ fun Player(
     navController: NavController,
     onDismiss: () -> Unit,
 ) {
+    if (app.kreate.android.ui.adaptive.LocalAdaptiveLayout.current.isCarRadio) {
+        CarRadioPlayer(navController, onDismiss)
+        return
+    }
     // Essentails
     val context = LocalContext.current
     val configuration = LocalConfiguration.current

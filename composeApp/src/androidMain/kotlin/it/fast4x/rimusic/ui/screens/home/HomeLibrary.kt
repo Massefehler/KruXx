@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
@@ -130,9 +132,10 @@ fun HomeLibrary(
         Sort(menuState, Preferences.HOME_LIBRARY_SORT_BY, Preferences.HOME_LIBRARY_SORT_ORDER)
     }
     val itemSize = remember { ItemSize(Preferences.HOME_LIBRARY_ITEM_SIZE, menuState) }
-    val sizeDp by remember {derivedStateOf {
-        DpSize(itemSize.size.dp, itemSize.size.dp)
-    }}
+    val radio = LocalAdaptiveLayout.current.isCarRadio
+    val fontScale = LocalDensity.current.fontScale
+    val tileSize = if (radio) maxOf(itemSize.size.dp, (160 * fontScale).dp) else itemSize.size.dp
+    val sizeDp = DpSize(tileSize, tileSize)
 
     //<editor-fold desc="Songs shuffler">
     /**
@@ -195,7 +198,7 @@ fun HomeLibrary(
                 //.fillMaxSize()
                 .fillMaxHeight()
                 .fillMaxWidth(
-                    if (NavigationBarPosition.Right.isCurrent())
+                    if (!radio && NavigationBarPosition.Right.isCurrent())
                         Dimensions.contentWidthRightBar
                     else
                         1f
@@ -215,12 +218,12 @@ fun HomeLibrary(
 
                 LazyVerticalGrid(
                     state = lazyGridState,
-                    columns = GridCells.Adaptive( itemSize.size.dp ),
+                    columns = GridCells.Adaptive( tileSize ),
                     modifier = Modifier.background(
                         kruxxContentColor(colorPalette().background0)
                     ),
                     verticalArrangement = Arrangement.spacedBy( PlaylistItem.ROW_SPACING.dp ),
-                    contentPadding = PaddingValues(bottom = Dimensions.bottomSpacer)
+                    contentPadding = PaddingValues(bottom = if (radio) 12.dp else Dimensions.bottomSpacer)
                 ) {
                     item(
                         key = "separator",

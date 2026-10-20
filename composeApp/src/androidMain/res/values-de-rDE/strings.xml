@@ -980,4 +980,27 @@
     <string name="word_pin">Pin</string>
     <string name="word_unpin">Unpin\n</string>
     <string name="success_playlist_deleted">Deleted %s</string>
+
+    <string name="app_layout_mode">Bildschirm-Layout</string>
+    <string name="app_layout_mode_description">Automatisch nutzt die verfügbare Fenstergröße. Autoradio vergrößert die Bedienung auch bei ungewöhnlicher Displaydichte. Änderungen wirken sofort.</string>
+    <string name="layout_mode_automatic">Automatisch</string>
+    <string name="layout_mode_phone">Handy</string>
+    <string name="layout_mode_car_radio">Autoradio</string>
+    <string name="radio_minimize_player">Player minimieren</string>
+    <string name="radio_previous">Vorheriger Titel</string>
+    <string name="radio_next">Nächster Titel</string>
+    <string name="radio_play">Abspielen</string>
+    <string name="radio_pause">Pausieren</string>
+    <string name="radio_queue">Warteschlange</string>
+    <string name="radio_more">Titeloptionen</string>
+    <string name="radio_cover">Albumcover</string>
+    <string name="radio_seek">Wiedergabeposition</string>
+    <string name="radio_repeat_off">Wiederholung aus</string>
+    <string name="radio_repeat_one">Einzelnen Titel wiederholen</string>
+    <string name="radio_repeat_all">Warteschlange wiederholen</string>
+    <string name="radio_back">Zurück</string>
+    <string name="radio_loading">Wird geladen…</string>
+    <string name="radio_playback_error">Wiedergabe fehlgeschlagen. Zum erneuten Versuchen auf Abspielen tippen.</string>
+    <string name="radio_search">Suche</string>
+    <string name="radio_app_menu">App-Menü</string>
 </resources>

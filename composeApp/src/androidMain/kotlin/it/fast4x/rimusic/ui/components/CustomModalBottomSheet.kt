@@ -36,6 +36,7 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import app.kreate.android.Preferences
 import it.fast4x.rimusic.colorPalette
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import it.fast4x.rimusic.enums.ColorPaletteMode
 import it.fast4x.rimusic.ui.styling.isKruxxGlassEnabled
 import it.fast4x.rimusic.ui.styling.KruxxGlass
@@ -60,11 +61,12 @@ fun CustomModalBottomSheet(
     scrimColor: Color = BottomSheetDefaults.ScrimColor,
     dragHandle: @Composable (() -> Unit)? = { BottomSheetDefaults.DragHandle() },
     contentWindowInsets: @Composable () -> WindowInsets = { WindowInsets.ime },
+    sheetMaxWidth: Dp = BottomSheetDefaults.SheetMaxWidth,
     glassSurfaceEnabled: Boolean = true,
     glassSurfaceOpaque: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val bottomInsets = if (isLandscape) Modifier else Modifier.navigationBarsPadding()
+    val bottomInsets = if (isLandscape && !LocalAdaptiveLayout.current.isCarRadio) Modifier else Modifier.navigationBarsPadding()
     val palette = colorPalette()
     val useGlassSurface = isKruxxGlassEnabled && glassSurfaceEnabled
     val resolvedShape = if (useGlassSurface) KruxxGlass.menuShape else shape
@@ -91,6 +93,7 @@ fun CustomModalBottomSheet(
             onDismissRequest = onDismissRequest,
             modifier = modifier,
             sheetState = sheetState,
+            sheetMaxWidth = sheetMaxWidth,
             shape = resolvedShape,
             containerColor = resolvedContainerColor,
             contentColor = resolvedContentColor,

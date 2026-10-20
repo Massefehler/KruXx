@@ -14,6 +14,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import app.kreate.android.enums.AppLayoutMode
 import app.kreate.android.enums.DohServer
 import app.kreate.android.enums.PlatformIndicatorType
 import app.kreate.android.utils.innertube.getSystemCountryCode
@@ -889,6 +890,9 @@ sealed class Preferences<T>(
         }
         val FONT by lazy {
             Enum( preferences, Key.FONT, "fontType", FontType.Rubik )
+        }
+        val APP_LAYOUT_MODE by lazy {
+            Enum( preferences, Key.APP_LAYOUT_MODE, "", AppLayoutMode.Automatic )
         }
         val NAVIGATION_BAR_POSITION by lazy {
             Enum( preferences, Key.NAVIGATION_BAR_POSITION, "navigationBarPosition", NavigationBarPosition.Bottom )
@@ -1979,6 +1983,7 @@ sealed class Preferences<T>(
         const val THEME_MODE = "ThemeMode"
         const val STARTUP_SCREEN = "StartupScreen"
         const val FONT = "Font"
+        const val APP_LAYOUT_MODE = "AppLayoutMode"
         const val NAVIGATION_BAR_POSITION = "NavigationBarPosition"
         const val NAVIGATION_BAR_TYPE = "NavigationBarType"
         const val PAUSE_BETWEEN_SONGS = "PauseBetweenSongs"

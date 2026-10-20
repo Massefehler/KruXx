@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.kreate.android.BuildConfig
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.themed.common.component.settings.SettingComponents
@@ -132,6 +133,15 @@ fun UiSettings( paddingValues: PaddingValues ) {
         ) {
             header( R.string.user_interface )
 
+            if (BuildConfig.INDEPENDENT_FORK) {
+                entry( search, R.string.app_layout_mode ) {
+                    SettingComponents.EnumEntry(
+                        Preferences.APP_LAYOUT_MODE,
+                        R.string.app_layout_mode,
+                        subtitle = stringResource(R.string.app_layout_mode_description)
+                    )
+                }
+            }
             entry( search, R.string.interface_in_use ) {
                 SettingComponents.EnumEntry(
                     Preferences.MAIN_THEME,

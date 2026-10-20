@@ -982,4 +982,28 @@
     <string name="word_pin">Pin</string>
     <string name="word_unpin">Unpin\n</string>
     <string name="success_playlist_deleted">Deleted %s</string>
+
+    <!-- Adaptive layout for directly installed car radios and wide windows. -->
+    <string tools:ignore="MissingTranslation" name="app_layout_mode">Display layout</string>
+    <string tools:ignore="MissingTranslation" name="app_layout_mode_description">Automatic uses the available window size. Choose Car radio for a larger touch interface, including radios with unusual display density. Changes apply immediately.</string>
+    <string tools:ignore="MissingTranslation" name="layout_mode_automatic">Automatic</string>
+    <string tools:ignore="MissingTranslation" name="layout_mode_phone">Phone</string>
+    <string tools:ignore="MissingTranslation" name="layout_mode_car_radio">Car radio</string>
+    <string tools:ignore="MissingTranslation" name="radio_minimize_player">Minimize player</string>
+    <string tools:ignore="MissingTranslation" name="radio_previous">Previous track</string>
+    <string tools:ignore="MissingTranslation" name="radio_next">Next track</string>
+    <string tools:ignore="MissingTranslation" name="radio_play">Play</string>
+    <string tools:ignore="MissingTranslation" name="radio_pause">Pause</string>
+    <string tools:ignore="MissingTranslation" name="radio_queue">Queue</string>
+    <string tools:ignore="MissingTranslation" name="radio_more">Track options</string>
+    <string tools:ignore="MissingTranslation" name="radio_cover">Album cover</string>
+    <string tools:ignore="MissingTranslation" name="radio_seek">Playback position</string>
+    <string tools:ignore="MissingTranslation" name="radio_repeat_off">Repeat off</string>
+    <string tools:ignore="MissingTranslation" name="radio_repeat_one">Repeat one track</string>
+    <string tools:ignore="MissingTranslation" name="radio_repeat_all">Repeat queue</string>
+    <string tools:ignore="MissingTranslation" name="radio_back">Back</string>
+    <string tools:ignore="MissingTranslation" name="radio_loading">Loading…</string>
+    <string tools:ignore="MissingTranslation" name="radio_playback_error">Playback failed. Tap Play to try again.</string>
+    <string tools:ignore="MissingTranslation" name="radio_search">Search</string>
+    <string tools:ignore="MissingTranslation" name="radio_app_menu">App menu</string>
 </resources>

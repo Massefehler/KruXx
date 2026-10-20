@@ -8,6 +8,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
@@ -28,6 +29,7 @@ class Locator private constructor(
     private val player: StatefulPlayer,
     private val scrollableState: ScrollableState,
     private val offset: Int,
+    private val itemsPerRow: () -> Int,
     private val getSongs: () -> List<Song>
 ): MenuIcon, DynamicColor, Descriptive {
 
@@ -37,9 +39,11 @@ class Locator private constructor(
             scrollableState: ScrollableState,
             getSongs: () -> List<Song>,
             offset: Int = 0,
-            player: StatefulPlayer = koinInject()
+            player: StatefulPlayer = koinInject(),
+            itemsPerRow: Int = 1
         ): Locator {
             val mediaItem = player.currentMediaItem
+            val columns = rememberUpdatedState(itemsPerRow.coerceAtLeast(1))
 
             return Locator(
                 firstColorState = remember( mediaItem ) {
@@ -48,6 +52,7 @@ class Locator private constructor(
                 player = player,
                 scrollableState = scrollableState,
                 offset = offset,
+                itemsPerRow = { columns.value },
                 getSongs = getSongs
             )
         }
@@ -80,7 +85,7 @@ class Locator private constructor(
             else
                 runBlocking {
                     when( scrollableState ) {
-                        is LazyListState -> scrollableState.scrollToItem( position )
+                        is LazyListState -> scrollableState.scrollToItem( position / itemsPerRow() )
                         is LazyGridState -> scrollableState.scrollToItem( position )
                     }
                 }

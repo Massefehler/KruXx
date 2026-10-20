@@ -38,6 +38,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
@@ -114,9 +116,10 @@ fun HomeArtists(
         Sort(menuState, Preferences.HOME_ARTISTS_SORT_BY, Preferences.HOME_ARTISTS_SORT_ORDER)
     }
     val itemSize = remember { ItemSize(Preferences.HOME_ARTIST_ITEM_SIZE, menuState) }
-    val sizeDp by remember {derivedStateOf {
-        DpSize(itemSize.size.dp, itemSize.size.dp)
-    }}
+    val radio = LocalAdaptiveLayout.current.isCarRadio
+    val fontScale = LocalDensity.current.fontScale
+    val tileSize = if (radio) maxOf(itemSize.size.dp, (160 * fontScale).dp) else itemSize.size.dp
+    val sizeDp = DpSize(tileSize, tileSize)
 
     val randomizer = object: Randomizer<Artist> {
         override fun getItems(): List<Artist> = itemsOnDisplay
@@ -164,7 +167,7 @@ fun HomeArtists(
                 .background(kruxxContentColor(colorPalette().background0))
                 .fillMaxHeight()
                 .fillMaxWidth(
-                    if( NavigationBarPosition.Right.isCurrent() )
+                    if( !radio && NavigationBarPosition.Right.isCurrent() )
                         Dimensions.contentWidthRightBar
                     else
                         1f
@@ -237,12 +240,12 @@ fun HomeArtists(
 
                 LazyVerticalGrid(
                     state = lazyGridState,
-                    columns = GridCells.Adaptive( itemSize.size.dp ),
+                    columns = GridCells.Adaptive( tileSize ),
                     modifier = Modifier.background(
                         kruxxContentColor(colorPalette().background0)
                     )
                                        .fillMaxSize(),
-                    contentPadding = PaddingValues( bottom = Dimensions.bottomSpacer ),
+                    contentPadding = PaddingValues( bottom = if (radio) 12.dp else Dimensions.bottomSpacer ),
                     verticalArrangement = Arrangement.spacedBy( ArtistItem.ROW_SPACING.dp )
                 ) {
                     items(

@@ -83,6 +83,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.palette.graphics.Palette
 import app.kreate.android.BuildConfig
 import app.kreate.android.LocalBottomMenu
+import it.fast4x.rimusic.ui.styling.forCarRadio
+import app.kreate.android.ui.adaptive.AdaptiveLayout
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.coil3.ImageFactory
@@ -664,6 +667,24 @@ MainActivity :
                 val windowsInsets = WindowInsets.systemBars
                 val bottomDp = with(density) { windowsInsets.getBottom(density).toDp() }
 
+                val layoutMode by Preferences.APP_LAYOUT_MODE
+                val adaptiveLayout = AdaptiveLayout.resolve(
+                    if (BuildConfig.INDEPENDENT_FORK) layoutMode else app.kreate.android.enums.AppLayoutMode.Phone,
+                    with(density) {
+                        (constraints.maxWidth - windowsInsets.getLeft(density, LayoutDirection.Ltr) -
+                            windowsInsets.getRight(density, LayoutDirection.Ltr)).toDp().value
+                    },
+                    with(density) {
+                        (constraints.maxHeight - windowsInsets.getTop(density) -
+                            windowsInsets.getBottom(density)).toDp().value
+                    },
+                )
+
+                val adaptiveAppearance = remember(appearance, adaptiveLayout.isCarRadio) {
+                    if (adaptiveLayout.isCarRadio) appearance.copy(typography = appearance.typography.forCarRadio())
+                    else appearance
+                }
+
                 val playerSheetState = rememberPlayerSheetState(
                     dismissedBound = 0.dp,
                     collapsedBound = Dimensions.collapsedPlayer + bottomDp,
@@ -723,7 +744,8 @@ MainActivity :
 
                         // FIXME: Why is this block getting called twice on start?
                         CompositionLocalProvider(
-                            LocalAppearance provides appearance,
+                            LocalAdaptiveLayout provides adaptiveLayout,
+                            LocalAppearance provides adaptiveAppearance,
                             LocalIndication provides ripple(bounded = true),
                             LocalRippleConfiguration provides rippleConfiguration,
                             LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
@@ -858,7 +880,8 @@ MainActivity :
                                         ) {}
                                     },
                                     shape = thumbnailRoundness.shape,
-                                    glassSurfaceEnabled = false
+                                    glassSurfaceEnabled = false,
+                                    sheetMaxWidth = if (adaptiveLayout.isCarRadio) androidx.compose.ui.unit.Dp.Unspecified else androidx.compose.material3.BottomSheetDefaults.SheetMaxWidth
                                 ) {
                                     Player( navController ) { showPlayer = false }
                                 }

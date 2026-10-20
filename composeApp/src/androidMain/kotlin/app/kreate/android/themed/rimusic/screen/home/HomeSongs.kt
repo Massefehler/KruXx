@@ -2,6 +2,10 @@ package app.kreate.android.themed.rimusic.screen.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +30,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastMap
 import androidx.media3.common.util.UnstableApi
@@ -98,6 +104,7 @@ fun HomeSongs(
     buttons: MutableList<Button>,
     itemsOnDisplay: MutableList<Song>,
     getSongs: () -> List<Song>,
+    columns: Int = 1,
     menu: BottomMenu = LocalBottomMenu.current
 ) {
     // Essentials
@@ -240,111 +247,129 @@ fun HomeSongs(
     //</editor-fold>
 
     val currentMediaItem by player.currentMediaItemState.collectAsState()
-    val songItemValues = remember( colorPalette, typography ) {
-        SongItem.Values.from( colorPalette, typography )
+    val radio = LocalAdaptiveLayout.current.isCarRadio
+    val songItemValues = remember<SongItem.Values>( colorPalette, typography, radio ) {
+        SongItem.Values.from( colorPalette, typography ).let { values ->
+            if (radio) values.copy(
+                titleTextStyle = values.titleTextStyle.copy(fontSize = 18.sp),
+                artistsTextStyle = values.artistsTextStyle.copy(fontSize = 16.sp),
+                durationTextStyle = values.durationTextStyle.copy(fontSize = 14.sp),
+            ) else values
+        }
     }
+
+    val rows = remember<List<List<Song>>>(itemsOnDisplay.toList(), columns) { itemsOnDisplay.chunked(columns) }
 
     LazyColumn(
         state = lazyListState,
         userScrollEnabled = !isLoading,
-        contentPadding = PaddingValues( bottom = Dimensions.bottomSpacer )
+        contentPadding = PaddingValues( bottom = if (radio) 12.dp else Dimensions.bottomSpacer )
     ) {
         if( isLoading )
             items( 20, null ) { SongItem.Placeholder() }
 
         itemsIndexed(
-            items = itemsOnDisplay,
-            key = { _, song -> song.id }
-        ) { index, song ->
-            val mediaItem = song.asMediaItem
+            items = rows,
+            key = { _, songs -> songs.first().id }
+        ) { rowIndex, songs ->
+            Row(Modifier.fillMaxWidth()) {
+                songs.forEachIndexed { column, song ->
+                    val index = rowIndex * columns + column
+                    Box(Modifier.weight(1f)) {
+                        val mediaItem = song.asMediaItem
 
-            val isLocal by remember { derivedStateOf { mediaItem.isLocal } }
-            val isDownloaded = isLocal || isDownloadedSong( mediaItem.mediaId )
+                        val isLocal by remember { derivedStateOf { mediaItem.isLocal } }
+                        val isDownloaded = isLocal || isDownloadedSong( mediaItem.mediaId )
 
-            SwipeablePlaylistItem(
-                mediaItem = mediaItem,
-                onPlayNext = { player.addNext( mediaItem ) },
-                onDownload = {
-                    if( builtInPlaylist != BuiltInPlaylist.OnDevice ) {
-                        cache.removeResource(mediaItem.mediaId)
-                        Database.asyncTransaction {
-                            formatTable.updateContentLengthOf( mediaItem.mediaId )
-                        }
-                        if ( !isLocal )
-                            manageDownload(
-                                context = context,
-                                mediaItem = mediaItem,
-                                downloadState = isDownloaded
-                            )
-                    }
-                },
-                onEnqueue = {
-                    player.enqueue(mediaItem)
-                }
-            ) {
-                SongItem.Render(
-                    song = song,
-                    hapticFeedback = hapticFeedback,
-                    isPlaying = song.shallowCompare( currentMediaItem ),
-                    values = songItemValues,
-                    itemSelector = itemSelector,
-                    modifier = Modifier.animateItem()
-                                       .kruxxTrackCard(),
-                    thumbnailOverlay = {
-                        if ( songSort.sortBy == SongSortBy.TOTAL_PLAY_TIME || builtInPlaylist == BuiltInPlaylist.Top ) {
-                            var text = song.formattedTotalPlayTime
-                            var typography = typography().xxs
-                            var alignment = Alignment.BottomCenter
-
-                            if( builtInPlaylist == BuiltInPlaylist.Top ) {
-                                text = (index + 1).toString()
-                                typography = typography().m
-                                alignment = Alignment.Center
+                        SwipeablePlaylistItem(
+                            mediaItem = mediaItem,
+                            onPlayNext = { player.addNext( mediaItem ) },
+                            onDownload = {
+                                if( builtInPlaylist != BuiltInPlaylist.OnDevice ) {
+                                    cache.removeResource(mediaItem.mediaId)
+                                    Database.asyncTransaction {
+                                        formatTable.updateContentLengthOf( mediaItem.mediaId )
+                                    }
+                                    if ( !isLocal )
+                                        manageDownload(
+                                            context = context,
+                                            mediaItem = mediaItem,
+                                            downloadState = isDownloaded
+                                        )
+                                }
+                            },
+                            onEnqueue = {
+                                player.enqueue(mediaItem)
                             }
+                        ) {
+                            SongItem.Render(
+                                song = song,
+                                hapticFeedback = hapticFeedback,
+                                isPlaying = song.shallowCompare( currentMediaItem ),
+                                values = songItemValues,
+                                itemSelector = itemSelector,
+                                modifier = Modifier.animateItem()
+                                                   .heightIn(min = if (radio) 80.dp else 0.dp)
+                                                   .kruxxTrackCard(),
+                                thumbnailOverlay = {
+                                    if ( songSort.sortBy == SongSortBy.TOTAL_PLAY_TIME || builtInPlaylist == BuiltInPlaylist.Top ) {
+                                        var text = song.formattedTotalPlayTime
+                                        var typography = typography().xxs
+                                        var alignment = Alignment.BottomCenter
 
-                            BasicText(
-                                text = text,
-                                style = typography.semiBold.center.color(colorPalette().onOverlay),
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                                    .align(alignment)
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                colorPalette().overlay
-                                            )
-                                        ),
-                                        shape = thumbnailShape()
-                                    )
+                                        if( builtInPlaylist == BuiltInPlaylist.Top ) {
+                                            text = (index + 1).toString()
+                                            typography = typography().m
+                                            alignment = Alignment.Center
+                                        }
+
+                                        BasicText(
+                                            text = text,
+                                            style = typography.semiBold.center.color(colorPalette().onOverlay),
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                                .align(alignment)
+                                                .background(
+                                                    brush = Brush.verticalGradient(
+                                                        colors = listOf(
+                                                            Color.Transparent,
+                                                            colorPalette().overlay
+                                                        )
+                                                    ),
+                                                    shape = thumbnailShape()
+                                                )
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    search.hideIfEmpty()
+
+                                    player.stopRadio()
+
+                                    val selectedSongs = getSongs()
+                                    if( song in selectedSongs )
+                                        player.forcePlayAtIndex(
+                                            selectedSongs.fastMap( Song::asMediaItem ),
+                                            selectedSongs.indexOf( song )
+                                        )
+                                    else
+                                        player.forcePlayAtIndex(
+                                            itemsOnDisplay.fastMap( Song::asMediaItem ),
+                                            index
+                                        )
+                                },
+                                onLongClick = {
+                                    val page = if( song.isLocal ) MenuPage.LocalSong(mediaItem) else MenuPage.Song(mediaItem)
+                                    menu.show( page, true )
+                                }
                             )
                         }
-                    },
-                    onClick = {
-                        search.hideIfEmpty()
-
-                        player.stopRadio()
-
-                        val selectedSongs = getSongs()
-                        if( song in selectedSongs )
-                            player.forcePlayAtIndex(
-                                selectedSongs.fastMap( Song::asMediaItem ),
-                                selectedSongs.indexOf( song )
-                            )
-                        else
-                            player.forcePlayAtIndex(
-                                itemsOnDisplay.fastMap( Song::asMediaItem ),
-                                index
-                            )
-                    },
-                    onLongClick = {
-                        val page = if( song.isLocal ) MenuPage.LocalSong(mediaItem) else MenuPage.Song(mediaItem)
-                        menu.show( page, true )
                     }
-                )
+                }
+                repeat(columns - songs.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }

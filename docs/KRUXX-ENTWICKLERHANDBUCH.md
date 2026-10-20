@@ -1,6 +1,6 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 07.10.2026 · KruXx `1.2.4` veröffentlicht ·
+Stand: 20.10.2026 · KruXx `1.2.4` veröffentlicht, lokal `1.2.6` ·
 historische Basis: Kreate `main` @ `f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
@@ -68,6 +68,45 @@ unter <https://github.com/Massefehler/KruXx>. Drei zentrale Unterschiede zum Ori
    eigenes Icon. Installiert sich neben der offiziellen Kreate.
 3. **Eigene Release-Linie und eigener Updater**: SemVer ab `1.0.0`; ausschließlich Releases aus
    `Massefehler/KruXx`, deren Hash, Paket-ID, Versionscode und Signatur vor der Installation geprüft werden.
+
+---
+
+## Native Autoradio-Oberfläche (lokal 1.2.6)
+
+`Preferences.APP_LAYOUT_MODE` speichert `Automatic`, `Phone` oder `CarRadio`. Die MainActivity
+ermittelt aus ihren tatsächlichen Compose-Constraints und Systemleisten die freie Fenstergröße
+in dp. `AdaptiveLayout.resolve()` hält die reine Auswahlregel testbar: automatisch nur im
+Querformat ab 840 dp Breite und 320 dp Höhe; manuell ab 600 dp Querformatbreite mit zwei Player-
+Spalten und seitlicher Navigation. Kleinere erzwungene Radiofenster stapeln den Player.
+Pixelauflösung und gemeldete physische Displaygröße allein identifizieren kein Autoradio.
+Die Einstellung und Aktivierung sind auf `BuildConfig.INDEPENDENT_FORK` begrenzt.
+
+`LocalAdaptiveLayout` verteilt die Entscheidung. `Skeleton` wählt den `RadioScaffold`, der die
+vorhandenen Reiter und Navigationscallbacks verwendet. Die Wortmarke verwendet weiterhin
+`HomeNavigation.goHome()`, das App-Menü denselben `HamburgerMenu`. Die Auswahl verändert keine
+Handy-Präferenzen. Die Appearance-Kopie erhöht die Leseschrift, erhält aber Schriftfamilie und
+Farben. Album-/Künstler-/Playlist-Raster berücksichtigen Schriftfaktor und Mindestkachelbreite;
+`radioSongColumns()` begrenzt Titellisten auf ein bis drei Spalten. `Locator` erhält deren Zahl
+über `rememberUpdatedState`, damit auch gespeicherte Toolbar-Buttons nach Größenwechseln die
+richtige Zeile finden. Gerätetitel bleiben im bestehenden Browser.
+
+`Player` delegiert im Radio-Modus an `CarRadioPlayer`. Der verwendet denselben `StatefulPlayer`,
+aktuelle Service-Metadaten, Player-Events, Position, Transporthelfer, Queue und Titelmenü.
+Wiederholung und Shuffle werden mit `QUEUE_LOOP_TYPE` synchronisiert. Vordergrund-Cover nutzt
+`ContentScale.Fit`; der Hintergrund bleibt unabhängig davon groß und unscharf. Unter API 31
+übernimmt die vorhandene Coil-`BlurTransformation` die Bitmap-Unschärfe. Kurze Fenster und große
+Schrift reduzieren Zusatztext; Metadaten sind scrollbar. `CustomModalBottomSheet.sheetMaxWidth`
+hebt für den Radio-Player die Material-Breitenbegrenzung auf und lässt dessen Queue die volle
+Breite verwenden. Radio-Sheets berücksichtigen auch im Querformat die Navigationsleiste.
+
+Gezielter Test: `:composeApp:testKruxxUniversalProdDebugUnitTest` enthält acht zusätzliche
+`AdaptiveLayoutTest`-Fälle für beide Radioformate, Handy-Hoch-/Querformat, Resize-Grenzen,
+manuelle Auswahl, nicht gemessene Fenster und Spalten bei größerer Schrift. Praktisch unter
+Android 11 mit 1280 × 720 und 1024 × 600, Dichte 160 und 240, Schriftfaktor 1,0 und 1,5 prüfen;
+bei 240 dpi die manuelle Auswahl verwenden. Außerdem Handy-Modus, Hell-/Dunkelmodus, Neustart,
+Queue, Wiederholung, Zufall, Titelwechsel, Spulen und unveränderte Kontodaten prüfen. Die konkrete
+Prüftiefe und Grenzen sind im [IST-Stand](KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026)
+festgehalten; ein Emulator ersetzt die Geräteabnahme am direkt installierten Autoradio nicht.
 
 ---
 

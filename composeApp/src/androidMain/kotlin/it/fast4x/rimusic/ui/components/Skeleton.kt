@@ -27,6 +27,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
+import app.kreate.android.ui.adaptive.RadioScaffold
 import app.kreate.android.Preferences
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.NavigationBarPosition
@@ -53,6 +55,11 @@ fun Skeleton(
     onNavigationTabChanged: (Int) -> Unit = onTabChanged,
     content: @Composable AnimatedVisibilityScope.(Int) -> Unit
 ) {
+    if (LocalAdaptiveLayout.current.useSideNavigation) {
+        RadioScaffold(navController, tabIndex, navigationTabIndex,
+            onNavigationTabChanged, miniPlayer, navBarContent, content)
+        return
+    }
     val navigationBar: AbstractNavigationBar =
         when( NavigationBarPosition.current() ) {
             NavigationBarPosition.Left, NavigationBarPosition.Right ->

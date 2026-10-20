@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Wiedergabe-Patch `1.2.5` auf dem Samsung geprüft
+Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Autoradio-Build `1.2.6` in Prüfung
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,7 +13,8 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) |
 | Öffentlicher Android-Versionscode | `1_000_008` |
-| Lokal installierter und geprüfter Build | `1.2.5` / `1_000_009`, noch nicht veröffentlicht |
+| Lokaler Entwicklungsstand | `1.2.6` / `1_000_010`, Autoradio-Layout; noch nicht veröffentlicht |
+| Zuletzt auf dem Samsung geprüft | `1.2.5` / `1_000_009`, HTTPS-Wiedergabe-Patch |
 | Schwerpunkt von 1.2.4 | Stream-Auflösung bei abgelehnter gespeicherter Kontositzung, deutsche und englische Versionshinweise |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
@@ -28,6 +29,48 @@ KruXx ist ein eigenständiger Fork. Es gibt keine automatische Übernahme neuer 
 keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, Metrolist und weitere
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
+
+### Lokaler Autoradio-Build 1.2.6 vom 20.10.2026
+
+Vom Nutzer beauftragt für ein Autoradio mit direkt installierter App, Android 11 und typischerweise
+1280 × 720 beziehungsweise 1024 × 600 Pixeln. Das ist die native App-Oberfläche auf dem Radio;
+die separate Android-Auto-Schnittstelle wird dafür nicht geändert.
+
+- **Einstellungen → Benutzeroberfläche → Bildschirm-Layout** bietet `Automatisch` (Vorgabe),
+  `Handy` und `Autoradio`. Die Auswahl wirkt sofort, bleibt nach einem Neustart erhalten und
+  überschreibt keine vorhandenen Navigations-, Cover- oder Schriftpräferenzen.
+- Entscheidend ist die nutzbare Fenstergröße in **dp** nach Abzug der Systemleisten. Automatisch
+  wird im Querformat ab 840 dp Breite und mindestens 320 dp Höhe umgeschaltet. Geräte mit
+  ungewöhnlicher Hersteller-Dichte können manuell auf `Autoradio` gestellt werden. Ein schmales
+  oder hochkant gehaltenes Fenster stapelt im erzwungenen Radio-Modus Cover und Steuerung.
+  Eine zuverlässige Erkennung von exakt 10,1 Zoll oder eines bestimmten Radiomodells erfolgt nicht.
+- Ab 600 dp Querformatbreite: seitliche, scrollbar beschriftete Navigation, eigener oberer
+  Bereich für Startseite, Zurück, Suche, Einstellungen und bestehendes App-Menü; der Mini-Player
+  erhält eigenen Platz. Der große Player zeigt links das vollständige Cover (`Fit`) und rechts
+  große Transporttasten, Zeitleiste, Zufall, Wiederholung, Warteschlange und Titelmenü.
+- Der Player-Hintergrund verwendet das vergrößerte Cover mit echter Unschärfe: Bitmap-Transformation
+  unter Android 7–11, Compose-Blur ab Android 12. Bei wenig Höhe oder großer Schrift entfällt
+  die zusätzliche Albumzeile; Titelinformationen sind vertikal scrollbar. Systemleisten bleiben frei.
+- Größere gemeinsame Typografie, adaptive Album-/Künstler-/Playlist-Kacheln und ein bis drei
+  Titelspalten nach Inhaltsbreite und Schriftfaktor. Die Positionssuche rechnet Titelindizes in
+  Rasterzeilen um; Wiedergabereihenfolge, Auswahl und Titelaktionen verwenden weiter die Songliste.
+  Gerätetitel behalten ihren vorhandenen Einspalten-Browser. Der Handy-Modus verwendet die bisherige UI.
+- Die neue Darstellung und ihre Einstellung sind auf `BuildConfig.INDEPENDENT_FORK` begrenzt.
+  Wiedergabedienst, Datenmodell, Downloads und Android Auto verwenden die bestehenden Wege.
+  Der HTTPS-Fix aus `1.2.5` ist enthalten. Es wurde kein Release veröffentlicht oder hochgeladen.
+- Debug-Sichtprüfung im frischen Android-11-/API-30-Emulator: 1280 × 720 und 1024 × 600 bei 160 dpi,
+  1024 × 600 bei 240 dpi mit manuellem Radio-Modus; 1024 × 600 zusätzlich mit 150 % Systemschrift.
+  Vollständiges Cover, echte Hintergrundunschärfe und erreichbare Player-Tasten sind sichtbar.
+  „Voice of Rebellion“ von Pro-Pain spielt; Suche, Navigation, Pause und Warteschlange sind geprüft.
+  Hellmodus und erzwungener Handy-Modus auf dem breiten Fenster sind ebenfalls geprüft.
+- **182 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder übersprungene Tests;
+  Metrolist meldet keine Testquellen. Vollständiger Release-Lint erfolgreich: 67 bestehende
+  Warnungen und zwei Baseline-Hinweise, Baseline unverändert. Die neuen 22 UI-Texte sind auf
+  Deutsch und Englisch vorhanden; andere Sprachen verwenden Englisch als Rückfall.
+  Abschließende signierte Release- und Artefaktnachweise werden nach dem Build ergänzt.
+- Das physische Autoradio ist nicht angeschlossen. Dessen tatsächliche Dichte, Herstellerleisten,
+  Hardwaretasten, Audioausgabe und Leistung müssen am Radio nachgeprüft werden. Der Autoradio-Test
+  ersetzt keine Android-Auto-Abnahme im Fahrzeug; die übrigen offenen Gerätefälle bleiben bestehen.
 
 ### Lokaler HTTPS-Wiedergabe-Patch 1.2.5 vom 20.10.2026
 

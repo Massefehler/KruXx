@@ -21,6 +21,14 @@ second phone still needs investigation. Android Auto in a real vehicle, physical
 providers and the broader interaction matrix still require testing. The dedicated podcast
 section remains a separate future feature.
 
+The local, unpublished **1.2.6** build adds an adaptive interface for Android car radios running
+KruXx directly: side navigation, larger controls, adaptive library grids and a full cover beside
+the playback controls over a blurred cover background, including Android 11. Select
+**Settings → User interface → Display layout → Automatic / Phone / Car radio**. Automatic uses
+available window space in dp; the manual option accommodates unusual radio display densities.
+The HTTPS playback fix from local 1.2.5 is included. Build verification and device limits are in
+the [status report](docs/KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026).
+
 **KruXx 1.2.0 and later require Android 7.0 (API 24) or newer.** Android 6 support has ended;
 1.1.0 is the last published version compatible with it. Existing Android 6 installations can
 remain on 1.1.0, but cannot install 1.2.0 or receive further supported KruXx updates.

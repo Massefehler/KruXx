@@ -5,6 +5,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
+import app.kreate.android.ui.adaptive.radioSongColumns
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -75,177 +79,182 @@ fun HomeSongsScreen(
     cache: Cache = koinInject(CacheType.CACHE),
     player: StatefulPlayer = koinInject()
 ) {
-    // Essentials
-    val lazyListState = rememberLazyListState()
-    val context = LocalContext.current
-    val menuState = LocalMenuState.current
+    // The list and its locator share the same column count after resizing.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        // Essentials
+        val lazyListState = rememberLazyListState()
+        val context = LocalContext.current
+        val menuState = LocalMenuState.current
 
-    var builtInPlaylist by Preferences.HOME_SONGS_TYPE
+        var builtInPlaylist by Preferences.HOME_SONGS_TYPE
+        val songColumns = if (LocalAdaptiveLayout.current.isCarRadio && builtInPlaylist != BuiltInPlaylist.OnDevice)
+            radioSongColumns(maxWidth.value, LocalDensity.current.fontScale) else 1
 
-    val itemsOnDisplayState = remember { mutableStateListOf<Song>() }
+        val itemsOnDisplayState = remember { mutableStateListOf<Song>() }
 
-    val itemSelector = remember {
-        ItemSelector( menuState ) { addAll( itemsOnDisplayState ) }
-    }
-    fun getSongs() = itemSelector.ifEmpty { itemsOnDisplayState }.toList()
-    fun getMediaItems() = getSongs().map( Song::asMediaItem )
+        val itemSelector = remember {
+            ItemSelector( menuState ) { addAll( itemsOnDisplayState ) }
+        }
+        fun getSongs() = itemSelector.ifEmpty { itemsOnDisplayState }.toList()
+        fun getMediaItems() = getSongs().map( Song::asMediaItem )
 
-    val search = remember { Search(lazyListState) }
-    val locator = Locator( lazyListState, ::getSongs )
-    val import = ImportSongsFromCSV()
-    val shuffle = SongShuffler(::getSongs)
-    val playNext = PlayNext {
-        player.addNext( getMediaItems(), context )
+        val search = remember { Search(lazyListState) }
+        val locator = Locator( lazyListState, ::getSongs, itemsPerRow = songColumns )
+        val import = ImportSongsFromCSV()
+        val shuffle = SongShuffler(::getSongs)
+        val playNext = PlayNext {
+            player.addNext( getMediaItems(), context )
 
-        // Turn of selector clears the selected list
-        itemSelector.isActive = false
-    }
-    val enqueue = Enqueue {
-        player.enqueue( getMediaItems(), context )
-
-        // Turn of selector clears the selected list
-        itemSelector.isActive = false
-    }
-    val addToFavorite = LikeComponent(::getSongs)
-    val addToPlaylist = PlaylistsMenu.init(
-        navController = navController,
-        mediaItems = { _ -> getMediaItems() },
-        onFailure = { throwable, preview ->
-            Logger.e { "Failed to add songs to playlist ${preview.playlist.name} on HomeSongsScreen" }
-            throwable.printStackTrace()
-        },
-        finalAction = {
             // Turn of selector clears the selected list
             itemSelector.isActive = false
         }
-    )
-    val resetCache = ResetCache( ::getSongs )
+        val enqueue = Enqueue {
+            player.enqueue( getMediaItems(), context )
 
-    val buttons = remember( builtInPlaylist ) {
-        // Disable checkboxes when category has changed
-        itemSelector.isActive = false
-
-        mutableStateListOf<Button>() .apply {
-            this.add( search )
-            this.add( locator )
-            this.add( shuffle )
-            this.add( itemSelector )
-            this.add( playNext )
-            this.add( enqueue )
-            this.add( addToFavorite )
-            this.add( addToPlaylist )
-            this.add( import )
-            if( builtInPlaylist != BuiltInPlaylist.OnDevice )
-                this.add( resetCache )
+            // Turn of selector clears the selected list
+            itemSelector.isActive = false
         }
-    }
-
-    Box(
-        modifier = Modifier.background(
-            kruxxContentColor(colorPalette().background0)
+        val addToFavorite = LikeComponent(::getSongs)
+        val addToPlaylist = PlaylistsMenu.init(
+            navController = navController,
+            mediaItems = { _ -> getMediaItems() },
+            onFailure = { throwable, preview ->
+                Logger.e { "Failed to add songs to playlist ${preview.playlist.name} on HomeSongsScreen" }
+                throwable.printStackTrace()
+            },
+            finalAction = {
+                // Turn of selector clears the selected list
+                itemSelector.isActive = false
+            }
         )
-            .fillMaxHeight()
-            .fillMaxWidth(
-                if (NavigationBarPosition.Right.isCurrent())
-                    Dimensions.contentWidthRightBar
-                else
-                    1f
-            )
-    ) {
-        Column( Modifier.fillMaxSize() ) {
-            // Sticky tab's title
-            TabHeader( R.string.songs ) {
-                HeaderInfo( itemsOnDisplayState.size.toString(), R.drawable.musical_notes )
-            }
+        val resetCache = ResetCache( ::getSongs )
 
-            // Sticky tab's tool bar
-            TabToolBar.Buttons( buttons )
+        val buttons = remember( builtInPlaylist ) {
+            // Disable checkboxes when category has changed
+            itemSelector.isActive = false
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = if (isKruxxGlassEnabled) 0.dp else 12.dp)
-                    .padding( bottom = 8.dp )
-                    .fillMaxWidth()
-            ) {
-                Column {
-                    //<editor-fold defaultstate="collapsed" desc="Chips">
-                    val showFavoritesPlaylist by Preferences.HOME_SONGS_SHOW_FAVORITES_CHIP
-                    val showCachedPlaylist by Preferences.HOME_SONGS_SHOW_CACHED_CHIP
-                    val showDownloadedPlaylist by Preferences.HOME_SONGS_SHOW_DOWNLOADED_CHIP
-                    val showMyTopPlaylist by Preferences.HOME_SONGS_SHOW_MOST_PLAYED_CHIP
-                    val showOnDevice by Preferences.HOME_SONGS_SHOW_ON_DEVICE_CHIP
-                    val chips = remember(showFavoritesPlaylist, showCachedPlaylist, showMyTopPlaylist, showDownloadedPlaylist, showOnDevice) {
-                        buildList {
-                            add( BuiltInPlaylist.All )
-                            if( showFavoritesPlaylist )
-                                add( BuiltInPlaylist.Favorites )
-                            if( showCachedPlaylist )
-                                add( BuiltInPlaylist.Offline )
-                            if( showDownloadedPlaylist )
-                                add( BuiltInPlaylist.Downloaded )
-                            if( showMyTopPlaylist )
-                                add( BuiltInPlaylist.Top )
-                            if( showOnDevice )
-                                add( BuiltInPlaylist.OnDevice )
-                        }
-                    }
-                    //</editor-fold>
-
-                    ButtonsRow(
-                        chips = chips,
-                        currentValue = builtInPlaylist,
-                        onValueUpdate = { builtInPlaylist = it }
-                    )
-
-                    when (builtInPlaylist) {
-                        BuiltInPlaylist.Downloaded, BuiltInPlaylist.Offline -> {
-                            val indicator = remember( builtInPlaylist, cache ) {
-                                val preference = if( builtInPlaylist === BuiltInPlaylist.Downloaded )
-                                    Preferences.EXO_DOWNLOAD_SIZE
-                                else
-                                    Preferences.EXO_CACHE_SIZE
-
-                                ExoCacheIndicator(preference, cache)
-                            }
-                            indicator.ProgressBar(
-                                Modifier.padding(
-                                            horizontal = SettingComponents.HORIZONTAL_PADDING.dp,
-                                            vertical = 12.dp
-                                        )
-                                        .fillMaxWidth()
-                            )
-                        }
-                        else -> {}
-                    }
-
-                }
-            }
-
-            // Sticky search bar
-            search.SearchBar()
-
-            when( builtInPlaylist ) {
-                BuiltInPlaylist.OnDevice -> OnDeviceSong( navController, lazyListState, itemSelector, search, buttons, itemsOnDisplayState, ::getSongs )
-                else                     -> HomeSongs( navController, builtInPlaylist, lazyListState, itemSelector, search, buttons, itemsOnDisplayState, ::getSongs )
+            mutableStateListOf<Button>() .apply {
+                this.add( search )
+                this.add( locator )
+                this.add( shuffle )
+                this.add( itemSelector )
+                this.add( playNext )
+                this.add( enqueue )
+                this.add( addToFavorite )
+                this.add( addToPlaylist )
+                this.add( import )
+                if( builtInPlaylist != BuiltInPlaylist.OnDevice )
+                    this.add( resetCache )
             }
         }
 
-        FloatingActionsContainerWithScrollToTop(lazyListState = lazyListState)
-
-        val showFloatingIcon by Preferences.SHOW_FLOATING_ICON
-        if( UiType.ViMusic.isCurrent() && showFloatingIcon )
-            MultiFloatingActionsContainer(
-                iconId = R.drawable.search,
-                onClick = {
-                    NavRoutes.search.navigateHere( navController )
-                },
-                onClickSettings = {
-                    NavRoutes.settings.navigateHere( navController )
-                },
-                onClickSearch = {
-                    NavRoutes.search.navigateHere( navController )
-                }
+        Box(
+            modifier = Modifier.background(
+                kruxxContentColor(colorPalette().background0)
             )
+                .fillMaxHeight()
+                .fillMaxWidth(
+                    if (!LocalAdaptiveLayout.current.useSideNavigation && NavigationBarPosition.Right.isCurrent())
+                        Dimensions.contentWidthRightBar
+                    else
+                        1f
+                )
+        ) {
+            Column( Modifier.fillMaxSize() ) {
+                // Sticky tab's title
+                TabHeader( R.string.songs ) {
+                    HeaderInfo( itemsOnDisplayState.size.toString(), R.drawable.musical_notes )
+                }
+
+                // Sticky tab's tool bar
+                TabToolBar.Buttons( buttons )
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = if (isKruxxGlassEnabled) 0.dp else 12.dp)
+                        .padding( bottom = 8.dp )
+                        .fillMaxWidth()
+                ) {
+                    Column {
+                        //<editor-fold defaultstate="collapsed" desc="Chips">
+                        val showFavoritesPlaylist by Preferences.HOME_SONGS_SHOW_FAVORITES_CHIP
+                        val showCachedPlaylist by Preferences.HOME_SONGS_SHOW_CACHED_CHIP
+                        val showDownloadedPlaylist by Preferences.HOME_SONGS_SHOW_DOWNLOADED_CHIP
+                        val showMyTopPlaylist by Preferences.HOME_SONGS_SHOW_MOST_PLAYED_CHIP
+                        val showOnDevice by Preferences.HOME_SONGS_SHOW_ON_DEVICE_CHIP
+                        val chips = remember(showFavoritesPlaylist, showCachedPlaylist, showMyTopPlaylist, showDownloadedPlaylist, showOnDevice) {
+                            buildList {
+                                add( BuiltInPlaylist.All )
+                                if( showFavoritesPlaylist )
+                                    add( BuiltInPlaylist.Favorites )
+                                if( showCachedPlaylist )
+                                    add( BuiltInPlaylist.Offline )
+                                if( showDownloadedPlaylist )
+                                    add( BuiltInPlaylist.Downloaded )
+                                if( showMyTopPlaylist )
+                                    add( BuiltInPlaylist.Top )
+                                if( showOnDevice )
+                                    add( BuiltInPlaylist.OnDevice )
+                            }
+                        }
+                        //</editor-fold>
+
+                        ButtonsRow(
+                            chips = chips,
+                            currentValue = builtInPlaylist,
+                            onValueUpdate = { builtInPlaylist = it }
+                        )
+
+                        when (builtInPlaylist) {
+                            BuiltInPlaylist.Downloaded, BuiltInPlaylist.Offline -> {
+                                val indicator = remember( builtInPlaylist, cache ) {
+                                    val preference = if( builtInPlaylist === BuiltInPlaylist.Downloaded )
+                                        Preferences.EXO_DOWNLOAD_SIZE
+                                    else
+                                        Preferences.EXO_CACHE_SIZE
+
+                                    ExoCacheIndicator(preference, cache)
+                                }
+                                indicator.ProgressBar(
+                                    Modifier.padding(
+                                                horizontal = SettingComponents.HORIZONTAL_PADDING.dp,
+                                                vertical = 12.dp
+                                            )
+                                            .fillMaxWidth()
+                                )
+                            }
+                            else -> {}
+                        }
+
+                    }
+                }
+
+                // Sticky search bar
+                search.SearchBar()
+
+                when( builtInPlaylist ) {
+                    BuiltInPlaylist.OnDevice -> OnDeviceSong( navController, lazyListState, itemSelector, search, buttons, itemsOnDisplayState, ::getSongs )
+                    else                     -> HomeSongs( navController, builtInPlaylist, lazyListState, itemSelector, search, buttons, itemsOnDisplayState, ::getSongs, columns = songColumns )
+                }
+            }
+
+            FloatingActionsContainerWithScrollToTop(lazyListState = lazyListState)
+
+            val showFloatingIcon by Preferences.SHOW_FLOATING_ICON
+            if( UiType.ViMusic.isCurrent() && showFloatingIcon )
+                MultiFloatingActionsContainer(
+                    iconId = R.drawable.search,
+                    onClick = {
+                        NavRoutes.search.navigateHere( navController )
+                    },
+                    onClickSettings = {
+                        NavRoutes.settings.navigateHere( navController )
+                    },
+                    onClickSearch = {
+                        NavRoutes.search.navigateHere( navController )
+                    }
+                )
+        }
     }
 }
