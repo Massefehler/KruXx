@@ -106,7 +106,8 @@ class PlaybackResolutionPolicyTest {
 
         assertFalse(mediaClient.interceptors.any { it is HttpLoggingInterceptor })
         assertFalse(mediaClient.networkInterceptors.any { it is HttpLoggingInterceptor })
-        assertEquals(listOf(functionalInterceptor), mediaClient.interceptors)
+        assertEquals(listOf(functionalInterceptor),
+            mediaClient.interceptors.filterNot { it is HttpsMediaRedirectInterceptor })
     }
 
     private fun streamFailure(

@@ -1,0 +1,9 @@
+Deutsch:
+- Behebt Wiedergabeabbrüche mit „CLEARTEXT communication“, wenn ein Musikstream auf eine HTTP-Adresse weiterleitet
+- Lädt Google-Video-Streams auch nach solchen Weiterleitungen verschlüsselt über HTTPS
+- Verhindert ständig wiederholte Fehlermeldungen in der großen Player-Ansicht
+
+English:
+- Fixes playback failures reporting “CLEARTEXT communication” when a music stream redirects to HTTP
+- Keeps Google Video streams encrypted over HTTPS across these redirects
+- Prevents continuously repeated error messages in the expanded player

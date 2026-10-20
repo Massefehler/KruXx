@@ -549,7 +549,7 @@ fun Scope.resolveInnertubeMedia( dataSpec: DataSpec ): DataSpec {
 fun Scope.resolveInnertubeDownload( dataSpec: DataSpec ): DataSpec {
     val songId = requireNotNull( dataSpec.key ) { "Online download doesn't contain cache key" }
     val initiallyResolvedStream = getPlayableStream( songId, StreamPurpose.DOWNLOAD )
-    val contentLength = getDownloadContentLength( get(), initiallyResolvedStream )
+    val contentLength = getDownloadContentLength( get<OkHttpClient>().forMediaTransport(), initiallyResolvedStream )
     val stream = if( initiallyResolvedStream.contentLength == contentLength )
         initiallyResolvedStream
     else

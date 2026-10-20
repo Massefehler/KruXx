@@ -105,6 +105,8 @@ compose-kmp-material3 = { group = "org.jetbrains.compose.material3", name = "mat
 compose-kmp-animation = { group = "org.jetbrains.compose.animation", name = "animation", version.ref = "compose-kmp" }
 
 # OkHttp
+okhttp3-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver3", version.ref = "okhttp3" }
+okhttp3-tls = { group = "com.squareup.okhttp3", name = "okhttp-tls", version.ref = "okhttp3" }
 okhttp3-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3" }
 okhttp3-dns-over-https = { group = "com.squareup.okhttp3", name = "okhttp-dnsoverhttps", version.ref = "okhttp3" }
 

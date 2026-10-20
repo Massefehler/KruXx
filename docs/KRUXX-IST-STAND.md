@@ -1,6 +1,6 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 07.10.2026 · KruXx `1.2.4` veröffentlicht
+Stand: 20.10.2026 · Öffentlich `1.2.4`, lokaler Wiedergabe-Patch `1.2.5` in Prüfung
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,6 +13,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.4`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.4) |
 | Öffentlicher Android-Versionscode | `1_000_008` |
+| Lokaler Build in Prüfung | `1.2.5` / `1_000_009`, noch nicht veröffentlicht |
 | Schwerpunkt von 1.2.4 | Stream-Auflösung bei abgelehnter gespeicherter Kontositzung, deutsche und englische Versionshinweise |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
@@ -27,6 +28,35 @@ KruXx ist ein eigenständiger Fork. Es gibt keine automatische Übernahme neuer 
 keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, Metrolist und weitere
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
+
+### Lokaler HTTPS-Wiedergabe-Patch 1.2.5 vom 20.10.2026
+
+Am angeschlossenen Samsung SM-S931B meldet die installierte `1.2.4` bei Pro-Pain,
+„Voice of Rebellion“, `CLEARTEXT communication … not permitted by network security policy`.
+Die aktuelle USB-Diagnose zeigt VISIONOS und M4A-Itag `140`. Ein separater anonymer Test
+mit InnerTubeX `v0.7.4` reproduziert den CDN-Response: Die HTTPS-Streamadresse antwortet mit
+HTTP `302` auf eine **HTTP**-Adresse unter `googlevideo.com`. Dieselbe Zieladresse liefert
+über **HTTPS** dagegen `206` und lesbare `audio/mp4`-Daten. Signierte URLs und Kontodaten
+werden weder hier noch in Testausgaben gespeichert.
+
+- `MediaTransport.kt` verhindert den automatischen Wechsel von HTTPS auf HTTP. Ausschließlich
+  Google-Video-Ziele werden stattdessen über HTTPS geladen, höchstens fünfmal pro Abruf.
+  Range, Client-Header und signierte Query bleiben erhalten; bei einem Wechsel des Zielservers
+  werden Authorization und Cookie entfernt. Die Android-Cleartext-Sperre bleibt unverändert.
+  Wiedergabe, Downloads und deren Längenprobe verwenden denselben Medientransport.
+- Der Fehlerzähler in `Thumbnail.kt` schrieb bei jeder Komposition erneut Compose-Zustand und
+  erzeugte dadurch fortlaufend Fehlermeldungen. `LaunchedEffect(error)` behandelt einen Fehler
+  jetzt einmal beim Auftreten.
+- Fünf neue Regressionstests mit einem lokalen TLS-Server prüfen HTTP-CDN-Weiterleitung,
+  ursprüngliche HTTP-CDN-Adresse, normale HTTPS-Weiterleitung, fremde/ähnliche Domains und
+  die Weiterleitungsgrenze. **174 App-Tests und 58 Innertube-Tests sind bestanden**, ohne
+  Fehler oder übersprungene Tests; Metrolist meldet keine Testquellen. Vollständiger Release-Lint
+  erfolgreich: 67 Warnungen zu verfügbaren Abhängigkeitsversionen und überflüssigen SDK-Prüfungen
+  sowie zwei Baseline-Hinweise, ohne Fehler oder Änderung der Baseline. Die zwei neuen reinen
+  Testabhängigkeiten verwenden dieselbe OkHttp-Version wie die App. Signierte Geräteprüfung
+  steht noch aus.
+- Der lokale Build erhält `1.2.5` / `1_000_009` und zweisprachige Versionshinweise.
+  Es wurde noch kein GitHub-Release veröffentlicht.
 
 ### Lokaler Wiedergabe-Patch 1.2.4 vom 07.10.2026
 

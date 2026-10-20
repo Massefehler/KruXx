@@ -146,7 +146,7 @@ Kreates Wiedergabe brach ab, Upstream-`main` ist seit 10.07.2026 eingefroren
 | `composeApp/proguard-rules.pro` | `-keep` für `com.metrolist.innertubex.**` und `com.dokar.quickjs.**` |
 | `com/metrolist/music/utils/InnerTubeXPlayer.kt` | **neu** – einziger Einstieg zur Stream-Auflösung (Spiegel von Metrolists gleichnamiger Datei, damit Diffs gegen Metrolist einfach bleiben) |
 | `app/kreate/di/InnertubeResolvingDataSource.kt`, `PlaybackResolutionPolicy.kt` | neu geschrieben: Cache mit Ablauf und 30-s-Sicherheitsabstand, CDN-Header, getestetes Fehler-Mapping – **ohne** Bounded-Range-Chunking (§4). Playback-URLs werden zusätzlich nach Qualitäts-/Netzrichtlinie getrennt; der Resolver übernimmt das Explicit-Flag des erzeugenden `MediaItem`, bevor ein paralleler Room-Upsert beendet sein muss. Das itag der gecachten Bytes liegt in den Cache-Metadaten (`kruxx_itag`); bei Formatwechsel wird der Byte-Cache per `CachedFormatMismatchException` verworfen |
-| `app/kreate/di/PlayerModule.kt`, `ErrorHandlingPolicy.kt` | CDN-User-Agent als Default-Header (`setDefaultRequestProperties`) statt `setUserAgent()`; die InnerTubeX-Header je Client (User-Agent/Referer/Origin) überschreiben ihn. Der CDN-Transport verwendet eine vom HTTP-Logger befreite Kopie des App-Clients, behält aber Proxy, DNS und funktionale Interzeptoren. Eine MediaSource-Hülle registriert den Explicit-Hint synchron vor der ersten Auflösung. HTTP 403/410/416 werden nicht gegen dieselbe signierte URL wiederholt, sondern sofort an die Recovery gemeldet |
+| `app/kreate/di/PlayerModule.kt`, `MediaTransport.kt`, `ErrorHandlingPolicy.kt` | CDN-User-Agent als Default-Header (`setDefaultRequestProperties`) statt `setUserAgent()`; die InnerTubeX-Header je Client (User-Agent/Referer/Origin) überschreiben ihn. Der CDN-Transport verwendet eine vom HTTP-Logger befreite Kopie des App-Clients, behält aber Proxy, DNS und funktionale Interzeptoren. Der lokale Patch `1.2.5` hält Google-Video-Weiterleitungen auf HTTPS, ohne Androids Cleartext-Sperre zu öffnen. Eine MediaSource-Hülle registriert den Explicit-Hint synchron vor der ersten Auflösung. HTTP 403/410/416 werden nicht gegen dieselbe signierte URL wiederholt, sondern sofort an die Recovery gemeldet |
 | `app/kreate/android/service/player/ExoPlayerListener.kt`, `StatefulPlayerImpl.kt` | `tryRecoverPlaybackError()` verwirft bei HTTP 403/410/416 die URL und löst neu auf; bei Parser-/Cache-Fehlern (`PARSING_CONTAINER_*`, `READ_POSITION_OUT_OF_RANGE`, `FILE_NOT_FOUND`, `CachedFormatMismatchException`) löscht es den Byte-Cache des Songs. Danach folgen `prepare()` und `seekTo()` an gleicher Position (max. 3×/Song, Budget wird bei Songwechsel zurückgesetzt). Ein Wechsel von Audioqualität oder Datensparrichtlinie invalidiert alle gespeicherten Playback-URLs; Download-URLs bleiben getrennt |
 | `com/metrolist/music/utils/potoken/*` | auf Metrolists aktuellen Stand gebracht (Renderer-Tod, Timeouts), Timber → Kermit, OkHttp via Koin |
 | `it/fast4x/rimusic/MainApplication.kt` | `InnerTubeXPlayer.initialize()` + Prewarm im Hintergrund |
@@ -441,6 +441,13 @@ Wichtige Konstanten/Stellen:
   bei Position null hängen. `forMediaTransport()` entfernt `HttpLoggingInterceptor` aus Application-
   und Network-Kette, behält aber Proxy, DNS und alle funktionalen Interzeptoren. Das gilt auch für
   Downloads und verhindert zusätzlich, dass signierte CDN-URLs im HTTP-Log landen.
+- **HTTP-CDN-Weiterleitungen (lokaler Patch `1.2.5`):** Google Video kann einen HTTPS-Stream
+  per `302` auf eine HTTP-Adresse unter `googlevideo.com` weiterleiten. `MediaTransport.kt`
+  schaltet automatische Protokollwechsel aus und folgt ausschließlich solchen CDN-Zielen über
+  HTTPS, höchstens fünfmal je Abruf. Range, Client-Header und signierte Query bleiben erhalten;
+  Authorization/Cookie werden beim Zielserverwechsel entfernt. Auch die Download-Längenprobe
+  verwendet diesen Transport. `network_security_config.xml` und `usesCleartextTraffic=false`
+  bleiben unverändert. Sichere Diagnosemeldungen enthalten nur den CDN-Host, keine signierte URL.
 - Qualität: `Preferences.AUDIO_QUALITY` (High/Low/Auto) → InnerTubeX `HIGH/LOW/AUTO`; bei Auto und
   getaktetem Netz + `IS_CONNECTION_METERED` → `LOW`. Genau diese atomar erfassten Eingaben werden sowohl
   zur Auflösung als auch für die URL-Cache-Identität verwendet.

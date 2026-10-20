@@ -33,7 +33,6 @@ import it.fast4x.rimusic.enums.ExoPlayerCacheLocation
 import me.knighthat.impl.DownloadHelperImpl
 import me.knighthat.innertube.UserAgents
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.Qualifier
 import org.koin.core.qualifier.QualifierValue
@@ -46,23 +45,6 @@ const val CHUNK_LENGTH = 512 * 1024L     // 512KB
 
 private const val CACHE_DIRNAME = "exo_cache"
 private const val DOWNLOAD_CACHE_DIRNAME = "exo_downloads"
-
-/**
- * The app-wide client uses BODY logging in debug builds. OkHttp's logging interceptor buffers a
- * response body completely before returning it to the caller; doing that to a throttled media
- * response makes ExoPlayer wait roughly a song's duration before it receives the first byte.
- *
- * Keep the shared client's proxy, DNS and all functional interceptors, but never attach an HTTP
- * logger to the long-lived playback/download transport. Signed CDN urls should not be logged
- * either.
- */
-internal fun OkHttpClient.forMediaTransport(): OkHttpClient =
-    newBuilder()
-        .apply {
-            interceptors().removeAll { it is HttpLoggingInterceptor }
-            networkInterceptors().removeAll { it is HttpLoggingInterceptor }
-        }
-        .build()
 
 private fun initCache( context: Context, size: Long, cacheDirName: String ): Cache {
     val cacheEvictor = when( size ) {
