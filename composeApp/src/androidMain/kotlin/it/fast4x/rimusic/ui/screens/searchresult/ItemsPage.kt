@@ -3,6 +3,7 @@ package it.fast4x.rimusic.ui.screens.searchresult
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +22,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import it.fast4x.compose.persist.persist
 import it.fast4x.innertube.Innertube
@@ -48,6 +51,9 @@ inline fun <T : Innertube.Item> ItemsPage(
     continuationPlaceholderCount: Int = 3,
     emptyItemsText: String = "No items found",
     noinline itemsPageProvider: (suspend (String?) -> Result<Innertube.ItemsPage<T>?>?)? = null,
+    /** Only the car radio layout sets more than one; rows then hold several items each. */
+    columns: Int = 1,
+    rowSpacing: Dp = 0.dp,
 ) {
     val updatedItemsPageProvider by rememberUpdatedState(itemsPageProvider)
 
@@ -97,11 +103,26 @@ inline fun <T : Innertube.Item> ItemsPage(
                 headerContent(null)
             }
 
-            items(
-                items = itemsPage?.items ?: emptyList(),
-                key = Innertube.Item::key,
-                itemContent = itemContent
-            )
+            if( columns <= 1 )
+                items(
+                    items = itemsPage?.items ?: emptyList(),
+                    key = Innertube.Item::key,
+                    itemContent = itemContent
+                )
+            else
+                items(
+                    items = (itemsPage?.items ?: emptyList()).chunked( columns ),
+                    key = { row -> row.first().key }
+                ) { row ->
+                    Row( Modifier.fillMaxWidth().padding( bottom = rowSpacing ) ) {
+                        row.forEach { item ->
+                            Box( Modifier.weight( 1f ), contentAlignment = Alignment.TopCenter ) {
+                                itemContent( item )
+                            }
+                        }
+                        repeat( columns - row.size ) { Spacer( Modifier.weight( 1f ) ) }
+                    }
+                }
 
             if (itemsPage != null && itemsPage?.items.isNullOrEmpty()) {
                 item(key = "empty") {

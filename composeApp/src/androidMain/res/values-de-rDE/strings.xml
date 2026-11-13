@@ -982,10 +982,12 @@
     <string name="success_playlist_deleted">Deleted %s</string>
 
     <string name="app_layout_mode">Bildschirm-Layout</string>
-    <string name="app_layout_mode_description">Automatisch nutzt die verfügbare Fenstergröße. Autoradio vergrößert die Bedienung auch bei ungewöhnlicher Displaydichte. Änderungen wirken sofort.</string>
+    <string name="app_layout_mode_description">Automatisch erkennt Autoradios; Handys behalten immer ihr Layout.</string>
     <string name="layout_mode_automatic">Automatisch</string>
     <string name="layout_mode_phone">Handy</string>
     <string name="layout_mode_car_radio">Autoradio</string>
+    <string name="car_radio_size">Größe der Autoradio-Ansicht</string>
+    <string name="car_radio_size_description" formatted="false">Skaliert Tasten, Cover und Schrift der Autoradio-Darstellung. 100 % richtet sich automatisch nach der Bildschirmgröße.</string>
     <string name="radio_minimize_player">Player minimieren</string>
     <string name="radio_previous">Vorheriger Titel</string>
     <string name="radio_next">Nächster Titel</string>
@@ -1003,4 +1005,5 @@
     <string name="radio_playback_error">Wiedergabe fehlgeschlagen. Zum erneuten Versuchen auf Abspielen tippen.</string>
     <string name="radio_search">Suche</string>
     <string name="radio_app_menu">App-Menü</string>
+    <string name="car_voice_nothing_found">KruXx hat nichts zum Abspielen gefunden. Bitte versuche es mit einer anderen Anfrage.</string>
 </resources>

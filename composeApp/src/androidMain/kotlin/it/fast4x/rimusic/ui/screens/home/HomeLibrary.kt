@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalDensity
 import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -132,9 +131,9 @@ fun HomeLibrary(
         Sort(menuState, Preferences.HOME_LIBRARY_SORT_BY, Preferences.HOME_LIBRARY_SORT_ORDER)
     }
     val itemSize = remember { ItemSize(Preferences.HOME_LIBRARY_ITEM_SIZE, menuState) }
-    val radio = LocalAdaptiveLayout.current.isCarRadio
-    val fontScale = LocalDensity.current.fontScale
-    val tileSize = if (radio) maxOf(itemSize.size.dp, (160 * fontScale).dp) else itemSize.size.dp
+    val adaptiveLayout = LocalAdaptiveLayout.current
+    val radio = adaptiveLayout.isCarRadio
+    val tileSize = if (radio) maxOf(itemSize.size.dp, adaptiveLayout.metrics.tileSize) else itemSize.size.dp
     val sizeDp = DpSize(tileSize, tileSize)
 
     //<editor-fold desc="Songs shuffler">

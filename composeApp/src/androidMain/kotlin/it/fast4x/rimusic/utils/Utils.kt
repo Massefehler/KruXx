@@ -73,6 +73,7 @@ val Innertube.Podcast.EpisodeItem.asMediaItem: MediaItem
                 .setTitle(title)
                 .setDisplayTitle( title )
                 .setArtist(author.toString())
+                .setSubtitle(author.toString())
                 .setAlbumTitle(title)
                 .setArtworkUri(thumbnail.firstOrNull()?.url?.toUri())
                 .setDurationMs( durationString.toDuration().inWholeMilliseconds )
@@ -99,7 +100,11 @@ val Innertube.SongItem.asMediaItem: MediaItem
             MediaMetadata.Builder()
                 .setTitle(info?.name)
                 .setDisplayTitle( info?.name )
-                .setArtist(authors?.filter {it.name?.matches(Regex("\\s*([,&])\\s*")) == false }?.joinToString(", ") { it.name ?: "" })
+                .apply {
+                    val artists = authors?.filter {it.name?.matches(Regex("\\s*([,&])\\s*")) == false }?.joinToString(", ") { it.name ?: "" }
+                    setArtist(artists)
+                    setSubtitle(artists)
+                }
                 .setAlbumTitle(album?.name)
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setDurationMs( durationText.toDuration().inWholeMilliseconds )
@@ -148,6 +153,7 @@ private fun Innertube.VideoItem.toMediaItem(requestVideoPlayback: Boolean): Medi
                 .setTitle(info?.name)
                 .setDisplayTitle( info?.name )
                 .setArtist(authors?.joinToString(", ") { it.name ?: "" })
+                .setSubtitle(authors?.joinToString(", ") { it.name ?: "" })
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setDurationMs( durationText.toDuration().inWholeMilliseconds )
                 .setMediaType( MediaMetadata.MEDIA_TYPE_MUSIC )
@@ -190,6 +196,7 @@ val Song.asMediaItem: MediaItem
                 .setTitle( title )
                 .setDisplayTitle( cleanTitle() )
                 .setArtist( cleanArtistsText() )
+                .setSubtitle( cleanArtistsText() )
                 .setArtworkUri(
                     cleanThumbnailUrl()?.thumbnail( THUMBNAIL_SIZE )?.toUri()
                 )

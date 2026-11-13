@@ -19,6 +19,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -28,6 +29,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.Cache
 import androidx.navigation.NavController
 import app.kreate.android.LocalBottomMenu
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
+import app.kreate.android.ui.adaptive.radioSongColumns
 import app.kreate.android.BuildConfig
 import app.kreate.android.Preferences
 import app.kreate.android.R
@@ -124,19 +127,32 @@ fun SearchResultScreen(
     val searchCachePrefix = "searchResults/v3/${searchContext.client.hl}-${searchContext.client.gl}/${if (useSearchLogin) "account" else "anonymous"}/$query"
 
     val headerContent: @Composable (textButton: (@Composable () -> Unit)?) -> Unit = {
-        Title(
-            title = stringResource(R.string.search_results_for),
-            verticalPadding = 4.dp
-        )
-        Title(
-            title = query,
-            icon = R.drawable.pencil,
-            onClick = {
-                navController.navigate( "${NavRoutes.search}?text=${Uri.encode( query )}")
-            },
-            verticalPadding = 4.dp
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+        // One line on the car radio, whose short window needs the height for results.
+        if( LocalAdaptiveLayout.current.isCarRadio ) {
+            Title(
+                title = "${stringResource(R.string.search_results_for)} $query",
+                icon = R.drawable.pencil,
+                onClick = {
+                    navController.navigate( "${NavRoutes.search}?text=${Uri.encode( query )}")
+                },
+                verticalPadding = 4.dp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        } else {
+            Title(
+                title = stringResource(R.string.search_results_for),
+                verticalPadding = 4.dp
+            )
+            Title(
+                title = query,
+                icon = R.drawable.pencil,
+                onClick = {
+                    navController.navigate( "${NavRoutes.search}?text=${Uri.encode( query )}")
+                },
+                verticalPadding = 4.dp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
     }
 
     val emptyItemsText = stringResource(R.string.no_results_found)
@@ -145,6 +161,18 @@ fun SearchResultScreen(
     val songItemValues = remember( colorPalette, typography ) {
         SongItem.Values.from( colorPalette, typography )
     }
+
+    // Car radio only: several songs per row and tile grids instead of large list rows.
+    val adaptiveLayout = LocalAdaptiveLayout.current
+    val radio = adaptiveLayout.isCarRadio
+    val radioTile = DpSize( adaptiveLayout.metrics.tileSize, adaptiveLayout.metrics.tileSize )
+    val songColumns =
+        if( radio )
+            radioSongColumns( adaptiveLayout.contentWidthDp, LocalDensity.current.fontScale, adaptiveLayout.metrics.songColumnWidth.value )
+        else 1
+    val tileColumns =
+        if( radio ) (adaptiveLayout.contentWidthDp / (radioTile.width.value + 16)).toInt().coerceAtLeast( 2 )
+        else 1
 
     SearchSkeleton(
         navController,
@@ -233,7 +261,8 @@ fun SearchResultScreen(
                                 )
                             }
                         },
-                        itemPlaceholderContent = { SongItem.Placeholder() }
+                        itemPlaceholderContent = { SongItem.Placeholder() },
+                        columns = songColumns
                     )
                 }
 
@@ -423,12 +452,17 @@ fun SearchResultScreen(
                                     AlbumItem.Values.from( appearance )
                                 }
 
-                                AlbumItem.Horizontal( album, albumItemValues, navController )
+                                if( radio )
+                                    AlbumItem.Vertical( album, albumItemValues, navController, sizeDp = radioTile )
+                                else
+                                    AlbumItem.Horizontal( album, albumItemValues, navController )
                             }
                         },
                         itemPlaceholderContent = {
-                            AlbumItem.VerticalPlaceholder()
-                        }
+                            if( radio ) AlbumItem.VerticalPlaceholder( sizeDp = radioTile ) else AlbumItem.VerticalPlaceholder()
+                        },
+                        columns = tileColumns,
+                        rowSpacing = 8.dp
                     )
                 }
 
@@ -464,18 +498,24 @@ fun SearchResultScreen(
                         emptyItemsText = emptyItemsText,
                         headerContent = headerContent,
                         itemContent = { artist ->
-                            ArtistItem.Render( artist, artistItemValues, navController )
+                            if( radio )
+                                ArtistItem.Render( artist, artistItemValues, navController, sizeDp = radioTile )
+                            else
+                                ArtistItem.Render( artist, artistItemValues, navController )
                         },
                         itemPlaceholderContent = {
-                            ArtistItem.Placeholder()
-                        }
+                            if( radio ) ArtistItem.Placeholder( sizeDp = radioTile ) else ArtistItem.Placeholder()
+                        },
+                        columns = tileColumns,
+                        rowSpacing = 8.dp
                     )
                 }
 
                 3 -> {
                     val menuState = LocalMenuState.current
-                    val thumbnailHeightDp = 72.dp
-                    val thumbnailWidthDp = 128.dp
+                    val videoThumbnailScale = if( radio ) adaptiveLayout.metrics.scale else 1f
+                    val thumbnailHeightDp = 72.dp * videoThumbnailScale
+                    val thumbnailWidthDp = 128.dp * videoThumbnailScale
 
                     ItemsPage(
                         tag = "$searchCachePrefix/videos",
@@ -551,7 +591,8 @@ fun SearchResultScreen(
                             SongItem.Placeholder(
                                 DpSize(thumbnailWidthDp, thumbnailHeightDp)
                             )
-                        }
+                        },
+                        columns = songColumns
                     )
                 }
 
@@ -597,15 +638,25 @@ fun SearchResultScreen(
                         emptyItemsText = emptyItemsText,
                         headerContent = headerContent,
                         itemContent = { playlist ->
-                            PlaylistItem.Horizontal(
-                                innertubePlaylist = playlist,
-                                values = playlistItemValues,
-                                navController = navController
-                            )
+                            if( radio )
+                                PlaylistItem.Vertical(
+                                    innertubePlaylist = playlist,
+                                    values = playlistItemValues,
+                                    navController = navController,
+                                    sizeDp = radioTile
+                                )
+                            else
+                                PlaylistItem.Horizontal(
+                                    innertubePlaylist = playlist,
+                                    values = playlistItemValues,
+                                    navController = navController
+                                )
                         },
                         itemPlaceholderContent = {
-                            PlaylistItem.VerticalPlaceholder()
-                        }
+                            if( radio ) PlaylistItem.VerticalPlaceholder( sizeDp = radioTile ) else PlaylistItem.VerticalPlaceholder()
+                        },
+                        columns = tileColumns,
+                        rowSpacing = 8.dp
                     )
                 }
 

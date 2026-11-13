@@ -16,6 +16,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -145,7 +146,10 @@ fun DownloadsScreen(player: StatefulPlayer = koinInject()) {
                     Icon(painterResource(R.drawable.refresh_circle), stringResource(R.string.kruxx_downloads_refresh))
                 }
                 IconButton(onClick = { DownloadCenter.settings() }) {
-                    Icon(painterResource(R.drawable.settings), stringResource(R.string.kruxx_download_settings))
+                    // The settings vector has a large intrinsic size; the radio matches it to the refresh icon.
+                    val radio = LocalAdaptiveLayout.current
+                    Icon(painterResource(R.drawable.settings), stringResource(R.string.kruxx_download_settings),
+                        if (radio.isCarRadio) Modifier.size(radio.metrics.topBarIcon) else Modifier)
                 }
             }
             ButtonsRow(listOf(0 to stringResource(R.string.kruxx_downloads_audio),

@@ -78,4 +78,12 @@ interface StatefulPlayer : ExoPlayer {
      * @return remaining time of **sleep timer**. `null` if **sleep timer** isn't active
      */
     fun sleepTimerRemaining(): Flow<Long?>
+
+    /**
+     * Unloads the current media like [ExoPlayer.stop] while keeping the queue and the position.
+     *
+     * Unlike [stop], it neither fades nor ends the sleep timer, the radio or audio effects. Used
+     * while an embedded video plays and this player only mirrors its position.
+     */
+    fun unloadMedia()
 }

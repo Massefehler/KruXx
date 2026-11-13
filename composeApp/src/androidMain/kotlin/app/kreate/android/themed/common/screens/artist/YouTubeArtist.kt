@@ -39,6 +39,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +56,7 @@ import app.kreate.android.LocalBottomMenu
 import app.kreate.android.R
 import app.kreate.android.coil3.ImageFactory
 import app.kreate.android.constant.MenuPage
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.themed.common.component.BottomMenu
 import app.kreate.android.themed.common.component.tab.DeleteAllDownloadedDialog
@@ -320,7 +322,10 @@ fun YouTubeArtist(
     deleteAllDownloadsDialog.Render()
     //</editor-fold>
 
-    DynamicOrientationLayout( thumbnailPainter ) {
+    // The car radio keeps its shell around the whole page and shows the artwork inside it, as on
+    // album pages; split around the shell, its rail would end up in the middle of the screen.
+    val radioShell = LocalAdaptiveLayout.current.useSideNavigation
+    OptionalOrientationLayout( !radioShell, thumbnailPainter ) {
         PullToRefreshBox(
             isRefreshing = viewModel.isRefreshing,
             onRefresh = {
@@ -340,138 +345,140 @@ fun YouTubeArtist(
                 }
             ) { currentTabIndex ->
                 saveableStateHolder.SaveableStateProvider(key = currentTabIndex) {
-                    LazyColumn(
-                        state = viewModel.listState,
-                        contentPadding = PaddingValues(bottom = Dimensions.bottomSpacer),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        item( "header" ) {
-                            Box( Modifier.fillMaxWidth() ) {
-                                if ( !isLandscape )
-                                    Image(
-                                        painter = thumbnailPainter,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.FillWidth,
-                                        modifier = Modifier
-                                            .aspectRatio(4f / 3)      // Limit height
-                                                           .fillMaxWidth()
-                                            .align(Alignment.Center)
-                                            .fadingEdge(
-                                                top = WindowInsets.systemBars
-                                                    .asPaddingValues()
-                                                    .calculateTopPadding() + Dimensions.fadeSpacingTop,
-                                                bottom = Dimensions.fadeSpacingBottom
-                                            )
-                                    )
-
-                                artistPage?.shareUrl( Constants.YOUTUBE_MUSIC_URL )?.also { shareUrl ->
-                                    Icon(
-                                        painter = painterResource( R.drawable.share_social ),
-                                        // TODO: Make a separate string for this (i.e. Share to...)
-                                        contentDescription = stringResource( R.string.listen_on_youtube_music ),
-                                        tint = colorPalette.text.copy( .5f ),
-                                        modifier = Modifier
-                                            .padding(all = 5.dp)
-                                            .size(40.dp)
-                                            .align(Alignment.TopEnd)
-                                            .clickable {
-                                                val sendIntent = Intent().apply {
-                                                    action = Intent.ACTION_SEND
-                                                    type = "text/plain"
-                                                    putExtra(Intent.EXTRA_TEXT, shareUrl)
-                                                }
-
-                                                context.startActivity(
-                                                    Intent.createChooser(sendIntent, null)
+                    OptionalOrientationLayout( radioShell, thumbnailPainter ) {
+                        LazyColumn(
+                            state = viewModel.listState,
+                            contentPadding = PaddingValues(bottom = Dimensions.bottomSpacer),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            item( "header" ) {
+                                Box( Modifier.fillMaxWidth() ) {
+                                    if ( !isLandscape )
+                                        Image(
+                                            painter = thumbnailPainter,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.FillWidth,
+                                            modifier = Modifier
+                                                .aspectRatio(4f / 3)      // Limit height
+                                                               .fillMaxWidth()
+                                                .align(Alignment.Center)
+                                                .fadingEdge(
+                                                    top = WindowInsets.systemBars
+                                                        .asPaddingValues()
+                                                        .calculateTopPadding() + Dimensions.fadeSpacingTop,
+                                                    bottom = Dimensions.fadeSpacingBottom
                                                 )
-                                            }
+                                        )
+
+                                    artistPage?.shareUrl( Constants.YOUTUBE_MUSIC_URL )?.also { shareUrl ->
+                                        Icon(
+                                            painter = painterResource( R.drawable.share_social ),
+                                            // TODO: Make a separate string for this (i.e. Share to...)
+                                            contentDescription = stringResource( R.string.listen_on_youtube_music ),
+                                            tint = colorPalette.text.copy( .5f ),
+                                            modifier = Modifier
+                                                .padding(all = 5.dp)
+                                                .size(40.dp)
+                                                .align(Alignment.TopEnd)
+                                                .clickable {
+                                                    val sendIntent = Intent().apply {
+                                                        action = Intent.ACTION_SEND
+                                                        type = "text/plain"
+                                                        putExtra(Intent.EXTRA_TEXT, shareUrl)
+                                                    }
+
+                                                    context.startActivity(
+                                                        Intent.createChooser(sendIntent, null)
+                                                    )
+                                                }
+                                        )
+                                    }
+
+                                    AutoResizeText(
+                                        // Use local artist name (custom name), otherwise, use online name
+                                        text = (dbArtist?.cleanName() ?: artistPage?.name).orEmpty(),
+                                        style = typography.l.semiBold,
+                                        fontSizeRange = FontSizeRange( 32.sp, 38.sp ),
+                                        fontWeight = typography.l.semiBold.fontWeight,
+                                        fontFamily = typography.l.semiBold.fontFamily,
+                                        color = typography.l.semiBold.color,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(horizontal = 30.dp)
+                                            .scrollingText()
                                     )
                                 }
-
-                                AutoResizeText(
-                                    // Use local artist name (custom name), otherwise, use online name
-                                    text = (dbArtist?.cleanName() ?: artistPage?.name).orEmpty(),
-                                    style = typography.l.semiBold,
-                                    fontSizeRange = FontSizeRange( 32.sp, 38.sp ),
-                                    fontWeight = typography.l.semiBold.fontWeight,
-                                    fontFamily = typography.l.semiBold.fontFamily,
-                                    color = typography.l.semiBold.color,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .padding(horizontal = 30.dp)
-                                        .scrollingText()
-                                )
                             }
-                        }
 
-                        artistPage?.shortNumMonthlyAudience?.also { monthlyAudience ->
-                            item( "monthlyListeners" ) {
-                                BasicText(
-                                    text = monthlyAudience,
-                                    style = typography().xs.medium,
-                                    maxLines = 1
-                                )
-                            }
-                        }
-
-                        item( "action_buttons") {
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                followButton.ToolBarButton()
-
-                                Spacer( Modifier.width( 5.dp ) )
-
-                                TabToolBar.Buttons(
-                                    shuffler,
-                                    playNext,
-                                    enqueue,
-                                    radio,
-                                    downloadAllDialog,
-                                    deleteAllDownloadsDialog,
-                                    modifier = Modifier.fillMaxWidth( .8f )
-                                )
-                            }
-                        }
-
-                        if( artistPage == null && viewModel.isRefreshing ) {
-                            items( 5 ) { SongItem.Placeholder() }
-
-                            items( 2 ) {
-                                ItemUtils.PlaceholderRowItem {
-                                    AlbumItem.VerticalPlaceholder()
+                            artistPage?.shortNumMonthlyAudience?.also { monthlyAudience ->
+                                item( "monthlyListeners" ) {
+                                    BasicText(
+                                        text = monthlyAudience,
+                                        style = typography().xs.medium,
+                                        maxLines = 1
+                                    )
                                 }
                             }
-                        } else if( artistPage != null && currentTabIndex == 0 )
-                            renderSections(
-                                navController = navController,
-                                hapticFeedback = hapticFeedback,
-                                currentMedia = currentMedia,
-                                songItemValues = songItemValues,
-                                artistPage = artistPage!!,
-                                sectionTextModifier = viewModel.sectionTextModifier,
-                                player = player,
-                                menu = menu
-                            )
-                        else if( currentTabIndex == 1 )
-                            renderLibrarySongs(
-                                navController = navController,
-                                hapticFeedback = hapticFeedback,
-                                currentMedia = currentMedia,
-                                songItemValues = songItemValues,
-                                sectionTextModifier = viewModel.sectionTextModifier,
-                                songs = artistLibrarySongs,
-                                player = player,
-                                menu = menu
-                            )
 
-                        artistPage?.description?.also( this::renderDescription )
+                            item( "action_buttons") {
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    followButton.ToolBarButton()
+
+                                    Spacer( Modifier.width( 5.dp ) )
+
+                                    TabToolBar.Buttons(
+                                        shuffler,
+                                        playNext,
+                                        enqueue,
+                                        radio,
+                                        downloadAllDialog,
+                                        deleteAllDownloadsDialog,
+                                        modifier = Modifier.fillMaxWidth( .8f )
+                                    )
+                                }
+                            }
+
+                            if( artistPage == null && viewModel.isRefreshing ) {
+                                items( 5 ) { SongItem.Placeholder() }
+
+                                items( 2 ) {
+                                    ItemUtils.PlaceholderRowItem {
+                                        AlbumItem.VerticalPlaceholder()
+                                    }
+                                }
+                            } else if( artistPage != null && currentTabIndex == 0 )
+                                renderSections(
+                                    navController = navController,
+                                    hapticFeedback = hapticFeedback,
+                                    currentMedia = currentMedia,
+                                    songItemValues = songItemValues,
+                                    artistPage = artistPage!!,
+                                    sectionTextModifier = viewModel.sectionTextModifier,
+                                    player = player,
+                                    menu = menu
+                                )
+                            else if( currentTabIndex == 1 )
+                                renderLibrarySongs(
+                                    navController = navController,
+                                    hapticFeedback = hapticFeedback,
+                                    currentMedia = currentMedia,
+                                    songItemValues = songItemValues,
+                                    sectionTextModifier = viewModel.sectionTextModifier,
+                                    songs = artistLibrarySongs,
+                                    player = player,
+                                    menu = menu
+                                )
+
+                            artistPage?.description?.also( this::renderDescription )
+                        }
                     }
                 }
             }
@@ -483,3 +490,7 @@ fun YouTubeArtist(
         if( artistPage == null ) viewModel.onRefresh()
     }
 }
+
+@Composable
+private fun OptionalOrientationLayout( enabled: Boolean, thumbnail: Painter, content: @Composable () -> Unit ) =
+    if( enabled ) DynamicOrientationLayout( thumbnail, content ) else content()

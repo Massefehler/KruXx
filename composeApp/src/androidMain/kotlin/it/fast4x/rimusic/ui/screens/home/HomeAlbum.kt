@@ -40,7 +40,6 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalDensity
 import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
@@ -132,9 +131,9 @@ fun HomeAlbums(
         Sort(menuState, Preferences.HOME_ALBUMS_SORT_BY, Preferences.HOME_ALBUM_SORT_ORDER)
     }
     val itemSize = remember { ItemSize(Preferences.HOME_ALBUM_ITEM_SIZE, menuState) }
-    val radio = LocalAdaptiveLayout.current.isCarRadio
-    val fontScale = LocalDensity.current.fontScale
-    val tileSize = if (radio) maxOf(itemSize.size.dp, (160 * fontScale).dp) else itemSize.size.dp
+    val adaptiveLayout = LocalAdaptiveLayout.current
+    val radio = adaptiveLayout.isCarRadio
+    val tileSize = if (radio) maxOf(itemSize.size.dp, adaptiveLayout.metrics.tileSize) else itemSize.size.dp
     val sizeDp = DpSize(tileSize, tileSize)
 
     val randomizer = object: Randomizer<Album> {

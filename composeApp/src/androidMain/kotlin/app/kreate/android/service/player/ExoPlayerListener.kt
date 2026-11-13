@@ -35,6 +35,8 @@ import it.fast4x.rimusic.service.NoInternetException
 import it.fast4x.rimusic.service.PlayableFormatNotFoundException
 import it.fast4x.rimusic.service.UnknownException
 import it.fast4x.rimusic.service.UnplayableException
+import it.fast4x.rimusic.service.modern.MediaSessionConstants
+import it.fast4x.rimusic.service.modern.isCarController
 import it.fast4x.rimusic.utils.mediaItems
 import it.fast4x.rimusic.utils.playNext
 import it.fast4x.rimusic.utils.remainingInPlayOrder
@@ -133,7 +135,14 @@ class ExoPlayerListener(
             }
 
             withContext( Dispatchers.Main ) {
-                mediaSession.setMediaButtonPreferences( layoutButton )
+                // Cars share these buttons with the notification but can't open KruXx's search
+                val carConnected = mediaSession.connectedControllers.any( mediaSession::isCarController )
+                mediaSession.setMediaButtonPreferences(
+                    if( carConnected )
+                        layoutButton.filterNot { it.sessionCommand == MediaSessionConstants.CommandSearch }
+                    else
+                        layoutButton
+                )
             }
         }
     }

@@ -783,6 +783,7 @@ class PlayerServiceModern:
         const val ALBUM = "album"
         const val PLAYLIST = "playlist"
         const val SEARCHED = "searched"
+        const val SUGGESTED = "suggested"
         const val ACTION_RESTART = "restart"
 
         const val CACHE_DIRNAME = "exo_cache"

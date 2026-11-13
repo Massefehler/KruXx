@@ -14,6 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.media3.exoplayer.offline.Download
 import androidx.work.*
 import app.kreate.android.R
+import co.touchlab.kermit.Logger
 import it.fast4x.rimusic.MainActivity
 import it.fast4x.rimusic.service.MyDownloadHelper
 import kotlinx.coroutines.*
@@ -152,9 +153,10 @@ class FileDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
                     failures += "${track.names.label.take(100)} · ${applicationContext.getString(phase.label)}"
                 } catch (e: CancellationException) {
                     throw e
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     // Persist the failed step, never CDN URLs, cookies or provider diagnostics.
                     failures += "${track.names.label.take(100)} · ${applicationContext.getString(phase.label)}"
+                    logger.w { "${kind.name} download failed while ${phase.name}: ${e.diagnosis()}" }
                 } finally {
                     scratch.listFiles()?.forEach { it.delete() }
                 }
@@ -168,7 +170,8 @@ class FileDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
             Result.success(result)
         } catch (e: CancellationException) {
             throw e
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            logger.w { "File download job failed: ${e.diagnosis()}" }
             notifyFinished(completed, skipped, 1)
             Result.success(Data.Builder().putAll(latest).putInt("failed", 1)
                 .putString("errors", applicationContext.getString(R.string.kruxx_files_failed))
@@ -231,4 +234,13 @@ class FileDownloadWorker(context: Context, params: WorkerParameters) : Coroutine
         private const val CHANNEL = "kruxx_file_downloads"
         private const val NOTIFICATION = 7204
     }
+}
+
+private val logger = Logger.withTag( "FileDownload" )
+
+/** Type and message of an error with every address removed, so that no signed URL is logged. */
+internal fun Throwable.diagnosis(): String {
+    fun Throwable.describe() =
+        "${this::class.java.simpleName}: ${message.orEmpty().replace(Regex("""[a-zA-Z][a-zA-Z0-9+.-]*://\S+"""), "<address>").take(160)}"
+    return generateSequence(this) { it.cause }.take(3).joinToString(" ← ") { it.describe() }
 }

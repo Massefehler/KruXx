@@ -49,7 +49,7 @@ object ArtistItem: Visual(), MultiplatformItem {
     override val platformIndicatorType: PlatformIndicatorType by Preferences.ARTISTS_PLATFORM_INDICATOR
     override val thumbnailRoundnessPercent: Preferences.Int = Preferences.ARTIST_THUMBNAIL_ROUNDNESS_PERCENT
 
-    override fun thumbnailSize() = DpSize(Preferences.ARTIST_THUMBNAIL_SIZE.value.dp, Preferences.ARTIST_THUMBNAIL_SIZE.value.dp)
+    override fun thumbnailSize() = scaledThumbnailSize( Preferences.ARTIST_THUMBNAIL_SIZE )
 
     /**
      * Text is clipped if exceeds length limit, plus,

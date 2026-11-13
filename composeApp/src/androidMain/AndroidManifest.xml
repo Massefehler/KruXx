@@ -229,7 +229,18 @@
         <meta-data android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc"/>
 
+        <!-- Car hosts tint these icons, so they have to be monochrome. -->
         <meta-data android:name="com.google.android.gms.car.notification.SmallIcon"
-            android:resource="@mipmap/ic_launcher_round" />
+            android:resource="@drawable/app_icon_monochrome" />
+        <meta-data android:name="androidx.car.app.TintableAttributionIcon"
+            android:resource="@drawable/app_icon_monochrome" />
+
+        <!-- Artwork for Android Auto and Android Automotive OS, which only load local URIs.
+             Exported for the car hosts; it serves nothing but URIs signed by KruXx. -->
+        <provider
+            android:name="app.kreate.android.service.car.CarArtworkProvider"
+            android:authorities="${applicationId}.carartwork"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
     </application>
 </manifest>

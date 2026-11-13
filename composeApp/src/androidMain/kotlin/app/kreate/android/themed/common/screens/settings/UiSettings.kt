@@ -30,6 +30,8 @@ import app.kreate.android.themed.common.component.settings.header
 import app.kreate.android.themed.common.screens.settings.ui.SwipeActionSettings
 import app.kreate.android.themed.common.screens.settings.ui.themeSettingsSection
 import app.kreate.android.themed.rimusic.component.Visual
+import app.kreate.android.ui.adaptive.CarRadioMode
+import app.kreate.android.ui.adaptive.RadioMetrics
 import it.fast4x.rimusic.colorPalette
 import it.fast4x.rimusic.enums.CarouselSize
 import it.fast4x.rimusic.enums.NavigationBarPosition
@@ -105,6 +107,23 @@ private fun ThumbnailSizeSlider(
         }
     )
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CarRadioSizeSlider() =
+    SettingComponents.SliderEntry(
+        preference = Preferences.CAR_RADIO_SIZE_PERCENT,
+        title = stringResource( R.string.car_radio_size ),
+        subtitle = stringResource( R.string.car_radio_size_description ),
+        constraints = InputDialogConstraints.CAR_RADIO_SIZE_PERCENT,
+        valueRange = RadioMetrics.MIN_USER_PERCENT..RadioMetrics.MAX_USER_PERCENT,
+        // 5 % per step
+        steps = 9,
+        onTextDisplay = { "${(it / 5).roundToInt() * 5} %" },
+        onValueChangeFinished = { pref, value ->
+            pref.value = (value / 5).roundToInt() * 5f
+        }
+    )
+
 @Composable
 fun UiSettings( paddingValues: PaddingValues ) {
     val scrollState = rememberLazyListState()
@@ -140,6 +159,10 @@ fun UiSettings( paddingValues: PaddingValues ) {
                         R.string.app_layout_mode,
                         subtitle = stringResource(R.string.app_layout_mode_description)
                     )
+                }
+                // Only shown where it has an effect, so the phone settings stay as they were.
+                entry( search, R.string.car_radio_size, additionalCheck = CarRadioMode.active ) {
+                    CarRadioSizeSlider()
                 }
             }
             entry( search, R.string.interface_in_use ) {

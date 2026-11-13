@@ -58,6 +58,7 @@ import androidx.navigation.NavController
 import app.kreate.android.LocalBottomMenu
 import app.kreate.android.R
 import app.kreate.android.coil3.ImageFactory
+import app.kreate.android.ui.adaptive.CarRadioMode
 import app.kreate.android.constant.MenuPage
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.themed.common.component.tab.DeleteAllDownloadedDialog
@@ -163,7 +164,7 @@ private fun LazyListScope.renderSection(
     section: Section,
     sectionTextModifier: Modifier
 ) {
-    stickyHeader( System.identityHashCode( section ) ) {
+    val header: @Composable () -> Unit = {
         Text(
             text = if( !section.title.isNullOrBlank() )
                 section.title!!
@@ -175,6 +176,11 @@ private fun LazyListScope.renderSection(
             modifier = sectionTextModifier.fillMaxWidth()
         )
     }
+    // See the songs header: the car radio scrolls section titles instead of pinning them.
+    if( CarRadioMode.active )
+        item( System.identityHashCode( section ) ) { header() }
+    else
+        stickyHeader( System.identityHashCode( section ) ) { header() }
 
     section.contents.fastMapNotNull { it as? InnertubeAlbum }.also {
         item( section.title ) {
@@ -465,13 +471,18 @@ fun YouTubeAlbum(
                         }
                     }
 
-                    stickyHeader( "songs" ) {
+                    val songsHeader: @Composable () -> Unit = {
                         Text(
                             text = stringResource( R.string.songs ),
                             style = typography().m.semiBold,
                             modifier = sectionTextModifier.fillMaxWidth()
                         )
                     }
+                    // The header has no surface of its own; pinned in a short radio window it covers the rows.
+                    if( CarRadioMode.active )
+                        item( "songs" ) { songsHeader() }
+                    else
+                        stickyHeader( "songs" ) { songsHeader() }
 
                     if( items.isEmpty() )
                         items( 10 ) { SongItem.Placeholder() }

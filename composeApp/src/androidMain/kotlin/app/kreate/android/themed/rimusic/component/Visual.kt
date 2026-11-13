@@ -16,8 +16,10 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import app.kreate.android.Preferences
 import app.kreate.android.coil3.ImageFactory
+import app.kreate.android.ui.adaptive.CarRadioMode
 
 abstract class Visual {
 
@@ -37,6 +39,17 @@ abstract class Visual {
     }
 
     abstract fun thumbnailSize(): DpSize
+
+    /**
+     * The size chosen in settings; the car radio layout scales it with its window.
+     * [shrink] is off for rows whose height follows the thumbnail but must still fit two
+     * lines of text at the system font size.
+     */
+    protected fun scaledThumbnailSize( preference: Preferences.Int, shrink: Boolean = true ): DpSize {
+        val scale = CarRadioMode.thumbnailScale
+        val size = (preference.value * if( shrink ) scale else maxOf( 1f, scale )).dp
+        return DpSize( size, size )
+    }
 
     @Composable
     fun Thumbnail(

@@ -42,7 +42,7 @@ data class DownloadTrack(
     fun mediaItem(): MediaItem = MediaItem.Builder().setMediaId(id).setUri(id)
         .setCustomCacheKey(id).setMediaMetadata(
             MediaMetadata.Builder().setTitle(names.title).setArtist(names.artist)
-                .setDisplayTitle(names.title).setAlbumTitle(album)
+                .setDisplayTitle(names.title).setSubtitle(names.artist).setAlbumTitle(album)
                 .setDurationMs(durationMs.takeIf { it >= 0 })
                 .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC).setIsPlayable(true).setIsBrowsable(false)
                 .setArtworkUri(artwork.takeIf(String::isNotEmpty)?.let(Uri::parse))

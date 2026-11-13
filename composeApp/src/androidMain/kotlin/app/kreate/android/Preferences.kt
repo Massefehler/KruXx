@@ -894,6 +894,9 @@ sealed class Preferences<T>(
         val APP_LAYOUT_MODE by lazy {
             Enum( preferences, Key.APP_LAYOUT_MODE, "", AppLayoutMode.Automatic )
         }
+        val CAR_RADIO_SIZE_PERCENT by lazy {
+            Float( preferences, Key.CAR_RADIO_SIZE_PERCENT, "", 100F )
+        }
         val NAVIGATION_BAR_POSITION by lazy {
             Enum( preferences, Key.NAVIGATION_BAR_POSITION, "navigationBarPosition", NavigationBarPosition.Bottom )
         }
@@ -1984,6 +1987,7 @@ sealed class Preferences<T>(
         const val STARTUP_SCREEN = "StartupScreen"
         const val FONT = "Font"
         const val APP_LAYOUT_MODE = "AppLayoutMode"
+        const val CAR_RADIO_SIZE_PERCENT = "CarRadioSizePercent"
         const val NAVIGATION_BAR_POSITION = "NavigationBarPosition"
         const val NAVIGATION_BAR_TYPE = "NavigationBarType"
         const val PAUSE_BETWEEN_SONGS = "PauseBetweenSongs"

@@ -31,12 +31,16 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import app.kreate.android.Preferences
+import app.kreate.android.R
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
+import it.fast4x.rimusic.ui.components.Skeleton
 import com.github.doyaaaaaken.kotlincsv.client.KotlinCsvExperimental
 import it.fast4x.compose.persist.PersistMapCleanup
 import it.fast4x.rimusic.colorPalette
@@ -60,6 +64,20 @@ fun LocalPlaylistScreen(
     modifier: Modifier = Modifier,
     miniPlayer: @Composable () -> Unit = {}
 ) {
+    // The car radio shows this page in its own shell, like every other detail page.
+    if (LocalAdaptiveLayout.current.useSideNavigation) {
+        Skeleton(
+            navController = navController,
+            miniPlayer = miniPlayer,
+            navBarContent = { item ->
+                item(0, stringResource(R.string.songs), R.drawable.musical_notes)
+            }
+        ) {
+            LocalPlaylistSongs(navController = navController, playlistId = playlistId)
+        }
+        return
+    }
+
     val transitionEffect by Preferences.TRANSITION_EFFECT
     val playerPosition by Preferences.MINI_PLAYER_POSITION
     val saveableStateHolder = rememberSaveableStateHolder()

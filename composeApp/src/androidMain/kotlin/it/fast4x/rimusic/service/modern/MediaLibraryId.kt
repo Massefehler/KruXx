@@ -21,7 +21,11 @@ internal object MediaLibraryId {
         PlayerServiceModern.ALBUM,
         PlayerServiceModern.PLAYLIST,
         PlayerServiceModern.SEARCHED,
+        PlayerServiceModern.SUGGESTED,
     )
+
+    /** Roots whose songs are direct children, without a container in between. */
+    private val flatRootIds = setOf(PlayerServiceModern.SONG, PlayerServiceModern.SUGGESTED)
 
     fun container(categoryId: String, containerId: String): String =
         "$categoryId/${Uri.encode(containerId)}"
@@ -61,7 +65,7 @@ internal object MediaLibraryId {
         val remainder = mediaId.substringAfter('/', missingDelimiterValue = "")
         if (remainder.isEmpty()) return null
 
-        if (rootId == PlayerServiceModern.SONG) {
+        if (rootId in flatRootIds) {
             if ('/' in remainder) return null
             return MediaLibrarySelection(rootId, Uri.decode(remainder))
         }

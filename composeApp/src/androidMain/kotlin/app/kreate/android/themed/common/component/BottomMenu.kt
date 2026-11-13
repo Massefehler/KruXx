@@ -71,6 +71,7 @@ import app.kreate.android.R
 import app.kreate.android.constant.MenuPage
 import app.kreate.android.themed.common.component.menu.MenuButton
 import app.kreate.android.themed.rimusic.component.playlist.PlaylistItem
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import app.kreate.android.themed.rimusic.component.song.SongItem
 import app.kreate.android.utils.scrollingText
 import app.kreate.database.models.PlaylistPreview
@@ -154,7 +155,10 @@ class BottomMenu {
             showSheet = true,
             onDismissRequest = ::hide,
             modifier = modifier,
-            sheetState = rememberModalBottomSheetState(),
+            // A half-open sheet shows only a few entries on a short car radio window.
+            sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = LocalAdaptiveLayout.current.isCarRadio
+            ),
             contentWindowInsets = { BottomSheetDefaults.windowInsets },
             shape = if (isKruxxGlassEnabled) KruxxGlass.menuShape else BottomSheetDefaults.ExpandedShape,
             containerColor = colorPalette.background0,

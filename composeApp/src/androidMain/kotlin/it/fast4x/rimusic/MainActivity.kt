@@ -16,6 +16,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.os.PowerManager
 import android.view.WindowManager
 import android.widget.Toast
 import android.window.OnBackInvokedDispatcher
@@ -53,7 +54,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,8 +75,12 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
+import androidx.core.app.PictureInPictureModeChangedInfo
 import androidx.core.net.toUri
+import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
@@ -83,14 +90,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.palette.graphics.Palette
 import app.kreate.android.BuildConfig
 import app.kreate.android.LocalBottomMenu
-import it.fast4x.rimusic.ui.styling.forCarRadio
+import it.fast4x.rimusic.ui.styling.scaledForCarRadio
 import app.kreate.android.ui.adaptive.AdaptiveLayout
+import app.kreate.android.ui.adaptive.CarRadioMode
 import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
+import app.kreate.android.ui.adaptive.isDisplayNaturallyLandscape
 import app.kreate.android.Preferences
 import app.kreate.android.R
 import app.kreate.android.coil3.ImageFactory
 import app.kreate.android.service.player.StatefulPlayer
 import app.kreate.android.service.player.PlaybackNotificationSilencer
+import app.kreate.android.service.player.VideoBackgroundPlayback
+import app.kreate.android.service.player.VideoAudioLevel
+import app.kreate.android.service.player.VideoToAudioHandoff
 import app.kreate.android.service.updater.UpdatePlugins
 import app.kreate.android.themed.common.component.BottomMenu
 import app.kreate.android.themed.common.component.dialog.CrashReportDialog
@@ -131,6 +143,7 @@ import it.fast4x.rimusic.ui.screens.AppNavigation
 import it.fast4x.rimusic.ui.screens.player.MiniPlayer
 import it.fast4x.rimusic.ui.screens.player.Player
 import it.fast4x.rimusic.ui.screens.player.components.YoutubePlayer
+import it.fast4x.rimusic.ui.screens.player.components.VideoFollower
 import it.fast4x.rimusic.ui.screens.player.rememberPlayerSheetState
 import it.fast4x.rimusic.ui.styling.Appearance
 import it.fast4x.rimusic.ui.styling.Dimensions
@@ -149,19 +162,28 @@ import it.fast4x.rimusic.utils.invokeOnReady
 import it.fast4x.rimusic.utils.isAtLeastAndroid6
 import it.fast4x.rimusic.utils.isAtLeastAndroid8
 import it.fast4x.rimusic.utils.isVideo
+import it.fast4x.rimusic.utils.getGlobalVolume
+import it.fast4x.rimusic.utils.isAtLeastAndroid7
+import it.fast4x.rimusic.utils.playVideo
 import it.fast4x.rimusic.utils.loadAppLog
 import it.fast4x.rimusic.utils.playNext
 import it.fast4x.rimusic.utils.preferences
 import it.fast4x.rimusic.utils.resize
+import it.fast4x.rimusic.utils.restoreGlobalVolume
 import it.fast4x.rimusic.utils.resumeVideoAsAudio
 import it.fast4x.rimusic.utils.setDefaultPalette
 import it.fast4x.rimusic.utils.supportsVideoPlayback
 import it.fast4x.rimusic.utils.textCopyToClipboard
 import it.fast4x.rimusic.utils.thumbnail
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import me.knighthat.utils.Toaster
 import org.koin.compose.koinInject
 import org.koin.java.KoinJavaComponent.inject
@@ -475,6 +497,211 @@ MainActivity :
                 // comparison still observes video/audio variants of the same YouTube id.
                 mutableStateOf(player.currentMediaItem, referentialEqualityPolicy())
             }
+            // A playing video continues as audio while the activity cannot be seen (display off,
+            // app in the background) and returns once it is visible. The sound then stays with
+            // the native player and the video only follows it silently: two separate outputs
+            // cannot be switched without being heard.
+            var videoInBackground by remember(player) {
+                mutableStateOf<MediaItem?>(null, referentialEqualityPolicy())
+            }
+            // The native player taking over from a video that still sounds (display just off).
+            var videoHandoff by remember(player) { mutableStateOf<VideoToAudioHandoff?>(null) }
+            // Keeps the video window open meanwhile: closing it would stop the video at once.
+            var handingOffVideo by remember(player) {
+                mutableStateOf<MediaItem?>(null, referentialEqualityPolicy())
+            }
+            // The silent video of the track the native player plays, see VideoFollower.
+            var videoFollower by remember(player) { mutableStateOf<VideoFollower?>(null) }
+            // That video while its player is minimized; it returns when the player opens again.
+            var minimizedVideo by remember(player) {
+                mutableStateOf<MediaItem?>(null, referentialEqualityPolicy())
+            }
+            // A video that returns paused with its own sound because its audio stopped.
+            var pausedVideoId by remember(player) { mutableStateOf<String?>(null) }
+            // Whether the native player is meant to play; a silent video plays exactly then.
+            var audioPlayRequested by remember(player) { mutableStateOf(false) }
+            // Whether it actually plays, i.e. does not buffer; until then a silent video waits.
+            var audioAdvancing by remember(player) { mutableStateOf(false) }
+            // Play commands for the native player that belong to a video with its own sound.
+            var videoPlayRequest by remember(player) { mutableIntStateOf(0) }
+            // Every returning video gets a new embedded player; the old one ended with the activity.
+            var videoSession by remember(player) { mutableIntStateOf(0) }
+            val floatingWindowClosed = remember { mutableStateOf(false) }
+
+            // The WebView takes the audio focus as soon as it plays audibly and pauses when it
+            // loses it. While video and native audio overlap, the native player must therefore
+            // neither take the focus nor react to its loss.
+            fun nativeAudioFocusHandling(enabled: Boolean) =
+                player.setAudioAttributes(player.audioAttributes, enabled && isHandleAudioFocusEnabled())
+
+            fun endVideoFollower() {
+                if (videoFollower == null) return
+                videoFollower = null
+                // Whatever is shown next is another embedded player.
+                videoSession++
+                if (!VideoFollower.canSilenceWebView) nativeAudioFocusHandling(true)
+            }
+
+            // YouTube turns loud videos down to its reference loudness. Native audio continuing a
+            // video plays at that level too, until another track starts.
+            val videoAudioLevel = remember(player) { VideoAudioLevel() }
+            fun videoAudioVolume(): Float = player.getGlobalVolume() * videoAudioLevel.gain
+            fun followVideoLoudness(videoId: String) {
+                videoAudioLevel.videoId = videoId
+                videoAudioLevel.gain = 1f
+                coroutineScope.launch {
+                    // The format is stored once the stream is resolved, at the start of the handoff.
+                    val loudnessDb = withTimeoutOrNull(VideoToAudioHandoff.LEAD_MS) {
+                        Database.formatTable.findBySongId(videoId).mapNotNull { it?.loudnessDb }.first()
+                    }
+                    if (videoAudioLevel.videoId == videoId)
+                        videoAudioLevel.gain = VideoBackgroundPlayback.youtubeNormalizationGain(loudnessDb)
+                }
+            }
+
+            fun startVideoFollower(video: MediaItem) {
+                lateinit var follower: VideoFollower
+                fun leads() = videoFollower === follower &&
+                        player.currentMediaItem?.mediaId == video.mediaId
+                follower = VideoFollower(
+                    item = video,
+                    audioPositionSeconds = { player.currentPosition.coerceAtLeast(0L) / 1000f },
+                    audioDurationSeconds = { player.duration.takeIf { it > 0L }?.let { it / 1000f } },
+                    audioPlayRequested = { audioPlayRequested },
+                    audioAdvancing = { audioAdvancing },
+                    playAudio = { atSeconds ->
+                        if (leads()) {
+                            if (atSeconds != null) player.seekTo((atSeconds * 1000).toLong())
+                            // Audio that failed in the meantime is loaded again.
+                            if (player.playbackState == Player.STATE_IDLE) player.prepare()
+                            player.play()
+                        }
+                    },
+                    pauseAudio = { if (leads()) player.pause() },
+                    seekAudioTo = { seconds -> if (leads()) player.seekTo((seconds * 1000).toLong()) },
+                    onFailed = {
+                        if (videoFollower === follower) {
+                            endVideoFollower()
+                            Toaster.w(R.string.video_playback_failed_audio_fallback)
+                        }
+                    }
+                )
+                // A WebView that cannot be silenced as a whole takes the audio focus once its
+                // video is unmuted in its own controls; the native player must not pause then.
+                if (!VideoFollower.canSilenceWebView) nativeAudioFocusHandling(false)
+                videoSession++
+                showPlayer = true
+                videoFollower = follower
+            }
+
+            // Shows a video again whose sound moved to the native player.
+            fun returnToVideo(video: MediaItem) {
+                val currentItem = player.currentMediaItem
+                when (
+                    VideoBackgroundPlayback.onVisibleAgain(
+                        videoId = video.mediaId,
+                        currentMediaId = currentItem?.mediaId,
+                        currentIsVideo = currentItem?.isVideo == true,
+                        playbackState = player.playbackState
+                    )
+                ) {
+                    VideoBackgroundPlayback.Return.Discard -> Unit
+                    VideoBackgroundPlayback.Return.FollowAudio -> startVideoFollower(video)
+                    VideoBackgroundPlayback.Return.PausedVideo -> {
+                        // Nothing plays, so the video gets its sound back without being heard.
+                        pausedVideoId = video.mediaId
+                        videoSession++
+                        player.playVideo(video)
+                        player.restoreGlobalVolume()
+                        PlaybackNotificationSilencer.setEmbeddedVideoPlaybackActive(false)
+                    }
+                }
+            }
+
+            val activityLifecycle = LocalLifecycleOwner.current.lifecycle
+            DisposableEffect(activityLifecycle, player) {
+                val observer = LifecycleEventObserver { _, event ->
+                    when (event) {
+                        Lifecycle.Event.ON_START -> {
+                            val video = videoInBackground ?: return@LifecycleEventObserver
+                            videoInBackground = null
+                            val handoff = videoHandoff
+                            videoHandoff = null
+                            if (handoff != null && handoff.isActive) {
+                                // Visible again before the audio took over: the video never paused.
+                                // Unload the native player before restoring its focus handling,
+                                // otherwise it takes the focus and the video pauses after all.
+                                if (player.currentMediaItem?.mediaId == video.mediaId)
+                                    player.playVideo(video)
+                                else
+                                    player.playWhenReady = false
+                                handoff.cancel()
+                                return@LifecycleEventObserver
+                            }
+                            returnToVideo(video)
+                        }
+
+                        Lifecycle.Event.ON_RESUME -> floatingWindowClosed.value = false
+
+                        Lifecycle.Event.ON_STOP -> videoFollower?.let {
+                            endVideoFollower()
+                            if (
+                                VideoBackgroundPlayback.continuesAsAudio(
+                                    changingConfigurations = isChangingConfigurations,
+                                    finishing = isFinishing,
+                                    inPictureInPicture = isAtLeastAndroid7 && isInPictureInPictureMode,
+                                    screenInteractive = getSystemService(PowerManager::class.java)
+                                        ?.isInteractive != false,
+                                    floatingWindowJustClosed = floatingWindowClosed.value
+                                )
+                            ) {
+                                // The audio plays on by itself; its video returns with the activity.
+                                videoInBackground = it.item
+                            } else if (!isChangingConfigurations && !isFinishing) {
+                                // The floating window was closed: that stops, as for any video.
+                                player.playWhenReady = false
+                            }
+                        }
+
+                        else -> Unit
+                    }
+                }
+                activityLifecycle.addObserver(observer)
+                onDispose { activityLifecycle.removeObserver(observer) }
+            }
+            DisposableEffect(player) {
+                val pipListener = Consumer<PictureInPictureModeChangedInfo> { info ->
+                    if (info.isInPictureInPictureMode) return@Consumer
+                    if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                        // Closing the floating window after it stopped means stop, not background.
+                        if (videoInBackground != null) {
+                            videoInBackground = null
+                            player.playWhenReady = false
+                            // A running handoff then pauses the still sounding video as well.
+                            videoHandoff?.cancel()
+                            videoHandoff = null
+                        }
+                    } else if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        // Expanding resumes the activity next; closing stops it next.
+                        floatingWindowClosed.value = true
+                    }
+                }
+                addOnPictureInPictureModeChangedListener(pipListener)
+                onDispose { removeOnPictureInPictureModeChangedListener(pipListener) }
+            }
+            LaunchedEffect(showPlayer) {
+                if (!showPlayer) {
+                    // Minimizing the player keeps the audio; its video returns with the player.
+                    videoFollower?.let {
+                        minimizedVideo = it.item
+                        endVideoFollower()
+                    }
+                } else {
+                    val video = minimizedVideo ?: return@LaunchedEffect
+                    minimizedVideo = null
+                    if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) returnToVideo(video)
+                }
+            }
             DisposableEffect(player, !lightTheme) {
                 // Enum preferences persist their defaults on first access. The radio scaffold
                 // does not read the legacy navigation settings, and MiniPlayer is composed only
@@ -681,6 +908,10 @@ MainActivity :
                 val bottomDp = with(density) { windowsInsets.getBottom(density).toDp() }
 
                 val layoutMode by Preferences.APP_LAYOUT_MODE
+                val radioSizePercent by Preferences.CAR_RADIO_SIZE_PERCENT
+                val naturallyLandscape = remember(constraints.maxWidth, constraints.maxHeight) {
+                    this@MainActivity.isDisplayNaturallyLandscape()
+                }
                 val adaptiveLayout = AdaptiveLayout.resolve(
                     if (BuildConfig.INDEPENDENT_FORK) layoutMode else app.kreate.android.enums.AppLayoutMode.Phone,
                     with(density) {
@@ -691,10 +922,14 @@ MainActivity :
                         (constraints.maxHeight - windowsInsets.getTop(density) -
                             windowsInsets.getBottom(density)).toDp().value
                     },
+                    naturallyLandscape,
+                    radioSizePercent,
                 )
+                SideEffect { CarRadioMode.update(adaptiveLayout) }
 
-                val adaptiveAppearance = remember(appearance, adaptiveLayout.isCarRadio) {
-                    if (adaptiveLayout.isCarRadio) appearance.copy(typography = appearance.typography.forCarRadio())
+                val adaptiveAppearance = remember(appearance, adaptiveLayout.isCarRadio, adaptiveLayout.metrics) {
+                    if (adaptiveLayout.isCarRadio)
+                        appearance.copy(typography = appearance.typography.scaledForCarRadio(adaptiveLayout.metrics.textScale))
                     else appearance
                 }
 
@@ -761,7 +996,9 @@ MainActivity :
                             LocalAppearance provides adaptiveAppearance,
                             LocalIndication provides ripple(bounded = true),
                             LocalRippleConfiguration provides rippleConfiguration,
-                            LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
+                            // The radio shell already keeps content clear of system bars and the mini player.
+                            LocalPlayerAwareWindowInsets provides
+                                if (adaptiveLayout.useSideNavigation) WindowInsets(0) else playerAwareWindowInsets,
                             LocalLayoutDirection provides LayoutDirection.Ltr,
                             LocalDownloadHelper provides MyDownloadHelper,
                             LocalPlayerSheetState provides playerState,
@@ -813,13 +1050,24 @@ MainActivity :
                             val thumbnailRoundness by Preferences.THUMBNAIL_BORDER_RADIUS
 
                             val isVideo = currentMediaItemForPip?.isVideo == true
+                            // A silent video follows the audio of the same track; while the audio
+                            // takes over from a video, that video still sounds.
+                            val showsVideo = (isVideo && !playVideoAsAudio) ||
+                                    videoFollower != null ||
+                                    handingOffVideo != null
 
                             val youtubePlayer: @Composable () -> Unit = {
-                                currentMediaItemForPip?.let { mediaItem ->
+                                val follower = videoFollower
+                                (follower?.item ?: handingOffVideo ?: currentMediaItemForPip)?.let { mediaItem ->
+                                  key(videoSession) {
                                     YoutubePlayer(
                                         ytVideoId = mediaItem.mediaId,
                                         lifecycleOwner = LocalLifecycleOwner.current,
                                         startSeconds = player.currentPosition.coerceAtLeast(0L).toFloat() / 1000f,
+                                        autoPlay = mediaItem.mediaId != pausedVideoId,
+                                        follower = follower,
+                                        volume = player.getGlobalVolume(),
+                                        playRequest = videoPlayRequest,
                                         onCurrentSecond = { second ->
                                             val currentItem = player.currentMediaItem
                                             if (currentItem != null &&
@@ -832,7 +1080,12 @@ MainActivity :
                                         showPlayer = showPlayer,
                                         onSwitchToAudioPlayer = {
                                             val currentItem = player.currentMediaItem
-                                            if (currentItem != null &&
+                                            if (videoFollower != null) {
+                                                // The audio of this track already plays by itself.
+                                                endVideoFollower()
+                                                playVideoAsAudio = true
+                                                showPlayer = true
+                                            } else if (currentItem != null &&
                                                 currentItem === mediaItem &&
                                                 currentItem.isVideo
                                             ) {
@@ -849,6 +1102,9 @@ MainActivity :
                                             ) {
                                                 PlaybackNotificationSilencer
                                                     .setEmbeddedVideoPlaybackActive(isActive)
+                                                // Started by the user: from now on it plays like
+                                                // any video, also after its window was closed.
+                                                if (isActive) pausedVideoId = null
                                             }
                                         },
                                         onPlaybackError = {
@@ -862,22 +1118,73 @@ MainActivity :
                                                 player.resumeVideoAsAudio()
                                                 Toaster.w(R.string.video_playback_failed_audio_fallback)
                                             }
+                                        },
+                                        onContinueInBackground = {
+                                            val currentItem = player.currentMediaItem
+                                            if (BuildConfig.INDEPENDENT_FORK &&
+                                                currentItem != null &&
+                                                currentItem === mediaItem &&
+                                                currentItem.isVideo &&
+                                                VideoBackgroundPlayback.continuesAsAudio(
+                                                    changingConfigurations = isChangingConfigurations,
+                                                    finishing = isFinishing,
+                                                    inPictureInPicture = isAtLeastAndroid7 && isInPictureInPictureMode,
+                                                    screenInteractive = getSystemService(PowerManager::class.java)
+                                                        ?.isInteractive != false,
+                                                    floatingWindowJustClosed = floatingWindowClosed.value
+                                                )
+                                            ) {
+                                                logger.i { "Video continues as audio while the activity is stopped" }
+                                                videoInBackground = mediaItem
+                                                playVideoAsAudio = true
+                                                showPlayer = true
+                                                // Silent and without audio focus until it has caught up
+                                                // with the still sounding video: the WebView pauses as
+                                                // soon as it loses the focus.
+                                                handingOffVideo = mediaItem
+                                                followVideoLoudness(mediaItem.mediaId)
+                                                nativeAudioFocusHandling(false)
+                                                player.resumeVideoAsAudio(
+                                                    startMuted = true,
+                                                    positionMs = VideoToAudioHandoff.startPositionMs(
+                                                        videoPositionMs = player.currentPosition.coerceAtLeast(0L),
+                                                        videoDurationMs = mediaItem.mediaMetadata.durationMs
+                                                    )
+                                                )
+                                                VideoToAudioHandoff(
+                                                    player = player,
+                                                    makeAudible = {
+                                                        nativeAudioFocusHandling(true)
+                                                        player.volume = videoAudioVolume()
+                                                    },
+                                                    onEnd = { handingOffVideo = null }
+                                                ).also { videoHandoff = it }
+                                            } else {
+                                                null
+                                            }
                                         }
                                     )
+                                  }
                                 }
                             }
 
+                            // The floating window shows only the cover and ends the embedded player.
+                            // A video with its own sound therefore continues as audio through the
+                            // regular stop instead, seamlessly; once its sound plays in the native
+                            // player, the window opens as for music.
+                            val videoSoundsItself = isVideo && !playVideoAsAudio
                             PipEventContainer(
                                 enable = Preferences.IS_PIP_ENABLED.value &&
-                                        currentMediaItemForPip != null,
-                                autoEnterIfPossible = currentMediaItemForPip != null,
+                                        currentMediaItemForPip != null &&
+                                        !videoSoundsItself,
+                                autoEnterIfPossible = currentMediaItemForPip != null && !videoSoundsItself,
                                 onPipOutAction = {
                                     showPlayer = false
                                     playVideoAsAudio = false
                                 }
                             ) {
                                 CustomModalBottomSheet(
-                                    showSheet = showPlayer && (!isVideo || playVideoAsAudio),
+                                    showSheet = showPlayer && !showsVideo,
                                     onDismissRequest = {
                                         showPlayer = false
                                     },
@@ -901,7 +1208,7 @@ MainActivity :
                             }
 
                             CustomModalBottomSheet(
-                                showSheet = isVideo && !playVideoAsAudio && showPlayer,
+                                showSheet = showsVideo && showPlayer,
                                 onDismissRequest = { showPlayer = false },
                                 containerColor = colorPalette().background0,
                                 contentColor = colorPalette().background0,
@@ -960,8 +1267,54 @@ MainActivity :
                         }
                     }
 
+                    fun isPlayRequested(player: Player) =
+                        VideoBackgroundPlayback.isAudioPlayRequested(
+                            playWhenReady = player.playWhenReady,
+                            playbackState = player.playbackState,
+                            suppressionReason = player.playbackSuppressionReason
+                        )
+
                     val listener = object : Player.Listener {
+                        override fun onEvents(player: Player, events: Player.Events) {
+                            if (events.containsAny(
+                                    Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                                    Player.EVENT_PLAYBACK_STATE_CHANGED,
+                                    Player.EVENT_PLAYBACK_SUPPRESSION_REASON_CHANGED
+                                )
+                            ) audioPlayRequested = isPlayRequested(player)
+                            if (events.contains(Player.EVENT_IS_PLAYING_CHANGED))
+                                audioAdvancing = player.isPlaying
+
+                            if (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED) &&
+                                VideoBackgroundPlayback.playBelongsToVideo(
+                                    windowShowsVideoWithItsSound = showPlayer && !playVideoAsAudio &&
+                                            videoFollower == null && handingOffVideo == null &&
+                                            currentMediaItemForPip?.isVideo == true,
+                                    currentIsVideo = player.currentMediaItem?.isVideo == true,
+                                    playWhenReady = player.playWhenReady
+                                )
+                            ) {
+                                logger.i { "Play command while the video sounds itself: forwarded to the video" }
+                                player.playWhenReady = false
+                                if (player is StatefulPlayer) player.unloadMedia() else player.stop()
+                                videoPlayRequest++
+                            }
+                        }
+
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            // A silent video follows the audio of its own track only. The same
+                            // track started as a video again plays with its own sound.
+                            if (videoFollower?.item?.mediaId != mediaItem?.mediaId || mediaItem?.isVideo == true)
+                                endVideoFollower()
+                            if (minimizedVideo?.mediaId != mediaItem?.mediaId || mediaItem?.isVideo == true)
+                                minimizedVideo = null
+                            if (pausedVideoId != mediaItem?.mediaId) pausedVideoId = null
+                            // Another track after audio that continued a video: normal volume again.
+                            if (videoAudioLevel.videoId != null && mediaItem?.mediaId != videoAudioLevel.videoId) {
+                                videoAudioLevel.videoId = null
+                                player.restoreGlobalVolume()
+                            }
+
                             val previousItem = currentMediaItemForPip
                             val continuesSameEmbeddedVideo =
                                 previousItem != null &&
@@ -999,6 +1352,8 @@ MainActivity :
 
                     player.addListener(listener)
                     currentMediaItemForPip = player.currentMediaItem
+                    audioPlayRequested = isPlayRequested(player)
+                    audioAdvancing = player.isPlaying
 
                     onDispose { player.removeListener(listener) }
                 }

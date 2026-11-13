@@ -51,6 +51,7 @@ import app.kreate.android.themed.rimusic.component.ItemSelector
 import app.kreate.android.themed.rimusic.component.Visual
 import app.kreate.android.utils.innertube.toSong
 import app.kreate.android.utils.scrollingText
+import app.kreate.android.utils.scrollingTextOverflow
 import app.kreate.database.models.Song
 import app.kreate.di.CacheType
 import it.fast4x.innertube.Innertube
@@ -91,7 +92,7 @@ object SongItem: Visual() {
     val itemShape: Shape by lazy { RoundedCornerShape(10.dp) }
     override val thumbnailRoundnessPercent: Preferences.Int = Preferences.SONG_THUMBNAIL_ROUNDNESS_PERCENT
 
-    override fun thumbnailSize() = DpSize(Preferences.SONG_THUMBNAIL_SIZE.value.dp, Preferences.SONG_THUMBNAIL_SIZE.value.dp)
+    override fun thumbnailSize() = scaledThumbnailSize( Preferences.SONG_THUMBNAIL_SIZE, shrink = false )
 
     @Composable
     private fun videoTypeLabel(video: Innertube.VideoItem): String = stringResource(
@@ -124,7 +125,7 @@ object SongItem: Visual() {
             style = values.titleTextStyle,
             color = values.titleColor,
             maxLines = 1,
-            overflow = TextOverflow.Clip,
+            overflow = scrollingTextOverflow,
             modifier = modifier.scrollingText()
         )
 
@@ -149,7 +150,7 @@ object SongItem: Visual() {
             style = values.artistsTextStyle,
             color = values.artistsColor,
             maxLines = 1,
-            overflow = TextOverflow.Clip,
+            overflow = scrollingTextOverflow,
             modifier = modifier.scrollingText()
         )
 

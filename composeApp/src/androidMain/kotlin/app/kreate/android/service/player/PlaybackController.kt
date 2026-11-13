@@ -83,18 +83,37 @@ object PlaybackController {
             NotificationButtons.Radio -> button.androidIconId
         }
 
+    /**
+     * Android Auto draws buttons with a matching [CommandButton] icon constant from its own
+     * icon set. KruXx's drawable stays the icon of the media notification.
+     */
+    private fun standardIconOf( iconId: Int ): Int =
+        when( iconId ) {
+            R.drawable.heart            -> CommandButton.ICON_HEART_FILLED
+            R.drawable.heart_outline    -> CommandButton.ICON_HEART_UNFILLED
+            R.drawable.repeat           -> CommandButton.ICON_REPEAT_OFF
+            R.drawable.repeatone        -> CommandButton.ICON_REPEAT_ONE
+            R.drawable.infinite         -> CommandButton.ICON_REPEAT_ALL
+            R.drawable.shuffle          -> CommandButton.ICON_SHUFFLE_OFF
+            R.drawable.shuffle_filled   -> CommandButton.ICON_SHUFFLE_ON
+            R.drawable.radio            -> CommandButton.ICON_RADIO
+            // Downloads, dislikes and search have no standard icon
+            else                        -> CommandButton.ICON_UNDEFINED
+        }
+
     suspend fun makeButton(
         context: Context,
         player: Player,
         button: NotificationButtons,
         builder: CommandButton.Builder.() -> Unit = {}
-    ): CommandButton =
-        CommandButton.Builder( CommandButton.ICON_UNDEFINED )
-                     .setDisplayName( context.resources.getString( button.androidTextId ) )
-                     .setSessionCommand( button.sessionCommand )
-                     .apply {
-                         getIconId( player, button ).also( ::setCustomIconResId )
-                         builder()
-                     }
-                     .build()
+    ): CommandButton {
+        val iconId = getIconId( player, button )
+
+        return CommandButton.Builder( standardIconOf( iconId ) )
+                            .setDisplayName( context.resources.getString( button.androidTextId ) )
+                            .setSessionCommand( button.sessionCommand )
+                            .setCustomIconResId( iconId )
+                            .apply( builder )
+                            .build()
+    }
 }

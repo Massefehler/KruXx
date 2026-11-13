@@ -9,21 +9,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import app.kreate.android.R
 import it.fast4x.rimusic.colorPalette
@@ -47,35 +49,52 @@ fun RadioScaffold(
     content: @Composable AnimatedVisibilityScope.(Int) -> Unit,
 ) {
     val palette = colorPalette()
+    val layout = LocalAdaptiveLayout.current
+    val metrics = layout.metrics
     var menuExpanded by remember { mutableStateOf(false) }
+    // Collected first so that, as on phones, a page with a single tab shows no navigation.
+    val tabs = mutableListOf<Triple<Int, String, Int>>()
+    navBarContent { index, title, icon -> tabs += Triple(index, title, icon) }
+    val showRail = tabs.size >= 2
+    // Wide enough for the longest single word at the current font size, so labels such as
+    // "Downloads" only wrap between words, also with larger system fonts or the size setting.
+    val textMeasurer = rememberTextMeasurer()
+    val labelStyle = LocalTextStyle.current.copy(fontSize = metrics.railLabel)
+    val longestWord = with(LocalDensity.current) {
+        tabs.flatMap { it.second.split(' ') }
+            .maxOfOrNull { textMeasurer.measure(it, labelStyle).size.width }?.toDp() ?: 0.dp
+    }
+    val railWidth = maxOf(metrics.railWidth, longestWord + 14.dp * metrics.scale + 6.dp)
     Row(Modifier.fillMaxSize().kruxxAppBackground().safeDrawingPadding()) {
-        Column(
+        if (showRail) Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.width(128.dp).fillMaxHeight()
-                .kruxxGlassSurface(palette.background1, RoundedCornerShape(20.dp), strong = true)
-                .verticalScroll(rememberScrollState()).padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp * metrics.scale),
+            modifier = Modifier.width(railWidth).fillMaxHeight()
+                .padding(start = 6.dp * metrics.scale, top = 6.dp * metrics.scale, bottom = 6.dp * metrics.scale)
+                .kruxxGlassSurface(palette.background1, RoundedCornerShape(18.dp * metrics.scale), strong = true)
+                .verticalScroll(rememberScrollState()).padding(4.dp * metrics.scale),
         ) {
-            navBarContent { index, title, icon ->
+            tabs.forEach { (index, title, icon) ->
                 val active = index == navigationTabIndex
                 TextButton(
                     onClick = { onNavigationTabChanged(index) },
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
-                        .background(if (active) KruxxGlass.electricBlue.copy(alpha = .18f) else palette.background0.copy(alpha = 0f), RoundedCornerShape(16.dp))
+                    shape = RoundedCornerShape(14.dp * metrics.scale),
+                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp * metrics.scale),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = metrics.railItemHeight)
+                        .background(if (active) KruxxGlass.electricBlue.copy(alpha = .18f) else palette.background0.copy(alpha = 0f), RoundedCornerShape(14.dp * metrics.scale))
                         .semantics { selected = active },
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(painterResource(icon), null, Modifier.size(26.dp), tint = palette.text)
-                        Spacer(Modifier.height(4.dp))
-                        Text(title, color = palette.text, fontSize = 14.sp, textAlign = TextAlign.Center,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Icon(painterResource(icon), null, Modifier.size(metrics.railIcon), tint = palette.text)
+                        Spacer(Modifier.height(2.dp * metrics.scale))
+                        Text(title, color = palette.text, fontSize = metrics.railLabel, textAlign = TextAlign.Center,
+                            lineHeight = metrics.railLabel * 1.15f, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
         }
         Column(Modifier.weight(1f).fillMaxHeight().background(kruxxContentColor(palette.background0))) {
-            Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().height(metrics.topBarHeight).padding(horizontal = 4.dp * metrics.scale), verticalAlignment = Alignment.CenterVertically) {
                 if (navController.previousBackStackEntry != null) {
                     RadioIconButton(R.drawable.chevron_back, stringResource(R.string.radio_back)) { navController.navigateUp() }
                 }
@@ -83,15 +102,13 @@ fun RadioScaffold(
                 Box(Modifier.weight(1f)) {
                     TextButton(
                         onClick = { HomeNavigation.goHome(navController) },
-                        modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = homeLabel },
+                        modifier = Modifier.heightIn(min = RadioMetrics.MIN_TOUCH_DP.dp).semantics { contentDescription = homeLabel },
                     ) {
-                        Text("KruXx", color = palette.text, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("KruXx", color = palette.text, fontSize = metrics.wordmark, fontWeight = FontWeight.Bold)
                     }
                 }
                 RadioIconButton(R.drawable.search, stringResource(R.string.radio_search)) { NavRoutes.search.navigateHere(navController) }
-                Spacer(Modifier.width(8.dp))
                 RadioIconButton(R.drawable.settings, stringResource(R.string.settings)) { NavRoutes.settings.navigateHere(navController) }
-                Spacer(Modifier.width(8.dp))
                 Box {
                     RadioIconButton(R.drawable.burger, stringResource(R.string.radio_app_menu)) { menuExpanded = true }
                     it.fast4x.rimusic.ui.components.navigation.header.HamburgerMenu(
@@ -99,21 +116,29 @@ fun RadioScaffold(
                     )
                 }
             }
-            AnimatedContent(
-                targetState = tabIndex,
-                transitionSpec = transition(),
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                content = content,
-                label = "radio tab",
-            )
-            Box(Modifier.fillMaxWidth().padding(4.dp)) { miniPlayer?.invoke() }
+            // AdaptiveLayout assumes the standard rail; correct the width for the rail actually shown.
+            val shownRail = if (showRail) railWidth.value else 0f
+            CompositionLocalProvider(
+                LocalAdaptiveLayout provides
+                    layout.copy(contentWidthDp = layout.contentWidthDp + metrics.railWidth.value - shownRail)
+            ) {
+                AnimatedContent(
+                    targetState = tabIndex,
+                    transitionSpec = transition(),
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    content = content,
+                    label = "radio tab",
+                )
+            }
+            Box(Modifier.fillMaxWidth().padding(4.dp * metrics.scale)) { miniPlayer?.invoke() }
         }
     }
 }
 
 @Composable
 internal fun RadioIconButton(icon: Int, label: String, onClick: () -> Unit) {
-    IconButton(onClick, Modifier.size(56.dp)) {
-        Icon(painterResource(icon), label, Modifier.size(28.dp), tint = colorPalette().text)
+    val metrics = LocalAdaptiveLayout.current.metrics
+    IconButton(onClick, Modifier.size(RadioMetrics.MIN_TOUCH_DP.dp)) {
+        Icon(painterResource(icon), label, Modifier.size(metrics.topBarIcon), tint = colorPalette().text)
     }
 }

@@ -366,14 +366,42 @@ object InnerTubeXPlayer {
     suspend fun videoForDownload(videoId: String, isExplicit: Boolean?): ExtractedStream {
         syncSession()
         ensureVisitorData()
-        val stream = checkNotNull(bundle().extractor.extract(
+        val hints = ContentHints(isExplicit = isExplicit, wantVideo = true, maxVideoHeight = 2160)
+            .withStreamCapabilities(allowHls = false, allowSabr = false, allowBoundedRange = true)
+        val extraction = bundle()
+        val accountSession = innerTube.sessionSnapshot()
+        val preferAnonymous = anonymousPlaybackPreference?.let {
+            it.accountSession == accountSession &&
+                System.currentTimeMillis() - it.createdAtMs in 0 until ANONYMOUS_PLAYBACK_PREFERENCE_MS
+        } == true
+        suspend fun resolve(extractor: InnerTubeExtractor) = checkNotNull(extractor.extract(
             videoId = videoId,
-            hints = ContentHints(isExplicit = isExplicit, wantVideo = true, maxVideoHeight = 2160)
-                .withStreamCapabilities(allowHls = false, allowSabr = false, allowBoundedRange = true),
+            hints = hints,
             excludedClients = emptySet(),
             audioQuality = InnerTubeXAudioQuality.HIGH,
             clientPlaybackNonce = generateClientPlaybackNonce(),
         )) { "No downloadable video stream" }
+        // The clients that serve video files are web clients. When YouTube rejects the saved
+        // login there (e.g. HTTP 401), public videos load like playback: once, anonymously,
+        // without copying or changing the saved login.
+        val stream = withAnonymousPlaybackFallback(
+            hasAccountSession = !innerTube.cookie.isNullOrBlank(),
+            preferAnonymous = preferAnonymous,
+            resolve = { resolve(extraction.extractor) },
+            resolveAnonymously = {
+                val anonymous = InnerTube(httpClient, logger = innerTubeLogger)
+                try {
+                    anonymous.locale = innerTube.locale
+                    checkNotNull(anonymous.fetchFreshVisitorData()) {
+                        "Could not establish an anonymous download session"
+                    }
+                    logger.w("Resolving the video download with a fresh anonymous session")
+                    resolve(createExtractor(anonymous, extraction.remoteStore, extraction.cipherService))
+                } finally {
+                    anonymous.close()
+                }
+            },
+        )
         require(stream.videoUrl?.startsWith("https://") == true && stream.mediaMetadata?.isLive != true) {
             "No complete video file available"
         }

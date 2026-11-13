@@ -81,7 +81,7 @@ object PlaylistItem: Visual(), MultiplatformItem {
     private fun onlinePlaylistPath( browseId: String, useLogin: Boolean ) =
         if( useLogin ) "$browseId?useLogin=true" else browseId
 
-    override fun thumbnailSize() = DpSize(Preferences.PLAYLIST_THUMBNAIL_SIZE.value.dp, Preferences.PLAYLIST_THUMBNAIL_SIZE.value.dp)
+    override fun thumbnailSize() = scaledThumbnailSize( Preferences.PLAYLIST_THUMBNAIL_SIZE )
 
     /**
      * Text is clipped if exceeds length limit, plus,

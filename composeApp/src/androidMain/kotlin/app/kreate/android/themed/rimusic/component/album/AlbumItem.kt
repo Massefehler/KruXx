@@ -57,7 +57,7 @@ object AlbumItem: Visual(), MultiplatformItem {
     override val platformIndicatorType: PlatformIndicatorType by Preferences.ALBUMS_PLATFORM_INDICATOR
     override val thumbnailRoundnessPercent: Preferences.Int = Preferences.ALBUM_THUMBNAIL_ROUNDNESS_PERCENT
 
-    override fun thumbnailSize() = DpSize(Preferences.ALBUM_THUMBNAIL_SIZE.value.dp, Preferences.ALBUM_THUMBNAIL_SIZE.value.dp)
+    override fun thumbnailSize() = scaledThumbnailSize( Preferences.ALBUM_THUMBNAIL_SIZE )
 
     /**
      * Text is clipped if exceeds length limit, plus,

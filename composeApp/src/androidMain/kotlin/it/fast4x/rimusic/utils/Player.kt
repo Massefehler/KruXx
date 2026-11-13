@@ -19,6 +19,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import app.kreate.android.Preferences
 import app.kreate.android.R
+import app.kreate.android.service.player.StatefulPlayer
 import co.touchlab.kermit.Logger
 import it.fast4x.rimusic.enums.DurationInMinutes
 import kotlinx.coroutines.CoroutineScope
@@ -197,17 +198,30 @@ fun Player.playVideo(mediaItem: MediaItem) {
         0L
     }
 
-    pause()
+    // Not pause(): with fading enabled the old audio would stay audible over the video.
+    playWhenReady = false
     setMediaItem(mediaItem, startPositionMs)
+    // The embedded player plays the video; this player only holds the item and mirrors the
+    // position. Loaded media would buffer audio in parallel and turn every mirrored seek into
+    // a buffering cycle and a notification update.
+    unloadForEmbeddedPlayback()
 }
+
+private fun Player.unloadForEmbeddedPlayback() =
+    if (this is StatefulPlayer) unloadMedia() else stop()
 
 /**
  * Hands the current YouTube video id back to KruXx's audio-only resolver without resetting the
  * position mirrored from the embedded player.
+ *
+ * @param startMuted start silently; the caller makes the audio audible once it took over
+ * @param positionMs where the audio starts, by default the mirrored video position
  */
-fun Player.resumeVideoAsAudio() {
+fun Player.resumeVideoAsAudio(
+    startMuted: Boolean = false,
+    positionMs: Long = currentPosition.coerceAtLeast(0L)
+) {
     val currentItem = currentMediaItem ?: return
-    val positionMs = currentPosition.coerceAtLeast(0L)
     val audioExtras = Bundle(currentItem.mediaMetadata.extras ?: Bundle.EMPTY).apply {
         putBoolean("isVideo", false)
     }
@@ -219,10 +233,11 @@ fun Player.resumeVideoAsAudio() {
         )
         .build()
 
-    pause()
+    // Not pause(): a fading pause would stop the new audio once its fade ends.
+    playWhenReady = false
     setMediaItem(audioItem, positionMs)
     prepare()
-    restoreGlobalVolume()
+    if (startMuted) volume = 0f else restoreGlobalVolume()
     playWhenReady = true
 }
 

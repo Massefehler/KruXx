@@ -68,6 +68,18 @@ class MediaLibraryIdTest {
     }
 
     @Test
+    fun suggestedSongsPlayFromTheSuggestionList() {
+        val mediaId = MediaLibraryId.playable(PlayerServiceModern.SUGGESTED, "song/42")
+
+        assertEquals(
+            MediaLibrarySelection(PlayerServiceModern.SUGGESTED, "song/42"),
+            MediaLibraryId.selection(mediaId),
+        )
+        assertNull(MediaLibraryId.selection("${PlayerServiceModern.SUGGESTED}/container/song"))
+        assertNull(MediaLibraryId.selection(PlayerServiceModern.SUGGESTED))
+    }
+
+    @Test
     fun malformedOrBrowsableIdsAreNotParsedAsSongs() {
         assertNull(MediaLibraryId.selection(PlayerServiceModern.ROOT))
         assertNull(MediaLibraryId.selection("${PlayerServiceModern.ARTIST}/artist-id"))

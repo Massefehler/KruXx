@@ -461,6 +461,8 @@ class StatefulPlayerImpl(private val player: ExoPlayer) :
 
     override fun getAudioSessionId(): Int = player.audioSessionId
 
+    override fun unloadMedia() = player.stop()
+
     override fun stop() {
         pause()
 

@@ -13,6 +13,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.kreate.android.ui.adaptive.LocalAdaptiveLayout
 import it.fast4x.rimusic.enums.UiType
 import it.fast4x.rimusic.utils.bold
 import it.fast4x.rimusic.colorPalette
@@ -90,6 +91,10 @@ fun TabHeader(
     titleId: Int,
     additionalContent: @Composable () -> Unit
 ) {
+    // The car radio's side navigation already names the section, and its short window
+    // needs the height for the list.
+    if( LocalAdaptiveLayout.current.useSideNavigation ) return
+
     // Align left if RiMusic, right if ViMusic
     val arrangement =
         if( UiType.ViMusic.isCurrent() )
