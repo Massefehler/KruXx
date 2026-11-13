@@ -1,9 +1,19 @@
 # KruXx-Dokumentation
 
-Stand: 13.11.2026 · Öffentlich `1.2.6`
+Stand: 13.11.2026 · Öffentlich `1.2.7`
 
-[KruXx `1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) / `1000010`
-ist als neuester stabiler Release veröffentlicht. Er ergänzt die native Autoradio-Darstellung
+[KruXx `1.2.7`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.7) / `1000011`
+ist seit dem 13.11.2026 der neueste stabile Release. Ein Video im Videofenster läuft bei
+ausgeschaltetem Display oder verlassener App ohne Lücke als Ton weiter; beim Zurückkehren bleibt der
+Ton, und das Video folgt ihm ohne eigenen Ton. Dazu kommen die überarbeitete Autoradio-Darstellung,
+Android Auto nach den aktuellen Google-Vorgaben und die flüssige Startanimation. 331 Tests,
+Release-Lint und CI sind bestanden; die signierte APK ist am Samsung als Update über `1.2.6` geprüft
+und der anonyme öffentliche Download bytegleich. Video-Downloads scheitern derzeit an InnerTubeX
+`v0.7.4`; ein Update ist als nächster Schritt vorgesehen
+([IST-Stand](KRUXX-IST-STAND.md#release-127-vom-13112026)).
+
+Davor: [KruXx `1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) / `1000010`
+ist als stabiler Release veröffentlicht. Er ergänzt die native Autoradio-Darstellung
 für direkt installierte Android-Apps:
 Fenstererkennung, Auswahl `Automatisch / Handy / Autoradio`, seitliche Navigation, größere
 Schrift und Player-Tasten, adaptive Bibliotheksraster und vollständiges Cover vor echtem Blur,
@@ -15,28 +25,20 @@ GitHub und App enthalten deutsche und englische Versionshinweise. Prüfstand und
 [IST-Stand](KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026), die Architektur im
 [Entwicklerhandbuch](KRUXX-ENTWICKLERHANDBUCH.md#native-autoradio-oberfläche-seit-126-überarbeitet-am-23102026).
 Das physische Autoradio ist nicht angeschlossen; dessen Abnahme bleibt offen.
-Nach der Nutzerrückmeldung vom 23.10.2026 ist die Autoradio-Darstellung von `1.2.6` so nicht
+Nach der Nutzerrückmeldung vom 23.10.2026 war die Autoradio-Darstellung von `1.2.6` so nicht
 abgenommen: Bedienelemente waren zu groß, und der Player drängte die Inhalte rechts neben dem
-Cover zusammen. Eine Neugestaltung mit größenabhängigen Maßen, neuer Player-Aufteilung und
-Größenregler ist lokal umgesetzt und im Emulator geprüft; die Automatik schaltet Handys nicht
-mehr um. Offen sind die Abnahme am Dynavin D9 und die Veröffentlichung
-([IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht)).
-Ebenfalls lokal und unveröffentlicht ist die Android-Auto-Steuerung nach den aktuellen
-Google-Vorgaben überarbeitet: Cover über signierte lokale Adressen, Künstlerzeile, Raster für
-Alben und Künstler, Kennzeichen, Empfehlungen, Standardsymbole und genauere Sprachbefehle. Sie ist
-im Android-Automotive-Emulator geprüft; die Handy-Benachrichtigung bleibt unverändert. Offen ist der
-Test im echten Android Auto
-([IST-Stand](KRUXX-IST-STAND.md#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht)).
-Seit dem 06.11.2026 ebenfalls lokal: Die Startanimation zeichnet ihren Lichtpunkt selbst, sodass er
-bei jeder Bildwiederholung gleichmäßig von links nach rechts über die Welle wandert. Sie ist auf dem
-Samsung angenommen und für den nächsten Release vorgesehen
-([IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht)).
-Seit dem 13.11.2026 ebenfalls lokal: Ein Video im Videofenster läuft bei ausgeschaltetem Display ohne
-Lücke und mit gleicher Lautstärke als Audio weiter. Beim Wiedereinschalten bleibt der Ton, und das
-Video folgt ihm ohne eigenen Ton; das ist am Samsung abgenommen
-([IST-Stand](KRUXX-IST-STAND.md#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht)).
-Diese vier lokalen Überarbeitungen sind als `1.2.7` zum Release vorbereitet
-([IST-Stand](KRUXX-IST-STAND.md#release-127-vom-13112026)).
+Cover zusammen. `1.2.7` bringt dafür größenabhängige Maße, eine neue Player-Aufteilung und einen
+Größenregler; die Automatik schaltet Handys nicht mehr um. Offen ist die Abnahme am Dynavin D9
+([IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127)).
+Ebenfalls mit `1.2.7` veröffentlicht sind die Android-Auto-Steuerung nach den aktuellen
+Google-Vorgaben (Cover über signierte lokale Adressen, Künstlerzeile, Raster für Alben und
+Künstler, Kennzeichen, Empfehlungen, Standardsymbole und genauere Sprachbefehle; im
+Android-Automotive-Emulator geprüft, offen ist der Test im echten Android Auto,
+[IST-Stand](KRUXX-IST-STAND.md#lokale-android-auto-überarbeitung-vom-23102026--veröffentlicht-mit-127)),
+die Startanimation mit selbst gezeichnetem Lichtpunkt
+([IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127))
+und die Hintergrundwiedergabe von Videos mit stummer Rückkehr
+([IST-Stand](KRUXX-IST-STAND.md#lokale-hintergrundwiedergabe-von-videos-vom-13112026--veröffentlicht-mit-127)).
 Die Startseiten-Diagnose am zweiten Handy ist zurückgestellt.
 
 `1.2.4` brachte zuvor InnerTubeX `v0.7.4` und einen anonymen Wiedergabe-Rückfall für abgelehnte
@@ -64,7 +66,7 @@ bewusst nur historische, geerbte oder buildtechnische Informationen enthalten.
 | Dokument | Zweck |
 |---|---|
 | [`../ROADMAP.md`](../ROADMAP.md) | Künftige Vorhaben, einschließlich Musikteilen und optionaler Friends-Funktion; ohne feste Release-Termine |
-| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.6 |
+| [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md) | Release-, Prüf- und Nachteststatus von KruXx, einschließlich der Veröffentlichung von 1.2.7 |
 | [`KRUXX-ENTWICKLERHANDBUCH.md`](KRUXX-ENTWICKLERHANDBUCH.md) | Architektur, Wartung, Fehlersuche, Build-, Test- und Release-Ablauf |
 | [`DOWNLOADS.md`](DOWNLOADS.md) | Download-/MP3-/Dateikopier-Funktionen, Architektur und verbleibende Geräteprüfungen |
 | [`Design.md`](Design.md) | Konzept, Umsetzungsstatus und Abnahmekriterien des „KruXx Glass“-Redesigns |

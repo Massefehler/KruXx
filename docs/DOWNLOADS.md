@@ -241,7 +241,7 @@ vollständig vorhandene Quellen wird keine unnötige Netzwerkbedingung gesetzt.
   Videodatei (`PlaybackHintMediaSourceFactory`). Beim Zurückkehren bleibt der Ton dort; das Video
   läuft ohne eigenen Ton mit, folgt ihm über eine stufenlose Tempoanpassung, und seine
   Bedienelemente steuern den Ton
-  ([Entwicklerhandbuch, §4.4](KRUXX-ENTWICKLERHANDBUCH.md#weiterhören-bei-ausgeschaltetem-display-lokal-seit-13112026)).
+  ([Entwicklerhandbuch, §4.4](KRUXX-ENTWICKLERHANDBUCH.md#weiterhören-bei-ausgeschaltetem-display-seit-127)).
   Am 13.11.2026 am Samsung mit einem im September gespeicherten Video geprüft; dabei sind ein
   falscher Nutzer-Sprung beim Zurückkehren und die eckigen Ränder des lokalen Players behoben.
 - **Bekannte Einschränkung seit Herbst 2026:** „Video mit Ton“ endet mit „Nicht fertiggestellt“

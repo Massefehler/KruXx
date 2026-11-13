@@ -6,7 +6,7 @@ werden nicht nachträglich um Funktionen späterer Versionen ergänzt.
 
 Seit `1.2.4` stehen die Hinweise auf Nutzerwunsch in den beiden Abschnitten `Deutsch` und
 `English`; der bestehende Changelog-Dialog zeigt dafür je einen Reiter. Das gilt für `1.2.4`,
-`1.2.5`, `1.2.6` und `1.2.7`. Die öffentlichen GitHub-Release-Beschreibungen zu `1.2.4` und `1.2.6` sind
+`1.2.5`, `1.2.6` und `1.2.7`. Die öffentlichen GitHub-Release-Beschreibungen zu `1.2.4`, `1.2.6` und `1.2.7` sind
 ebenfalls zweisprachig; `1.2.5` wurde nicht separat veröffentlicht.
 
 Format:

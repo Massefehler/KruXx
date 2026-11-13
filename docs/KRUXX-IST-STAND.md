@@ -1,8 +1,9 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 13.11.2026 · Öffentlich `1.2.6` · `1.2.7` mit überarbeiteter Autoradio-Darstellung,
-Android-Auto-Steuerung, Startanimation und Video-Hintergrundwiedergabe als Release vorbereitet ·
-Abnahme am Dynavin D9 und in Android Auto offen
+Stand: 13.11.2026 · Öffentlich `1.2.7` mit Video-Hintergrundwiedergabe, überarbeiteter
+Autoradio-Darstellung, Android-Auto-Steuerung und Startanimation; signierte APK, Update am Samsung
+und öffentlicher Download geprüft · Abnahme am Dynavin D9 und in Android Auto offen · Video-Downloads
+scheitern (InnerTubeX-Update vorgesehen)
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,11 +14,11 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Merkmal | Aktueller Stand |
 |---|---|
 | Produkt | KruXx – The core of your music |
-| Öffentlicher Release | [`1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) |
-| Öffentlicher Android-Versionscode | `1_000_010` |
-| Lokaler Entwicklungsstand | `1.2.7` / `1_000_011` als [Release-Kandidat](#release-127-vom-13112026); veröffentlichter App-Quellstand von `1.2.6`: `3736ebff004fa5eb6e947fbf84bc969d9cd5927e`; darin enthalten die bisher nicht committete [Überarbeitung der Autoradio-Darstellung vom 23.10.2026](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht) und die ebenfalls nicht committete [Android-Auto-Überarbeitung vom 23.10.2026](#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht), dazu die nicht committete [Überarbeitung der Startanimation vom 06.11.2026](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht) und die nicht committete [Hintergrundwiedergabe von Videos vom 13.11.2026](#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht) |
-| Zuletzt auf dem Samsung geprüft | `1.2.5` / `1_000_009`, HTTPS-Wiedergabe-Patch |
-| Schwerpunkt von 1.2.6 | Native Autoradio-Oberfläche, vollständiges Cover mit Blur, erste Wiedergabe und HTTPS-CDN-Weiterleitungen |
+| Öffentlicher Release | [`1.2.7`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.7) |
+| Öffentlicher Android-Versionscode | `1_000_011` |
+| Lokaler Entwicklungsstand | `1.2.7` / `1_000_011`, veröffentlichter Quellstand `6bc14016ce2384c7b3a7d0e81788d1c0ce4b75f8` ([Release 1.2.7](#release-127-vom-13112026)) |
+| Zuletzt auf dem Samsung geprüft | `1.2.7` / `1_000_011`, signierte Release-APK als Update über `1.2.6` |
+| Schwerpunkt von 1.2.7 | Videos im Hintergrund als Ton, stumme Rückkehr des Videos, Autoradio-Überarbeitung, Android Auto nach aktuellem Standard, Startanimation |
 | Release-Paket | `de.kruxx.music` |
 | Debug-Paket | `de.kruxx.music.debug` |
 | Android-Untergrenze | Ab `1.2.0`: API 24 / Android 7.0; letzter veröffentlichter Release für Android 6: `1.1.0` |
@@ -39,11 +40,11 @@ veröffentlichen („setz die offenen Punkte sauber um, das release vorbereiten 
 Versionsnummer `1.2.7` hat der Nutzer vorgegeben.
 
 - **Umfang:** die vier bisher lokalen Überarbeitungen, also die
-  [Autoradio-Darstellung](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht)
-  und [Android Auto](#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht) vom
-  23.10.2026, die [Startanimation](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht)
+  [Autoradio-Darstellung](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127)
+  und [Android Auto](#lokale-android-auto-überarbeitung-vom-23102026--veröffentlicht-mit-127) vom
+  23.10.2026, die [Startanimation](#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127)
   vom 06.11.2026 und die
-  [Hintergrundwiedergabe von Videos](#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht)
+  [Hintergrundwiedergabe von Videos](#lokale-hintergrundwiedergabe-von-videos-vom-13112026--veröffentlicht-mit-127)
   vom 13.11.2026. Versionshinweise zweisprachig in `docs/changelogs/kruxx/1.2.7.txt`, elf Einträge
   je Sprache; die eingebettete Kopie ist bytegleich.
 - **Lautstärke von Videos:** Videos folgen weiter der KruXx-Wiedergabelautstärke, bei der Vorgabe 0,5
@@ -114,13 +115,41 @@ Versionsnummer `1.2.7` hat der Nutzer vorgegeben.
   Empfehlung: Update als eigener Schritt nach `1.2.7`, mit vollständiger Wiedergabe- und
   Downloadprüfung am Gerät. Testspuren (drei fehlgeschlagene Aufträge und der mitgeladene Ton des
   Testtitels) sind entfernt.
+- **Build und APK-Prüfung:** Quellcommit `6bc14016ce2384c7b3a7d0e81788d1c0ce4b75f8` (Release-Commit;
+  davor der Funktionscommit `288cce2d5`). Aus genau diesem sauberen Stand liefen 273 App- und 58
+  Innertube-Tests sowie der vollständige Release-Lint, danach `scripts/build-local-release.sh
+  kruxx`. Archiv `Kreate-APKs/KruXx-1.2.7-release.apk`, **23.620.120 Bytes**, SHA-256
+  `878f5b43273d0fa9e0ff42d05edba4955247184ee0d7651d4e14c832fe945228`, dazu die passende
+  `KruXx-1.2.7-debug.apk`. Geprüft: Paket `de.kruxx.music`, Version `1.2.7` / `1000011`, Mindest-
+  und Ziel-API `24` / `36`, alle vier ABIs, Signatur v2/v3 mit dem bekannten Zertifikat
+  (`5dc08df341c5d5b56aa9fe9ebc58eb02e0a25bc4a27b48d83a4fbe31ccbdd673`), eingebettete
+  Quellrevision, 16-KiB-Ausrichtung, ZIP-Integrität und bytegleiche zweisprachige
+  Versionshinweise (elf Einträge je Sprache).
+- **Signierte APK am Samsung:** als Update über die Release-App `1.2.6` installiert, App-Daten
+  erhalten (Erstinstallation 31.08.2026 unverändert). Kaltstart in 149 ms ohne Absturz, der
+  Changelog-Dialog zeigt „1.2.7“ auf Deutsch und Englisch. Video mit eigenem Ton, Home übergab
+  nach 5.862 ms an den nativen Player, die Rückkehr kam stumm („WebView silenced=true“), danach lief
+  nur der native Audiokanal. Danach pausiert; die Warteschlange der Release-App enthält dadurch das
+  Testvideo.
+- **Veröffentlichung:** Annotiertes Tag `v1.2.7` (`5efed6ccb949acb56de4af29929bbd2d71040a16`) auf
+  dem Release-Commit, `main` und Tag zu `Massefehler/KruXx` gepusht.
+  [CI-Lauf 43465295483](https://github.com/Massefehler/KruXx/actions/runs/43465295483) für genau
+  diesen Commit bestanden (Tests und Debug-Build). In allen drei Repositories gab es vor der
+  Veröffentlichung keine offenen Secret-Scanning-Alarme, und die neuen Zeilen enthalten keine
+  Geheimnismuster. Der Release wurde zuerst als Entwurf mit genau einem Asset angelegt; Tag,
+  Assetname, Größe und GitHubs `sha256:`-Digest stimmten mit dem Archiv überein.
+  [GitHub-Release 1.2.7](https://github.com/Massefehler/KruXx/releases/tag/v1.2.7) ist seit
+  **17:53:22 Uhr MEZ** öffentlich, stabil und als neueste Version gesetzt; der vom Updater
+  verwendete `releases/latest`-Endpunkt liefert `v1.2.7` mit passendem Asset. Ein anonymer
+  Download um 17:53:32 Uhr ist bytegleich mit dem geprüften Archiv. Die Beschreibung ist
+  zweisprachig und nennt die bekannte Einschränkung beim Video-Download.
 
-### Lokale Hintergrundwiedergabe von Videos vom 13.11.2026 – unveröffentlicht
+### Lokale Hintergrundwiedergabe von Videos vom 13.11.2026 – veröffentlicht mit 1.2.7
 
 Vom Nutzer gemeldet: Ein Video im Videofenster stoppt sofort, wenn das Display ausgeht; Technosets im
 Videoformat sollen ohne eingeschaltetes Display weiterlaufen. Technik im
-[Entwicklerhandbuch, §4.4](KRUXX-ENTWICKLERHANDBUCH.md#weiterhören-bei-ausgeschaltetem-display-lokal-seit-13112026).
-Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
+[Entwicklerhandbuch, §4.4](KRUXX-ENTWICKLERHANDBUCH.md#weiterhören-bei-ausgeschaltetem-display-seit-127).
+Mit `1.2.7` veröffentlicht ([Release 1.2.7](#release-127-vom-13112026)).
 
 - **Befund:** `androidyoutubeplayer` 13.0.0 pausiert das WebView in `YouTubePlayerView.onStop()` bei
   jedem `ON_STOP` der Activity (im Bytecode geprüft). Am Samsung SM-S931B mit Android 17 mit dem
@@ -235,13 +264,13 @@ Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
      trat das in allen Durchläufen nicht wieder auf.
   4. **Bei aktiver KruXx-Normalisierung** weicht der Pegel von Video und Ton weiterhin ab.
 
-### Lokale Überarbeitung der Startanimation vom 06.11.2026 – unveröffentlicht
+### Lokale Überarbeitung der Startanimation vom 06.11.2026 – veröffentlicht mit 1.2.7
 
 Vom Nutzer beauftragt: die Startanimation mit dem UI/UX-Skill deutlich flüssiger machen;
 ausdrücklich soll der Lichtpunkt sauber von links nach rechts über die Welle wandern. Gestaltung in
-[`Design.md`](Design.md#ergänzung-startanimation-mit-wanderndem-lichtpunkt-06112026-lokal-unveröffentlicht),
+[`Design.md`](Design.md#ergänzung-startanimation-mit-wanderndem-lichtpunkt-06112026-veröffentlicht-mit-127),
 Technik im [Entwicklerhandbuch, §2.2](KRUXX-ENTWICKLERHANDBUCH.md#22-kruxx-flavor-commit-kruxx-).
-Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
+Mit `1.2.7` veröffentlicht ([Release 1.2.7](#release-127-vom-13112026)).
 
 - **Befund zu `1.2.6`:** Die zehn Quellframes unter `icons/animation/` zeigen dieselbe Kachel,
   dasselbe „K“ und dieselben Wellenbalken (mittlere Pixelabweichung 4,5 von 255); bewegt wird nur
@@ -294,11 +323,11 @@ Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
   Debug-Build zwei Pausen von je 167 ms und eine von 84 ms; danach springt der Punkt um die
   ausgefallene Zeit weiter. Die Aufnahme auf dem Gerät wurde wieder gelöscht.
 - **Nutzerentscheidung vom 06.11.2026:** Der Stand ist nach dem Blick auf dem Samsung so
-  angenommen und wird Bestandteil des nächsten Releases. Die Render-Thread-Variante gegen die
+  angenommen und mit `1.2.7` veröffentlicht. Die Render-Thread-Variante gegen die
   kurzen Hänger ist zurückgestellt. Offen bleibt die Sichtprüfung am Dynavin D9 zusammen mit der
   Abnahme der Autoradio-Darstellung.
 
-### Lokale Überarbeitung der Autoradio-Darstellung vom 23.10.2026 – unveröffentlicht
+### Lokale Überarbeitung der Autoradio-Darstellung vom 23.10.2026 – veröffentlicht mit 1.2.7
 
 Nach der [Nutzerrückmeldung vom 23.10.2026](#4-bekannte-grenzen-und-freigabekriterien) zur
 Darstellung von `1.2.6` am direkt installierten Autoradio, einem **Dynavin D9** (Android 11; die
@@ -307,9 +336,9 @@ Nutzer vorgegeben: Das Radio-Layout wird getrennt vom Handy-Layout gestaltet, pa
 automatisch an die Bildschirmgröße an, beeinträchtigt das Handy-Layout nicht und erhält zusätzlich
 einen Größenregler von 80 bis 130 %. Grundlage ist eine Recherche zu Android Auto, Android
 Automotive, CarPlay, ISO 15008 und den NHTSA-Richtlinien; Regeln und Quellen stehen in
-[`Design.md`](Design.md#neugestaltung-vom-23102026--lokal-unveröffentlicht), die Architektur im
+[`Design.md`](Design.md#neugestaltung-vom-23102026--veröffentlicht-mit-127), die Architektur im
 [Entwicklerhandbuch](KRUXX-ENTWICKLERHANDBUCH.md#native-autoradio-oberfläche-seit-126-überarbeitet-am-23102026).
-Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
+Mit `1.2.7` veröffentlicht ([Release 1.2.7](#release-127-vom-13112026)).
 
 - **Befund zu `1.2.6`:** Alle Radio-Maße waren feste Werte, und die Leseschrift wurde app-weit auf
   Mindestgrößen angehoben; auf einem Radio mit hoher Herstellerdichte addieren sich beide. Der
@@ -368,7 +397,7 @@ Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
   Beschreibungstext des Reglers wurde als Formatangabe gelesen) ist behoben.
 - Das physische D9 ist nicht angeschlossen; die Abnahme dort bleibt offen.
 
-### Lokale Android-Auto-Überarbeitung vom 23.10.2026 – unveröffentlicht
+### Lokale Android-Auto-Überarbeitung vom 23.10.2026 – veröffentlicht mit 1.2.7
 
 Vom Nutzer beauftragt: die Android-Auto-Steuerung auf den aktuellen Standard bringen, gestützt auf
 eine saubere Webrecherche. Maßgeblich sind nur Primärquellen von Google: die Anleitungen für
@@ -1834,7 +1863,7 @@ separates späteres Funktionsvorhaben.
   Bilder über die vollständigen 120 ms linear und damit ohne Haltepunkt ineinander auf. Lokal
   überarbeitet und unveröffentlicht: ein ruhendes Motiv, über das die App den Lichtpunkt bei jeder
   Bildwiederholung gleichmäßig von links nach rechts zeichnet
-  ([§1](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht)).
+  ([§1](#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127)).
 - Das freigestellte Quellbild `icons/KruXx_App_Icon.png` wurde über die KruXx-Icon-Pipeline in adaptive,
   runde und klassische Launcher-Icons, Themed Icon, Benachrichtigungssymbol, TV-Banner sowie
   Cover-Platzhalter überführt.
@@ -2059,6 +2088,11 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
   sein HTTPS-Fix ist in `1.2.6` enthalten. Die nicht separat protokollierten Detailfälle bleiben
   Bestandteil der Regressionstest-Matrix. Der oben beschriebene API-24-Downloadfehler ist eine
   bekannte Einschränkung.
+- Für `1.2.7` bleiben offen: die Abnahme der überarbeiteten Autoradio-Darstellung und der
+  Startanimation am Dynavin D9, Android Auto im echten Fahrzeug oder im Desktop Head Unit, ein
+  langer Lauf mit ausgeschaltetem Display, eine Werbung im stummen Video und die Pause von außen
+  bei selbst klingendem Video. Video-Downloads scheitern seit Herbst 2026 (InnerTubeX `v0.7.4`);
+  das Update ist als nächster eigener Schritt vorgesehen.
 - Für `1.2.6` bleiben zusätzlich offen: die Abnahme am physischen, direkt installierten
   Autoradio (tatsächliche Dichte, Herstellerleisten, Hardwaretasten, Audioausgabe und Leistung)
   und die seit `1.2.4` zurückgestellte Diagnose der leeren Startseite am zweiten Testhandy.
@@ -2069,17 +2103,17 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
   Navigationsleiste 128 dp, Kacheln mindestens 160 dp × Schriftfaktor, Titelzeilen mindestens
   80 dp), und die Leseschrift wird app-weit auf Mindestgrößen angehoben. Keiner dieser Werte
   richtet sich nach der verfügbaren Fenstergröße. Am Gerät ist es ein Dynavin D9. Die
-  Neugestaltung ist [lokal umgesetzt und im Emulator geprüft](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht);
-  die Abnahme am D9 und eine Veröffentlichung stehen aus.
+  Neugestaltung ist [lokal umgesetzt und im Emulator geprüft](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127);
+  sie ist mit `1.2.7` veröffentlicht, die Abnahme am D9 steht aus.
 - **Auftrag vom 23.10.2026: Android-Auto-Steuerung auf den aktuellen Standard.** Cover über
   signierte lokale Adressen, Künstlerzeile, Raster- und Listendarstellung, Kennzeichen,
   Empfehlungen, Standardsymbole und genauere Sprachbefehle sind
-  [lokal umgesetzt und im Automotive-Emulator geprüft](#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht);
-  die Prüfung im echten Android Auto und eine Veröffentlichung stehen aus.
+  [lokal umgesetzt und im Automotive-Emulator geprüft](#lokale-android-auto-überarbeitung-vom-23102026--veröffentlicht-mit-127);
+  sie ist mit `1.2.7` veröffentlicht, die Prüfung im echten Android Auto steht aus.
 - **Auftrag vom 06.11.2026: Startanimation flüssiger.** Der Lichtpunkt wird jetzt gezeichnet und
   wandert gleichmäßig von links nach rechts;
-  [lokal umgesetzt, gemessen und auf dem Samsung angenommen](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht).
-  Er wird Bestandteil des nächsten Releases. Kurze Hänger durch die darunter ladende Startseite
+  [lokal umgesetzt, gemessen und auf dem Samsung angenommen](#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127).
+  Er ist mit `1.2.7` veröffentlicht. Kurze Hänger durch die darunter ladende Startseite
   bleiben; eine Render-Thread-Variante ist zurückgestellt.
 - Für `1.2.3` bleiben zusätzlich offen: die ausdrückliche Aktion „Radio starten“, der Abgleich des
   Zufallszustands mit Benachrichtigung und Android Auto in beide Richtungen sowie die
@@ -2099,6 +2133,9 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
+- Nachprüfung am 13.11.2026 vor der Veröffentlichung von `1.2.7`: Die GitHub-API meldet für
+  `Massefehler/KruXx`, `Massefehler/KruXx-innertube` und `Massefehler/KruXx-metrolist` jeweils
+  **0 offene Secret-Scanning-Alarme**; abgefragt wurde nur die Anzahl.
 - Nachprüfung am 23.10.2026: Die GitHub-API meldet für `Massefehler/KruXx`,
   `Massefehler/KruXx-innertube` und `Massefehler/KruXx-metrolist` jeweils **0 offene
   Secret-Scanning-Alarme**; abgefragt wurde nur die Anzahl, keine Alarminhalte. Vor der

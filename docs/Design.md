@@ -58,7 +58,7 @@ verfügbaren Fenstergröße ableiten, die Aufteilung des Players neu ordnen und 
 unverändert lassen. Der Prüfstand steht im
 [IST-Stand](KRUXX-IST-STAND.md#4-bekannte-grenzen-und-freigabekriterien).
 
-### Neugestaltung vom 23.10.2026 – lokal, unveröffentlicht
+### Neugestaltung vom 23.10.2026 – veröffentlicht mit 1.2.7
 
 Grundlage ist eine Recherche zu Medienoberflächen im Fahrzeug vom selben Tag. Die Vorgaben von
 Android Auto, Android Automotive und CarPlay gelten für eine direkt installierte App nicht
@@ -105,9 +105,9 @@ Umgesetzt ist daraus:
 
 Die Erkennung „Automatisch“ greift nur noch auf von Natur aus querformatigen Displays; Handys
 bleiben auch im Querformat beim Handy-Layout. Prüfstand und offene Abnahme am Dynavin D9 stehen im
-[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht).
+[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127).
 
-## Ergänzung: Startanimation mit wanderndem Lichtpunkt (06.11.2026, lokal, unveröffentlicht)
+## Ergänzung: Startanimation mit wanderndem Lichtpunkt (06.11.2026, veröffentlicht mit 1.2.7)
 
 Die Startanimation soll flüssig laufen; ausdrücklich gewünscht ist, dass der Lichtpunkt sauber
 von links nach rechts über die Welle wandert. Die zehn Quellframes zeigen dasselbe Motiv, nur der
@@ -124,12 +124,12 @@ Lichtpunkt bewegt sich, und zwar unregelmäßig (einmal um 40 % der Breite und d
   Wellenbalken, Farben, Wortmarke, Dauer und Ausblendung bleiben unverändert.
 - **Bewegung reduzieren:** Ist in Android „Animationen entfernen“ aktiv, bleibt das Motiv ruhig.
 
-Auf dem Samsung angenommen und für den nächsten Release vorgesehen. Lädt die Startseite darunter
+Auf dem Samsung angenommen und mit `1.2.7` veröffentlicht. Lädt die Startseite darunter
 gerade ihre Listen, kann der Punkt kurz haken; eine Animation auf dem Render-Thread dagegen ist
 zurückgestellt.
 
 Prüfstand im
-[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht),
+[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127),
 Technik im [Entwicklerhandbuch, §2.2](KRUXX-ENTWICKLERHANDBUCH.md#22-kruxx-flavor-commit-kruxx-).
 
 ## Visuelle Richtung

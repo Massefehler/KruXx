@@ -1,13 +1,16 @@
 # KruXx – Entwicklerhandbuch (Wiedereinstieg, Weiterentwicklung, Bugfixing)
 
-Stand: 13.11.2026 · KruXx `1.2.6` veröffentlicht, `1.2.7` mit Überarbeitung von Autoradio,
-Android Auto, Startanimation und Video-Hintergrundwiedergabe als Release vorbereitet · historische
-Basis: Kreate `main` @ `f02577e8` (v2.2.3)
+Stand: 13.11.2026 · KruXx `1.2.7` mit Video-Hintergrundwiedergabe und Überarbeitung von
+Autoradio, Android Auto und Startanimation veröffentlicht · historische Basis: Kreate `main` @
+`f02577e8` (v2.2.3)
 
 Der verbindliche lokale Produkt-, Prüf- und Freigabestand steht in
 [`KRUXX-IST-STAND.md`](KRUXX-IST-STAND.md); die Einordnung aller Dokumente in
-[`README.md`](README.md). KruXx `1.2.6` (`1000010`) ist veröffentlicht.
-Alle 240 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die endgültige signierte
+[`README.md`](README.md). KruXx `1.2.7` (`1000011`) ist am 13.11.2026 veröffentlicht: Quellcommit
+`6bc14016ce2384c7b3a7d0e81788d1c0ce4b75f8`, annotiertes Tag `v1.2.7`, 331 Tests, Release-Lint und
+CI bestanden, signierte APK am Samsung als Update über `1.2.6` geprüft, öffentlicher Download
+bytegleich ([IST-Stand](KRUXX-IST-STAND.md#release-127-vom-13112026)). Zuvor `1.2.6` (`1000010`):
+alle 240 Unit-Tests, vollständiger Release-Lint und CI sind bestanden. Die endgültige signierte
 APK ist im Android-11-Emulator bei 1280 × 720 und 1024 × 600 geprüft, einschließlich großer
 Systemschrift, erster Wiedergabe, Warteschlange, Spulen und Pausieren. Der anonyme öffentliche
 Download ist bytegleich mit dem Archiv. Quellcommit
@@ -16,16 +19,16 @@ mit deutschen und englischen Versionshinweisen sind unter
 <https://github.com/Massefehler/KruXx/releases/tag/v1.2.6> verfügbar.
 Die Prüfung am physischen Autoradio bleibt offen; die bisherige Samsung-Abnahme gilt für `1.2.5`.
 Nach der Nutzerrückmeldung vom 23.10.2026 ist die Autoradio-Darstellung lokal überarbeitet
-(unten und im [IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht)).
+(unten und im [IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127)).
 Am selben Tag ist die Android-Auto-Steuerung nach den aktuellen Google-Vorgaben überarbeitet
-(§4.7 und [IST-Stand](KRUXX-IST-STAND.md#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht)).
+(§4.7 und [IST-Stand](KRUXX-IST-STAND.md#lokale-android-auto-überarbeitung-vom-23102026--veröffentlicht-mit-127)).
 Am 06.11.2026 folgte die Startanimation: ein ruhendes Motiv, über das die App den Lichtpunkt selbst
-zeichnet (§2.2 und [IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht)).
+zeichnet (§2.2 und [IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127)).
 Am 13.11.2026 kam die Hintergrundwiedergabe von Videos hinzu: Ein Video im Videofenster läuft bei
 ausgeschaltetem Display als Audio weiter. Beim Wiedereinschalten bleibt der Ton beim nativen Player,
 und das Video folgt ihm ohne eigenen Ton; der Nutzer hat beides am Samsung abgenommen (§4.4, §9 und
-[IST-Stand](KRUXX-IST-STAND.md#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht)).
-Alle vier Überarbeitungen gehen als `1.2.7` (`1_000_011`) in ein Release; Umfang, Versionshinweise
+[IST-Stand](KRUXX-IST-STAND.md#lokale-hintergrundwiedergabe-von-videos-vom-13112026--veröffentlicht-mit-127)).
+Alle vier Überarbeitungen sind mit `1.2.7` (`1_000_011`) veröffentlicht; Umfang, Versionshinweise
 und Prüfstand im [IST-Stand](KRUXX-IST-STAND.md#release-127-vom-13112026).
 
 **Mit `1.2.4` veröffentlicht (07.10.2026):** InnerTubeX `v0.7.4` und ein
@@ -89,7 +92,7 @@ unter <https://github.com/Massefehler/KruXx>. Drei zentrale Unterschiede zum Ori
 
 Die Überarbeitung vom 23.10.2026 ist lokal umgesetzt und noch nicht veröffentlicht; Anlass,
 Umfang und Prüfstand stehen im
-[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht).
+[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127).
 Grundregel: Das Handy-Layout bleibt unverändert. Geteilte Komponenten zweigen nur über
 `isCarRadio`/`useSideNavigation` ab, und neue Radio-Maße gehören in `RadioMetrics`, nicht als
 feste Werte in einzelne Screens.
@@ -141,7 +144,7 @@ Einspalten-Browser.
 **Player.** `Player` delegiert im Radio-Modus an `CarRadioPlayer`. Der verwendet denselben
 `StatefulPlayer`, aktuelle Service-Metadaten, Player-Events, Position, Transporthelfer, Queue und
 Titelmenü. Aufbau nach Android Auto, Android Automotive und CarPlay (Quellen in
-[`Design.md`](Design.md#neugestaltung-vom-23102026--lokal-unveröffentlicht)): oben Minimieren,
+[`Design.md`](Design.md#neugestaltung-vom-23102026--veröffentlicht-mit-127)): oben Minimieren,
 Warteschlange und Titelmenü; das vollständige Cover quadratisch mit höchstens 45 % der Höhe und
 40 % der Breite neben Titel, Künstler und Album; die Zeitleiste über die volle Breite; darunter
 eine Transportzeile Zufall · Zurück · Play/Pause · Weiter · Wiederholen, mittig und höchstens
@@ -389,7 +392,7 @@ importieren, danach YouTube neu anmelden (Anmeldedaten sind vom Export ausgeschl
 ### 3.1 Eigener Updatekanal
 
 - API: `https://api.github.com/repos/Massefehler/KruXx/releases/latest`
-- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.6`
+- Tag: ausschließlich `vMAJOR.MINOR.PATCH`, aktuell `v1.2.7`
 - APK: exakt `KruXx-MAJOR.MINOR.PATCH-release.apk`
 - Standard: nachfragen; alternativ automatische Installation oder vollständig deaktiviert
 - automatische Prüfung: bei foreground-bereiter Oberfläche und validiertem Netzwerk; Netzrückkehr
@@ -881,7 +884,7 @@ Player-Initialisierung führen automatisch zum selben Audio-Rückfall und zu ein
 Das Videofenster meldet seinen echten Wiedergabe-/Pausezustand außerdem an den optionalen
 Benachrichtigungsschutz. Beim Verlassen wird es aus dem Lifecycle entfernt und freigegeben.
 
-#### Weiterhören bei ausgeschaltetem Display (lokal seit 13.11.2026)
+#### Weiterhören bei ausgeschaltetem Display (seit 1.2.7)
 
 `androidyoutubeplayer` 13.0.0 pausiert das WebView in `YouTubePlayerView.onStop()` bei jedem
 `ON_STOP` der Activity, also auch beim Ausschalten des Displays (im Bytecode geprüft;
@@ -1759,7 +1762,7 @@ Terminzusage. Dort ist seit 08.09.2026 auch die optionale Friends-Funktion vorge
 zuerst Musikteilen verbessern, später persönliche Nachrichten und Musikkarten. Vor einer
 Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt ein Kandidat.
 
-- **Hintergrundwiedergabe von Videos vom 13.11.2026 – lokal, unveröffentlicht:** Ein Video im
+- **Hintergrundwiedergabe von Videos vom 13.11.2026 – mit `1.2.7` veröffentlicht:** Ein Video im
   Videofenster läuft bei ausgeschaltetem Display oder verlassener App als Audio weiter. Beim
   Zurückkehren bleibt der Ton beim nativen Player, und das Video folgt ihm ohne eigenen Ton (§4.4);
   die frühere Übernahme des Tons durch das Video hakte hörbar und ist entfallen. Beides hat der
@@ -1769,7 +1772,7 @@ Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt 
   ein langer Lauf mit ausgeschaltetem Display, eine Werbung im stummen Video, die Pause von außen
   bei selbst klingendem Video, der einmalige Home-Fall mit „0 ms“ und die Abweichung bei
   KruXx-Normalisierung. Gerätestand und Nachweise führt der
-  [IST-Stand](KRUXX-IST-STAND.md#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht).
+  [IST-Stand](KRUXX-IST-STAND.md#lokale-hintergrundwiedergabe-von-videos-vom-13112026--veröffentlicht-mit-127).
 
 - **InnerTubeX-Update als nächster eigener Schritt nach `1.2.7`:** KruXx verwendet `v0.7.4`,
   aktuell ist `v0.11.7` (13.11.2026). Damit verbunden sind Ktor `3.6.0`, das im Oktober OkHttp
@@ -1779,10 +1782,10 @@ Messenger-Integration steht ein begrenzter technischer Prototyp; SimpleX bleibt 
   (§4.3). Umfang: Abhängigkeiten auflösen, API anpassen, Wiedergabe und Downloads vollständig am
   Samsung prüfen und klären, ob ein Video-Download ohne SABR wieder möglich ist.
 
-- **Startanimation vom 06.11.2026 – für den nächsten Release vorgesehen:** Der Lichtpunkt wird
+- **Startanimation vom 06.11.2026 – mit `1.2.7` veröffentlicht:** Der Lichtpunkt wird
   gezeichnet statt aus zehn Frames überblendet (§2.2) und ist auf dem Samsung vom Nutzer
-  angenommen. Beim Release die Versionshinweise ergänzen und die Sichtprüfung am Dynavin D9
-  zusammen mit der Autoradio-Abnahme erledigen. Zurückgestellt: eine Animation auf dem
+  angenommen. Offen ist die Sichtprüfung am Dynavin D9 zusammen mit der
+  Autoradio-Abnahme. Zurückgestellt: eine Animation auf dem
   Render-Thread, die auch weiterläuft, während die Startseite darunter lädt (§7.2). Offen ist
   außerdem eine Beobachtung aus dem Emulator: Der Kaltstart des aktuellen Arbeitsstands bis zum
   ersten Bild war gut 100 ms langsamer als bei `1.2.6`. Der Splash lädt jetzt weniger Bilder als

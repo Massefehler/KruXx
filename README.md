@@ -8,17 +8,18 @@ KruXx is an independent, open-source Android music player based on
 KruXx is not affiliated with, funded, authorized or endorsed by Google, YouTube,
 Kreate or RiMusic. YouTube and YouTube Music are trademarks of their respective owners.
 
-[KruXx 1.2.6](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6)
-(`versionCode 1000010`, Android 7.0+) is the current public stable release. It adds an adaptive
-interface for Android car radios running KruXx directly, restores full cover artwork over a
-blurred background on Android 11, fixes first playback after a fresh installation and includes
-the HTTPS playback fix from local 1.2.5.
-All 240 unit tests, release lint and CI passed. The final signed APK was tested in an Android 11
-emulator at 1280 × 720 and 1024 × 600, including larger system text. The anonymous public download
-matches the tested APK byte for byte. Verification details and remaining device checks are in the
+[KruXx 1.2.7](https://github.com/Massefehler/KruXx/releases/tag/v1.2.7)
+(`versionCode 1000011`, Android 7.0+) is the current public stable release. Videos in the video
+window keep playing as audio when the display turns off or you leave the app, and the video
+returns silently in step with that audio. It also reworks the car radio view, brings Android Auto
+in line with current guidelines and smooths the startup animation.
+All 331 unit tests, release lint and CI passed. The final signed APK was tested on a Samsung
+Galaxy S25 with Android 17 as an update over 1.2.6, and the anonymous public download matches it
+byte for byte. Verification details and remaining device checks are in the
 [KruXx status report](docs/KRUXX-IST-STAND.md). The release notes are available in German and
-English on GitHub and [in the app](docs/changelogs/kruxx/1.2.6.txt). The physical car radio still
-needs testing, and the empty home page on a second phone still needs investigation.
+English on GitHub and [in the app](docs/changelogs/kruxx/1.2.7.txt). Video downloads currently
+fail because YouTube no longer offers a direct video stream to the InnerTubeX version in use; an
+update is planned. The physical car radio and real Android Auto still need testing.
 Android Auto in a real vehicle, physical SD/USB
 providers and the broader interaction matrix still require testing. The dedicated podcast
 section remains a separate future feature.
