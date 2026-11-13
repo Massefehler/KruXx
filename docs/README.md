@@ -1,6 +1,6 @@
 # KruXx-Dokumentation
 
-Stand: 20.10.2026 · Öffentlich `1.2.6`
+Stand: 13.11.2026 · Öffentlich `1.2.6`
 
 [KruXx `1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) / `1000010`
 ist als neuester stabiler Release veröffentlicht. Er ergänzt die native Autoradio-Darstellung
@@ -13,8 +13,30 @@ Die signierte APK ist im Android-11-Emulator bei 1280 × 720 und 1024 × 600 ein
 Schrift geprüft; der anonyme öffentliche Download ist bytegleich mit dem Archiv.
 GitHub und App enthalten deutsche und englische Versionshinweise. Prüfstand und Artefakte stehen im
 [IST-Stand](KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026), die Architektur im
-[Entwicklerhandbuch](KRUXX-ENTWICKLERHANDBUCH.md#native-autoradio-oberfläche-seit-126).
+[Entwicklerhandbuch](KRUXX-ENTWICKLERHANDBUCH.md#native-autoradio-oberfläche-seit-126-überarbeitet-am-23102026).
 Das physische Autoradio ist nicht angeschlossen; dessen Abnahme bleibt offen.
+Nach der Nutzerrückmeldung vom 23.10.2026 ist die Autoradio-Darstellung von `1.2.6` so nicht
+abgenommen: Bedienelemente waren zu groß, und der Player drängte die Inhalte rechts neben dem
+Cover zusammen. Eine Neugestaltung mit größenabhängigen Maßen, neuer Player-Aufteilung und
+Größenregler ist lokal umgesetzt und im Emulator geprüft; die Automatik schaltet Handys nicht
+mehr um. Offen sind die Abnahme am Dynavin D9 und die Veröffentlichung
+([IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht)).
+Ebenfalls lokal und unveröffentlicht ist die Android-Auto-Steuerung nach den aktuellen
+Google-Vorgaben überarbeitet: Cover über signierte lokale Adressen, Künstlerzeile, Raster für
+Alben und Künstler, Kennzeichen, Empfehlungen, Standardsymbole und genauere Sprachbefehle. Sie ist
+im Android-Automotive-Emulator geprüft; die Handy-Benachrichtigung bleibt unverändert. Offen ist der
+Test im echten Android Auto
+([IST-Stand](KRUXX-IST-STAND.md#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht)).
+Seit dem 06.11.2026 ebenfalls lokal: Die Startanimation zeichnet ihren Lichtpunkt selbst, sodass er
+bei jeder Bildwiederholung gleichmäßig von links nach rechts über die Welle wandert. Sie ist auf dem
+Samsung angenommen und für den nächsten Release vorgesehen
+([IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht)).
+Seit dem 13.11.2026 ebenfalls lokal: Ein Video im Videofenster läuft bei ausgeschaltetem Display ohne
+Lücke und mit gleicher Lautstärke als Audio weiter. Beim Wiedereinschalten bleibt der Ton, und das
+Video folgt ihm ohne eigenen Ton; das ist am Samsung abgenommen
+([IST-Stand](KRUXX-IST-STAND.md#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht)).
+Diese vier lokalen Überarbeitungen sind als `1.2.7` zum Release vorbereitet
+([IST-Stand](KRUXX-IST-STAND.md#release-127-vom-13112026)).
 Die Startseiten-Diagnose am zweiten Handy ist zurückgestellt.
 
 `1.2.4` brachte zuvor InnerTubeX `v0.7.4` und einen anonymen Wiedergabe-Rückfall für abgelehnte
@@ -60,7 +82,8 @@ Rubriken sowie Queue-Sheet, Werkzeugleisten, Suche, Filter und Inhaltskarten all
 Bibliotheks-Reiter. Der Stand ist auf dem Samsung-Zielgerät geprüft; weiterführende Geräte- und
 Darstellungsmatrizen bleiben im Statusdokument transparent als Nachtests festgehalten. Der
 eigenständige Podcast-Bereich mit vollständiger Podcast-Funktion bleibt
-als separates späteres Vorhaben vorgemerkt und ist auch kein Bestandteil von `1.2.2`.
+als separates späteres Vorhaben vorgemerkt und ist bis einschließlich `1.2.6` in keinem Release
+enthalten.
 Die [Roadmap](../ROADMAP.md) bündelt künftige Vorhaben. Produktstatus und detaillierte Nachtests
 stehen in `KRUXX-IST-STAND.md` §4 und im Entwicklerhandbuch §9; das Designkonzept konkretisiert
 Implementierungsstand, Abgrenzung und Abnahmekriterien. Historische Release Notes werden dafür

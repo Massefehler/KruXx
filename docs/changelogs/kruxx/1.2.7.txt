@@ -1,0 +1,25 @@
+Deutsch:
+- Videos im Videofenster laufen bei ausgeschaltetem Display oder verlassener App ohne Lücke als Ton weiter
+- Beim Zurückkehren bleibt der Ton unverändert; das Video folgt ihm ohne eigenen Ton, und Pause, Wiedergabe und Zeitleiste im Video steuern den Ton
+- Videos spielen mit der KruXx-Wiedergabelautstärke und damit so laut wie die Musik; bei der Vorgabe sind sie 6 dB leiser als bisher
+- Mit aktiviertem schwebendem Fenster stoppt ein Video beim Verlassen der App nicht mehr; sein Ton läuft weiter
+- Wiedergabe über Benachrichtigung, Sperrbildschirm oder Kopfhörer setzt ein Video fort, statt seinen Ton ein zweites Mal stockend zu starten
+- Gespeicherte Videos werden im Videofenster sauber an den runden Ecken beschnitten
+- Überarbeitete Autoradio-Ansicht: Maße richten sich nach der Bildschirmhöhe, der Player zeigt das Cover neben den Titelangaben und die Tasten in einer Zeile darunter, dazu der Regler „Größe der Autoradio-Ansicht“ (80–130 %)
+- „Automatisch“ wählt die Autoradio-Ansicht nur noch auf von Natur aus querformatigen Displays; Handys im Querformat behalten das Handy-Layout
+- Android Auto zeigt Cover, Künstler, Alben und Künstler als Raster, Kennzeichen für Explicit und Downloads sowie Vorschläge und setzt Sprachbefehle für Playlists, Künstler und Alben genauer um
+- Die Startanimation zeichnet ihren Lichtpunkt flüssig von links nach rechts über die Welle
+- Behebt eine Flut von Benachrichtigungs-Updates, wenn ein Video nach Musik startete
+
+English:
+- Videos in the video window keep playing as audio without a gap when the display turns off or you leave the app
+- When you return, the audio continues unchanged; the video follows it without its own sound, and pause, play and the progress bar in the video control the audio
+- Videos play at the KruXx playback volume and therefore as loud as music; at the default this is 6 dB quieter than before
+- With the floating window enabled, leaving the app no longer stops a video; its audio keeps playing
+- Play from the notification, lock screen or headset resumes a video instead of starting its audio a second time with stutters
+- Saved videos are clipped cleanly to the rounded corners of the video window
+- Reworked car radio view: sizes follow the screen height, the player shows the cover next to the track details with the controls in one row below, plus a "Car radio size" slider (80–130 %)
+- "Automatic" now picks the car radio view only on displays that are landscape by nature; phones held in landscape keep the phone layout
+- Android Auto shows covers, artists, albums and artists as grids, explicit and download badges and suggestions, and handles voice requests for playlists, artists and albums more precisely
+- The startup animation draws its light smoothly from left to right across the wave
+- Fixes a flood of notification updates when a video started after music

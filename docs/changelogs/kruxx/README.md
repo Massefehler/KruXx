@@ -4,9 +4,10 @@ Die Datei `<versionName>.txt` enthält genau die Hinweise, die für diese KruXx-
 Changelog-Dialog der Release-App erscheinen. Veröffentlichte Dateien sind historische Belege und
 werden nicht nachträglich um Funktionen späterer Versionen ergänzt.
 
-Für `1.2.4` stehen die Hinweise auf Nutzerwunsch in den beiden Abschnitten `Deutsch` und
-`English`; der bestehende Changelog-Dialog zeigt dafür je einen Reiter. Die öffentliche
-GitHub-Release-Beschreibung zu `1.2.4` ist ebenfalls zweisprachig veröffentlicht.
+Seit `1.2.4` stehen die Hinweise auf Nutzerwunsch in den beiden Abschnitten `Deutsch` und
+`English`; der bestehende Changelog-Dialog zeigt dafür je einen Reiter. Das gilt für `1.2.4`,
+`1.2.5`, `1.2.6` und `1.2.7`. Die öffentlichen GitHub-Release-Beschreibungen zu `1.2.4` und `1.2.6` sind
+ebenfalls zweisprachig; `1.2.5` wurde nicht separat veröffentlicht.
 
 Format:
 

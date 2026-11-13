@@ -59,6 +59,18 @@ crash report is uploaded automatically or offered to the Kreate project.
 
 ## KruXx changes
 
+### New in 1.2.7
+
+Videos in the video window keep playing as audio without a gap when the display turns off or you
+leave the app. When you return, the audio continues untouched and the video follows it silently;
+pause, play and the progress bar in the video control the audio. Videos now play at the KruXx
+playback volume, as loud as music, and the floating window no longer stops a playing video. The car radio view is reworked: sizes follow the screen height,
+the player shows the cover beside the track details with the controls below, a size slider adjusts
+it, and phones held in landscape no longer switch to it. Android Auto shows covers, artists, album
+and artist grids, badges and suggestions and handles voice requests more precisely. The startup
+light travels smoothly across the wave. Scope and evidence are recorded in the
+[status report](docs/KRUXX-IST-STAND.md#release-127-vom-13112026).
+
 ### New in 1.2.6
 
 Adds the adaptive car radio layout, full cover artwork over a blurred cover background on Android 11,

@@ -1,13 +1,15 @@
 # KruXx Glass – Designkonzept
 
-Stand: 11.09.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
+Stand: 06.11.2026 · zwei Umsetzungsstufen veröffentlicht als KruXx `1.1.0`
 „Glass Update“ · weitere Menü-, Listen- und Statistikkorrekturen veröffentlicht mit
 [KruXx `1.2.0` „Downloads Update“](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
 Die Leisten- und Header-Korrekturen vom 08.09.2026 sind mit
 [KruXx `1.2.1`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1) veröffentlicht.
 Die gemeinsamen Kachel- und Titelflächen sowie die zurückgenommene Suchnavigation vom
 11.09.2026 sind mit [KruXx `1.2.2`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2)
-veröffentlicht.
+veröffentlicht. Die native Autoradio-Darstellung ist mit
+[KruXx `1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) veröffentlicht,
+nach der Nutzerrückmeldung vom 23.10.2026 aber nicht abgenommen (siehe unten).
 Die vollständige Darstellungsmatrix bleibt als Nachtest dokumentiert.
 
 ## Ziel und Abgrenzung
@@ -46,6 +48,89 @@ und Schriftfaktor ein bis drei Spalten. Das Glass-Farbsystem und die gewählte S
 
 Sichtprüfung, signierter Build und die ausdrücklich noch nötige Prüfung am physischen Radio stehen
 im [IST-Stand](KRUXX-IST-STAND.md#lokaler-autoradio-build-126-vom-20102026).
+
+**Rückmeldung vom 23.10.2026:** Der Nutzer lehnt diese Darstellung ab. Bedienelemente, Grafiken
+und Tasten sind deutlich zu groß, und der zweispaltige Player drängt Titelangaben, Zeitleiste und
+Tasten rechts neben dem Cover zusammen. Die oben genannten Maße sind feste Werte, ebenso die
+128 dp breite Navigationsleiste, Kacheln ab 160 dp und Titelzeilen ab 80 dp; zusätzlich hebt der
+Radio-Modus die Leseschrift app-weit an. Die Neugestaltung soll alle Radio-Maße aus der
+verfügbaren Fenstergröße ableiten, die Aufteilung des Players neu ordnen und das Handy-Layout
+unverändert lassen. Der Prüfstand steht im
+[IST-Stand](KRUXX-IST-STAND.md#4-bekannte-grenzen-und-freigabekriterien).
+
+### Neugestaltung vom 23.10.2026 – lokal, unveröffentlicht
+
+Grundlage ist eine Recherche zu Medienoberflächen im Fahrzeug vom selben Tag. Die Vorgaben von
+Android Auto, Android Automotive und CarPlay gelten für eine direkt installierte App nicht
+verbindlich, sind aber die beste Referenz:
+
+- **Aufteilung des Players:** Android Auto stellt Cover und Titelangaben nebeneinander und
+  darunter eine einzige Steuerzeile über die volle Breite, Play/Pause in der Mitte, höchstens fünf
+  Aktionen ([Playback view](https://developers.google.com/cars/design/android-auto/apps/playback-view)).
+  Android Automotive ordnet Zeitleiste und Steuerleiste ebenso unten an und begrenzt die
+  Steuerleiste auf etwa 1028 dp, mittig. Das Cover belegt dort etwa ein Drittel der Höhe, nicht
+  wie bisher in KruXx rund 42 % der Breite. Eine Warteschlange dauerhaft neben dem Player sieht
+  keine der Plattformen vor.
+- **Größen:** Die 76-dp-Trefferflächen von Android Automotive beziehen sich auf Displays, deren
+  Dichte für den Sitzabstand gewählt ist, und entsprechen dort etwa 10–13 mm. Auf einem
+  Nachrüstradio mit handyähnlicher Dichte wären dieselben dp-Werte 1,4- bis 2-mal so groß. Deshalb
+  sollen sich Größen aus der verfügbaren Fläche ergeben, nicht als feste dp-Werte übernommen werden.
+  Für Schrift empfiehlt ISO 15008 eine Großbuchstabenhöhe von etwa 20 Bogenminuten; bei rund 70 cm
+  Abstand ist das eine Schriftgröße von etwa 5–6 mm für Haupttext.
+- **Ablenkung:** keine laufenden oder automatisch scrollenden Texte, lange Texte enden mit „…“
+  ([Car app quality](https://developer.android.com/docs/quality-guidelines/car-app-quality)).
+  Die NHTSA-Richtlinien nennen Blickdauern von höchstens 2 s.
+- **Navigation:** eine schmale, feste Leiste von etwa 80–96 dp mit wenigen Zielen
+  ([Material Navigation Rail](https://github.com/material-components/material-components-android/blob/master/docs/components/NavigationRail.md));
+  CarPlay legt wichtige Inhalte und Bedienelemente in die obere Bildschirmhälfte
+  ([CarPlay HIG](https://developer.apple.com/design/human-interface-guidelines/carplay)).
+
+Umgesetzt ist daraus:
+
+- Alle Radio-Maße leiten sich aus der Fensterhöhe ab (`RadioMetrics`, Referenz 1024 × 600 bei
+  160 dpi, Faktor 0,75–1,25), sodass dasselbe Panel bei 160 und 240 dpi physisch ähnlich aussieht.
+  Trefferflächen mindestens 48 dp, Play/Pause mindestens 56 dp; die Leseschrift bleibt mindestens
+  so groß wie auf dem Handy. Der Regler „Größe der Autoradio-Ansicht“ (80–130 %) gleicht
+  abweichende Herstellerdichten oder Sitzabstände aus und erscheint nur im Radio-Modus.
+- Player: oben Minimieren, Warteschlange und Titelmenü; Cover quadratisch mit höchstens 45 % der
+  Höhe und 40 % der Breite neben Titel, Künstler und Album; Zeitleiste über die volle Breite; eine
+  mittige Transportzeile Zufall · Zurück · Play/Pause · Weiter · Wiederholen.
+- Navigation: Leiste ab 80 dp statt 128 dp, so breit wie das längste Wort der Beschriftungen;
+  Seiten mit nur einem Reiter zeigen wie auf dem Handy keine Leiste. Die großen
+  Abschnittsüberschriften der Bibliotheksreiter entfallen im Radio, weil die Leiste den Bereich
+  benennt.
+- Inhalte: keine app-weiten Mindestschriften, Titelzeilen in Handyhöhe, Kacheln proportional zur
+  Fläche, Suchergebnisse als Kachelraster beziehungsweise in Spalten, vollständig geöffnete
+  Titelmenüs, kein Lauftext. Glasflächen, Farben und Schriftart bleiben unverändert.
+
+Die Erkennung „Automatisch“ greift nur noch auf von Natur aus querformatigen Displays; Handys
+bleiben auch im Querformat beim Handy-Layout. Prüfstand und offene Abnahme am Dynavin D9 stehen im
+[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht).
+
+## Ergänzung: Startanimation mit wanderndem Lichtpunkt (06.11.2026, lokal, unveröffentlicht)
+
+Die Startanimation soll flüssig laufen; ausdrücklich gewünscht ist, dass der Lichtpunkt sauber
+von links nach rechts über die Welle wandert. Die zehn Quellframes zeigen dasselbe Motiv, nur der
+Lichtpunkt bewegt sich, und zwar unregelmäßig (einmal um 40 % der Breite und danach zurück). Bei
+120 ms je Frame wirkte er deshalb stockend und durch das Überblenden verwaschen.
+
+- **Eine Bewegung, ein Takt:** Das Motiv steht ruhig. Bewegt wird nur der Lichtpunkt, gezeichnet
+  bei jeder Bildwiederholung des Displays statt in acht Bildern pro Sekunde. Er tritt links ein,
+  läuft mit nahezu gleichbleibender Geschwindigkeit nach rechts und blendet an beiden Enden weich
+  ein und aus. Der Leuchthof hinter dem Motiv atmet im selben Takt und ist am stärksten, wenn der
+  Punkt das „K“ kreuzt.
+- **Optik wie im Original:** weißer Kern mit kurzem Glanz, langer horizontaler Lichtstreifen,
+  blauer Halo und kurzzeitig aufgehellte Balken, additiv auf das Motiv gelegt. Kachel, „K“,
+  Wellenbalken, Farben, Wortmarke, Dauer und Ausblendung bleiben unverändert.
+- **Bewegung reduzieren:** Ist in Android „Animationen entfernen“ aktiv, bleibt das Motiv ruhig.
+
+Auf dem Samsung angenommen und für den nächsten Release vorgesehen. Lädt die Startseite darunter
+gerade ihre Listen, kann der Punkt kurz haken; eine Animation auf dem Render-Thread dagegen ist
+zurückgestellt.
+
+Prüfstand im
+[IST-Stand](KRUXX-IST-STAND.md#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht),
+Technik im [Entwicklerhandbuch, §2.2](KRUXX-ENTWICKLERHANDBUCH.md#22-kruxx-flavor-commit-kruxx-).
 
 ## Visuelle Richtung
 

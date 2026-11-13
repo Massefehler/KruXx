@@ -1,6 +1,6 @@
 # Downloads, MP3 und Dateikopien
 
-Stand: 11.09.2026. Grundfunktion veröffentlicht mit [KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
+Stand: 13.11.2026. Grundfunktion veröffentlicht mit [KruXx 1.2.0](https://github.com/Massefehler/KruXx/releases/tag/v1.2.0).
 Die unten beschriebenen Korrekturen an Downloadsymbol, Suchnavigation und Künstler-/Titelzuordnung
 vom 08.09.2026 sind mit [KruXx 1.2.1](https://github.com/Massefehler/KruXx/releases/tag/v1.2.1)
 veröffentlicht. Signierte Prüfungen auf API 24 und API 36 bestätigen Konvertierung, Metadaten,
@@ -8,6 +8,8 @@ Offline-Wiedergabe und interne Entfernung bei erhaltener öffentlicher Kopie.
 Die dort genannte Suchnavigation ist seit
 [KruXx 1.2.2](https://github.com/Massefehler/KruXx/releases/tag/v1.2.2) wieder auf die eigenen
 Kategorien der Suchleiste zurückgenommen; die Downloadfunktionen selbst sind davon unberührt.
+Seit [KruXx 1.2.6](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) bleiben auch
+Downloads bei Google-Video-Weiterleitungen auf HTTPS (siehe Architektur).
 Die unten aufgeführten offenen Gerätefälle bleiben Nachtests und gelten nicht als bestanden.
 Der verbindliche Prüfstatus steht in [KRUXX-IST-STAND.md](KRUXX-IST-STAND.md).
 KruXx `1.2.0` setzt Android 7.0 / API 24 voraus; Android 6 gehört seit der Supportentscheidung
@@ -226,8 +228,27 @@ vollständig vorhandene Quellen wird keine unnötige Netzwerkbedingung gesetzt.
   sind ausgeschlossen. Byte-Range-Videotransfers laufen außerhalb der Audio-Resolver-/Cachekette;
   ignorierte oder unvollständige Range-Antworten werden abgelehnt. Media3 muxed VP8/VP9 plus
   Opus/Vorbis nach WebM, andere unterstützte Kombinationen nach MP4.
-- `OfflineVideoPlayer` verwendet einen lokalen ExoPlayer mit Android-Steuerung, Positionsübergabe
-  und Lifecycle-Pause. Für fertige Videos werden weder IFrame noch Netzwerkauflösung gestartet.
+- Seit `1.2.6` (lokal zuerst als `1.2.5` geprüft) verwenden Audio-Downloads, ihre Längenprobe
+  und der Videotransfer denselben Medientransport wie die Wiedergabe (`forMediaTransport()` in
+  `MediaTransport.kt`). Leitet Google Video einen HTTPS-Abruf auf eine HTTP-Adresse um, wird
+  dasselbe CDN-Ziel über HTTPS geladen; Androids Cleartext-Sperre bleibt aktiv. Auf dem Gerät
+  ist diese Weiterleitung bisher nur für die Wiedergabe nachgewiesen.
+- `OfflineVideoPlayer` verwendet einen lokalen ExoPlayer mit Android-Steuerung und
+  Positionsübergabe. Für fertige Videos werden weder IFrame noch Netzwerkauflösung gestartet.
+  Seit der lokalen Änderung vom 13.11.2026 spielt er mit der KruXx-Wiedergabelautstärke und
+  übergibt beim Ausschalten des Displays oder Verlassen der App an den Audio-Weg. Der spielt wie
+  bisher den vollständigen Original-Download oder sonst die gespeicherte MP3- beziehungsweise
+  Videodatei (`PlaybackHintMediaSourceFactory`). Beim Zurückkehren bleibt der Ton dort; das Video
+  läuft ohne eigenen Ton mit, folgt ihm über eine stufenlose Tempoanpassung, und seine
+  Bedienelemente steuern den Ton
+  ([Entwicklerhandbuch, §4.4](KRUXX-ENTWICKLERHANDBUCH.md#weiterhören-bei-ausgeschaltetem-display-lokal-seit-13112026)).
+  Am 13.11.2026 am Samsung mit einem im September gespeicherten Video geprüft; dabei sind ein
+  falscher Nutzer-Sprung beim Zurückkehren und die eckigen Ränder des lokalen Players behoben.
+- **Bekannte Einschränkung seit Herbst 2026:** „Video mit Ton“ endet mit „Nicht fertiggestellt“
+  bei 50 %. Der Ton wird geladen, die Videospur lässt sich mit InnerTubeX `v0.7.4` nicht auflösen
+  (kein Client liefert eine direkte Videoadresse). Ein InnerTubeX-Update ist als eigener Schritt
+  vorgesehen; Diagnose im
+  [Entwicklerhandbuch, §4.3](KRUXX-ENTWICKLERHANDBUCH.md#43-downloads).
 
 Die Oberfläche ist auf `BuildConfig.INDEPENDENT_FORK` begrenzt. Gemeinsame Android-Abhängigkeiten
 und native Bibliotheken werden auch in den geerbten Android-Flavors mitgebaut.

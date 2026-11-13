@@ -1,6 +1,8 @@
 # KruXx – aktueller IST-Stand
 
-Stand: 20.10.2026 · Öffentlich `1.2.6`, signierte APK und öffentlicher Download geprüft
+Stand: 13.11.2026 · Öffentlich `1.2.6` · `1.2.7` mit überarbeiteter Autoradio-Darstellung,
+Android-Auto-Steuerung, Startanimation und Video-Hintergrundwiedergabe als Release vorbereitet ·
+Abnahme am Dynavin D9 und in Android Auto offen
 
 Dieses Dokument trennt implementierte Funktionen, bereits nachgewiesene Tests und noch offene
 Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
@@ -13,7 +15,7 @@ Freigabeprüfungen. Architektur- und Wartungsdetails stehen im
 | Produkt | KruXx – The core of your music |
 | Öffentlicher Release | [`1.2.6`](https://github.com/Massefehler/KruXx/releases/tag/v1.2.6) |
 | Öffentlicher Android-Versionscode | `1_000_010` |
-| Lokaler Entwicklungsstand | `1.2.6` / `1_000_010`; veröffentlichter App-Quellstand `3736ebff004fa5eb6e947fbf84bc969d9cd5927e`, danach nur Dokumentation |
+| Lokaler Entwicklungsstand | `1.2.7` / `1_000_011` als [Release-Kandidat](#release-127-vom-13112026); veröffentlichter App-Quellstand von `1.2.6`: `3736ebff004fa5eb6e947fbf84bc969d9cd5927e`; darin enthalten die bisher nicht committete [Überarbeitung der Autoradio-Darstellung vom 23.10.2026](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht) und die ebenfalls nicht committete [Android-Auto-Überarbeitung vom 23.10.2026](#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht), dazu die nicht committete [Überarbeitung der Startanimation vom 06.11.2026](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht) und die nicht committete [Hintergrundwiedergabe von Videos vom 13.11.2026](#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht) |
 | Zuletzt auf dem Samsung geprüft | `1.2.5` / `1_000_009`, HTTPS-Wiedergabe-Patch |
 | Schwerpunkt von 1.2.6 | Native Autoradio-Oberfläche, vollständiges Cover mit Blur, erste Wiedergabe und HTTPS-CDN-Weiterleitungen |
 | Release-Paket | `de.kruxx.music` |
@@ -29,6 +31,432 @@ KruXx ist ein eigenständiger Fork. Es gibt keine automatische Übernahme neuer 
 keinen Push, Crashbericht oder Supportlink zum Kreate-Projekt. Kreate, RiMusic, Metrolist und weitere
 Urheber bleiben entsprechend ihrer Beiträge genannt; diese Danksagung und Lizenzpflicht bedeutet
 keine organisatorische Verbindung oder Mitverantwortung für KruXx.
+
+### Release 1.2.7 vom 13.11.2026
+
+Vom Nutzer am 13.11.2026 beauftragt: die offenen Punkte umsetzen, das Release vorbereiten und
+veröffentlichen („setz die offenen Punkte sauber um, das release vorbereiten und pushen“); die
+Versionsnummer `1.2.7` hat der Nutzer vorgegeben.
+
+- **Umfang:** die vier bisher lokalen Überarbeitungen, also die
+  [Autoradio-Darstellung](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht)
+  und [Android Auto](#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht) vom
+  23.10.2026, die [Startanimation](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht)
+  vom 06.11.2026 und die
+  [Hintergrundwiedergabe von Videos](#lokale-hintergrundwiedergabe-von-videos-vom-13112026--unveröffentlicht)
+  vom 13.11.2026. Versionshinweise zweisprachig in `docs/changelogs/kruxx/1.2.7.txt`, elf Einträge
+  je Sprache; die eingebettete Kopie ist bytegleich.
+- **Lautstärke von Videos:** Videos folgen weiter der KruXx-Wiedergabelautstärke, bei der Vorgabe 0,5
+  also 6 dB leiser als bis `1.2.6`, dafür so laut wie die Musik. Beibehalten, weil der Nutzer den
+  Pegelsprung beim Wechsel beanstandet hatte („Lautstärke ändert sich“); die Versionshinweise nennen
+  es. Eine ausdrückliche Antwort auf die Rückfrage steht aus.
+- **Nacharbeit am stummen Video:** Im automatischen Gerätetest am Samsung sprang die Zeitleiste im
+  stummen Video von 3:28 auf rund 29:05; der Ton folgte. Während er an der neuen
+  Stelle puffert (hier gut 5 s), lief das Video weiter, noch mit 1,25-facher Geschwindigkeit aus
+  einer laufenden Korrektur, und musste danach 5,9 s zurückspringen. Jetzt wartet das Video
+  pausiert, sobald der Ton länger als 400 ms puffert (`onAudioStalled`), und jede Pause und jeder
+  Sprung beendet eine Tempoänderung. Gespeicherte Videos warten ebenso. Das gilt auch für
+  Netzaussetzer mitten im Set.
+- **Schwebendes Fenster mit Video (geerbter Fehler, schon in `1.2.6`):** Im schwebenden Fenster
+  ersetzt KruXx die ganze Oberfläche durch das Cover (`PipModule.Cover`). Ein selbst klingendes
+  Video wurde dabei beendet, und weil der native Player während eines Videos entladen ist, lief
+  danach gar nichts mehr. Jetzt öffnet KruXx das Fenster bei einem selbst klingenden Video nicht
+  automatisch und nicht per Geste, sondern übergibt den Ton lückenlos wie beim Ausschalten. Läuft
+  der Ton nativ (stummes Video), öffnet sich das Fenster wie bei Musik mit dem Cover, und der Ton
+  läuft weiter. Ein abgespieltes Video im Fenster selbst ist damit weiterhin nicht möglich.
+- **Gespeicherte Videos:** Der Anfangssprung des stummen lokalen Videos auf die Tonposition galt
+  als Sprung des Nutzers und setzte den Ton auf seine eigene Position, was hörbar haken kann. Er
+  läuft jetzt wie jede eigene Bewegung über `moveVideo`. Außerdem zeichnet der lokale Player in eine
+  `TextureView` statt in eine `SurfaceView` (`offline_video_player_view.xml`). Die `SurfaceView`
+  lag als eigene Grafikebene über den runden Ecken des Videofensters; vom Nutzer gemeldet („man
+  sieht die oberen Ecken“).
+- **Play-Befehl von außen während eines Videos (älterer Fehler, in `1.2.6` schlimmer):** Zeigt das
+  Videofenster ein Video mit eigenem Ton, hält der native Player nur dessen Eintrag und übernimmt
+  laufend die Videoposition. Ein Play über Benachrichtigung, „Now Bar“, Sperrbildschirm oder
+  Kopfhörer startete ihn trotzdem: doppelter Ton, und jede Positionsübernahme ließ ihn
+  zurückspringen. Beim Test mit dem lokalen Player 22 Decoder-Rücksetzer in 20 s, vom Nutzer als
+  Schleife gehört („hängt in einem loop“). Jetzt geht ein solcher Befehl an das Video
+  (`playBelongsToVideo`), der native Player bleibt entladen. Bei geschlossenem Videofenster
+  spielt der Ton wie bisher. Am Gerät geprüft: keine Rücksetzer, ein einziger Audiokanal, ein
+  pausiertes lokales Video läuft nach „Play“ von außen weiter; beim YouTube-Video kommt der Befehl
+  ebenfalls beim Video an. Eine Pause von außen erreicht ein selbst klingendes Video weiterhin
+  nicht.
+- **Gerätetests am Samsung SM-S931B / Android 17** mit dem Debug-Build `1.2.7` (Datenerhalt,
+  Erstinstallation 03.09.2026 unverändert, Release-App unberührt), DJ-Set als Nutzer-Video:
+  - Home übergab nach 5.854–5.916 ms Klang an den nativen Player. Bei jeder Rückkehr kam das Video
+    stumm zurück und lag nach höchstens 1,6 s unter 30 ms Abstand, danach bei 8–41 ms. Das
+    WebView öffnete keinen eigenen Audiokanal und forderte keinen Audiofokus an.
+  - Pause und Wiedergabe über die Mediensteuerung des Systems nahmen das Video mit. Pause,
+    Wiedergabe und Zeitleiste im Video steuerten den Ton; nach dem Sprung wartete das Video
+    0,5 s auf den puffernden Ton und lag nach 2 s bei −2 ms.
+  - Minimieren ließ den Ton laufen, der Mini-Player brachte das stumme Video zurück; „Nur Audio
+    abspielen“ beendete es ohne Eingriff in den Ton.
+  - Schwebendes Fenster (für den Test in der Debug-App aktiviert und danach wieder deaktiviert):
+    Home bei selbst klingendem Video öffnete kein Fenster, sondern übergab nach 5.854 ms; mit
+    stummem Video öffnete Home das Fenster mit Cover, der Ton lief weiter; Vergrößern brachte das
+    stumme Video zurück; Schließen pausierte den Ton.
+  - Gespeichertes Video („Caminandes 1 – Llama Drama“, im September gespeichert): Übergabe per
+    Home, stumme Rückkehr mit 221 → 12 ms ohne falsche Nutzermeldung, Pause und Wiedergabe in der
+    Steuerleiste des lokalen Players steuerten den Ton, die Ecken sind rund.
+  - Der Nutzer hat selbst Ausschalten, Pause im Video und Entsperren getestet; mit stummem Video
+    lief der Ton beim Ausschalten ohne Übergabe weiter.
+- **Video-Download, bekannte Einschränkung (schon in `1.2.6`):** „Video mit Ton“ endet mit „Nicht
+  fertiggestellt“ bei 50 %; der Ton wird geladen, die Videospur nicht. Die neue bereinigte
+  Diagnosezeile (Log-Tag `FileDownload`, ohne Adressen) zeigt `StreamResolveException: No
+  playable stream found for this track`. Ursache laut InnerTubeX-Log: Die angemeldeten
+  Web-Clients (WEB_EMBEDDED_PLAYER, WEB_REMIX, WEB_CREATOR) lehnen die gespeicherte Sitzung mit
+  HTTP 401 ab; TVHTML5_SIMPLY und WEB_REMIX liefern ohne Anmeldung zwar Formate, aber keine
+  verwertbare Videoadresse („video candidate unavailable“), VISIONOS nur SABR. Der Video-Download
+  erhält jetzt denselben einmaligen anonymen Rückfall wie die Wiedergabe; er greift, findet aber
+  derzeit ebenfalls keinen direkten Videostream. Am 05.09.2026 funktionierte der Weg noch.
+  InnerTubeX ist inzwischen bei `v0.11.7` (KruXx: `v0.7.4`), mit Ktor `3.6.0`, das im Oktober
+  OkHttp `5.5.0` nachzog und die Robolectric-Tests brechen ließ, und mit Schwerpunkt auf SABR.
+  Empfehlung: Update als eigener Schritt nach `1.2.7`, mit vollständiger Wiedergabe- und
+  Downloadprüfung am Gerät. Testspuren (drei fehlgeschlagene Aufträge und der mitgeladene Ton des
+  Testtitels) sind entfernt.
+
+### Lokale Hintergrundwiedergabe von Videos vom 13.11.2026 – unveröffentlicht
+
+Vom Nutzer gemeldet: Ein Video im Videofenster stoppt sofort, wenn das Display ausgeht; Technosets im
+Videoformat sollen ohne eingeschaltetes Display weiterlaufen. Technik im
+[Entwicklerhandbuch, §4.4](KRUXX-ENTWICKLERHANDBUCH.md#weiterhören-bei-ausgeschaltetem-display-lokal-seit-13112026).
+Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
+
+- **Befund:** `androidyoutubeplayer` 13.0.0 pausiert das WebView in `YouTubePlayerView.onStop()` bei
+  jedem `ON_STOP` der Activity (im Bytecode geprüft). Am Samsung SM-S931B mit Android 17 mit dem
+  Debug-Stand vom 06.11.2026 nachgestellt: Fünf Sekunden nach dem Ausschalten hat die App keinen
+  aktiven Audio-Player mehr, die Mediensitzung steht bei 18,2 s auf `NONE`. Ein im WebView
+  weiterlaufendes Video hätte weder Mediensitzung noch Vordergrunddienst oder
+  Sperrbildschirm-Steuerung.
+- **Umsetzung:** Spielt ein Video, wenn die Activity stoppt (Display aus, Home, anderer App), übergibt
+  KruXx an den normalen Audio-Weg. Der native Player startet stumm und ohne Audiofokus 6 s vor der
+  Videoposition, startet damit sofort den Vordergrunddienst, wartet nach dem Puffern pausiert und
+  läuft hörbar weiter, wenn das noch klingende Video diese Stelle erreicht; dann pausiert das Video.
+  Beim Zurückkehren bleibt der Ton beim nativen Player: Das Video erscheint ohne eigenen Ton und
+  folgt ihm (siehe unten, „Rückkehr ohne Tonwechsel“). Pausierter Ton führt zu einem stumm
+  pausierten Video, gestoppter oder fehlgeschlagener Ton zu einem pausierten Video mit eigenem Ton,
+  ein anderer Titel oder das Ende zu keinem Video mehr. Ein pausiertes Video, ein geschlossenes
+  schwebendes Fenster, ein Konfigurationswechsel und eine beendete Activity lösen keine Übergabe
+  aus. Gespeicherte Videos folgen denselben Regeln.
+- **Gleiche Lautstärke:** Videos spielten bisher mit 100 %, die Musik mit der KruXx-Wiedergabelautstärke
+  (Vorgabe 0,5); jeder Wechsel änderte den Pegel um 6 dB. Videos spielen jetzt mit derselben
+  Lautstärke und sind dadurch bei der Vorgabe 6 dB leiser als bisher. Audio, das ein Video fortsetzt,
+  übernimmt zusätzlich YouTubes Absenkung laut gemasterter Inhalte, bis ein anderer Titel startet.
+- **Nebenbefunde, mitbehoben:**
+  - Startete ein Video, nachdem vorher Audio lief, blieb der native Player vorbereitet. Die
+    Positionsspiegelung des Videos löste dann rund 20 Benachrichtigungs-Updates pro Sekunde aus, die
+    Android verwarf („Media noti enqueue rate … Shedding“, im Log bis 20 pro Sekunde). `playVideo()`
+    entlädt den nativen Player jetzt, ohne Schlaf-Timer, Radio oder Effekte zu beenden; nach der
+    Änderung trat die Meldung im Test nicht mehr auf.
+  - `playVideo()` und `resumeVideoAsAudio()` riefen `pause()` auf. Bei aktivierter Überblendung hätte
+    deren Ausblend-Animation den gerade gestarteten Ton nach ihrem Ende wieder angehalten, auch bei
+    „Nur Audio abspielen“. Sie setzen jetzt `playWhenReady`.
+- **Entwicklungsverlauf am Samsung**, jeweils mit Debug-Build und Datenerhalt (Erstinstallation
+  03.09.2026 unverändert, Release-App `1.2.6` unberührt):
+  - Audio erst nach dem Stopp zu starten ergab eine Lücke von rund 3 s. Die Stream-Auflösung dauerte
+    nur 232 ms; ExoPlayer musste ab Minute 0:21 erst puffern.
+  - Den ersten Überlappungsversuch beendete Compose: Nach `ON_STOP` zeichnete es noch ein Bild und
+    schloss dabei das Video-Sheet samt WebView. Der zweite scheiterte am Audiofokus: Das WebView hält
+    ihn über Chromiums `AudioFocusDelegate` und pausierte nach 188 ms, als der stumme native Player
+    ihn anforderte. Der dritte musste 9 s aufholen, weil das CDN kaum schneller als Echtzeit lieferte.
+  - Endfassung: Das Video klingt nach dem Ausschalten knapp 6 s weiter (5.868–5.903 ms in vier
+    Durchläufen), der native Player wartet ab etwa 3 s pausiert an seiner Startstelle und übernimmt
+    ohne Sprung. Android erlaubte den Vordergrunddienst jedes Mal über
+    `ACTIVITY_VISIBILITY_GRACE_PERIOD`. Nutzerurteil: „Display aus, Ton läuft durch“.
+  - Erste Rückkehr-Fassung (Vormittag, verworfen): Ein neues Video startete stumm an der
+    Audioposition, wurde per gemessener Sprünge angeglichen und übernahm dann den Ton. Laut
+    Positionsmeldungen lagen Video und Ton danach 15–29 ms auseinander. Eine harte Übernahme klang
+    wie ein kurzes Haken, ebenso ein Ausblenden direkt nach dem Entstummen, weil das WebView noch
+    stumm gepufferten Ton abspielt; auch die daraus entstandene versetzte lineare Überblendung
+    blieb hörbar. Nutzerurteile in dieser Reihenfolge: „Display wieder an, Ton hakt kurz“,
+    „Lautstärke ändert sich“ (danach wurde der Pegel angeglichen), „immer noch ein kleines
+    Lag/hakeln“ und „es lagged immer noch“.
+- **Rückkehr ohne Tonwechsel (Nachmittag):** Auf die erneute Meldung „Das Video-Display-Problem mit
+  dem kleinen Lag ist immer noch nicht behoben“ umgesetzt, was der Plan als grundsätzliche
+  Alternative vorsah: Bei der Rückkehr wird der Ton nicht mehr umgeschaltet. Zwei getrennte
+  Ausgaben (WebView über `AAudio`, nativer Player über `AudioTrack`) lassen sich nicht unhörbar
+  gegeneinander tauschen; der geplante Mitschnitt der Geräteausgabe entfiel dadurch.
+  - Das neue WebView wird vor dem Laden als Ganzes stummgeschaltet (`WebViewCompat.setAudioMuted`,
+    WebView-Funktion `MUTE_AUDIO`), zusätzlich der IFrame-Player. Laut Chromium-Quelltext der
+    installierten WebView 156.0.8078.47 fordert ein stummgeschaltetes WebView keinen Audiofokus an
+    (`MediaSessionController::IsMediaSessionNeeded()`). Am Gerät bestätigt: Bei der Rückkehr gab es
+    keine Fokusanfrage des WebViews, der Fokus blieb beim Media3-Player.
+  - Der Ton gibt den Takt vor, korrigiert wird nur das stumme Video: unter 1,5 s Abstand mit 0,75-
+    beziehungsweise 1,25-facher Geschwindigkeit, darüber mit einem Sprung, dessen gemessene Dauer
+    der nächste als Vorlauf nutzt. Das Video lädt um seine zuletzt gemessene Ladezeit vor dem Ton
+    (anfangs 1 s) und gilt bis 80 ms Abstand als gleichauf.
+  - Die Bedienelemente des Videos steuern den Ton, wenn das Video kurz zuvor berührt wurde: Pause,
+    Wiedergabe und Fortschrittsleiste. Was das Video von sich aus tut (Werbung, Stocken,
+    Systempausen), erreicht den Ton nie; Werbung erkennt KruXx zusätzlich an der abweichenden
+    Länge. Hebt der Nutzer die Stummschaltung im Video auf, setzt KruXx sie zurück. Pause und
+    Wiedergabe über Benachrichtigung, Sperrbildschirm oder Kopfhörer nimmt das Video mit.
+  - Minimieren des Players lässt den Ton weiterlaufen, beim Öffnen kehrt das Video stumm zurück.
+    „Nur Audio abspielen“ beendet das stumme Video, ohne den Ton zu berühren. Ein erneutes
+    Ausschalten braucht keine Übergabe mehr, weil der Ton schon nativ läuft.
+  - Gespeicherte Videos folgen ebenso stumm, über eine stufenlose Tempoanpassung des lokalen
+    Players um höchstens ±25 %.
+  - Am Samsung mit dem Debug-Build von 16:13 (Datenerhalt, Release-App unberührt) und einem DJ-Set
+    als Nutzer-Video, vom Nutzer selbst bedient: Nach dem Ausschalten klang das Video 5.890 ms
+    weiter, dann übernahm der native Player. Drei Rückkehren: Das Video startete 175 ms vor, 7 ms
+    vor und 109 ms hinter dem Ton und lag nach höchstens 0,8 s unter 20 ms Abstand, danach bei
+    8–26 ms. Der `AudioTrack` des nativen Players meldete in `dumpsys media.audio_flinger` 0
+    Unterläufe, Logcat weder eine Benachrichtigungsflut noch einen Absturz. Beim zweiten und
+    dritten Ausschalten lief der Ton ohne Übergabe weiter. Eine Pause im stummen Video pausierte
+    den Ton.
+  - **Nutzerurteil vom 13.11.2026: „funktioniert jetzt einwandfrei“.**
+- **Automatische Prüfung (Stand des Releases):** 273 App-Tests und 58 Innertube-Tests bestanden,
+  ohne Fehler oder übersprungene Tests. Zur Hintergrundwiedergabe gehören 61: 11 in
+  `VideoBackgroundPlaybackTest` (Übergaberegeln, Rückkehrentscheidung, YouTube-Pegel,
+  Wiedergabewunsch des Tons, Werbung an der Länge, Play-Befehle von außen), 38 in `VideoFollowTest`
+  (Tempo und Sprünge samt gemessener Latenz, späte Meldungen, ignorierte Tempowechsel, Pause,
+  Wiedergabe und Fortschrittsleiste des Nutzers, eigene Sprünge, Werbung, puffernder Ton,
+  ausblendende Pause, Wiederholung), 9 in `VideoToAudioHandoffTest` und 3 in
+  `VideoAudioHandoffTest`; dazu 2 in `FileDownloadDiagnosisTest` (keine Adressen im Log). Die
+  Abgleichstests der hörbaren Übernahme sind mit ihr entfallen. Vollständiger Release-Lint
+  erfolgreich, Baseline unverändert: 71 Warnungen, keine in einer geänderten Datei. Drei Befunde
+  im neuen Code sind behoben: ein Fehlalarm `RememberReturnType` am Berührungs-Container,
+  `ViewConstructor` an dessen Klasse und `InflateParams` beim lokalen Player.
+- **Gerätestand:** Auf dem Samsung läuft ein Debug-Build `1.2.7` aus dem Arbeitsstand unmittelbar
+  vor dem Release-Commit (Datenerhalt, Erstinstallation 03.09.2026 unverändert). Das schwebende
+  Fenster der Debug-App ist nach dem Test wieder aus, Testdownloads und -aufträge sind entfernt,
+  die alte UI-Abfrage `/sdcard/kruxx_ui.xml` ist gelöscht; neue Abfragen schreiben keine Dateien
+  auf das Gerät.
+- **Erledigt mit `1.2.7`:** Lautstärke-Entscheidung (Videos folgen der KruXx-Lautstärke, siehe
+  [Release 1.2.7](#release-127-vom-13112026)), Versionshinweise, Gerätetests von
+  Benachrichtigung, Bedienung im stummen Video, Minimieren, schwebendem Fenster und gespeichertem
+  Video.
+- **Offen:**
+  1. **Am Gerät:** ein langer Lauf mit ausgeschaltetem Display und eine Werbung im stummen Video.
+  2. **Pause von außen bei selbst klingendem Video:** Die Mediensitzung bildet den Zustand des
+     eingebetteten Videos nicht ab; eine Pause über Benachrichtigung oder Kopfhörer erreicht es
+     deshalb nicht (älteres Verhalten).
+  3. **Home statt Display aus:** Ein automatischer Durchlauf am Vormittag meldete einmal „sounded
+     on for 0 ms“, das Video lief beim Stopp also nicht mehr; die Ursache ist offen. Am Nachmittag
+     trat das in allen Durchläufen nicht wieder auf.
+  4. **Bei aktiver KruXx-Normalisierung** weicht der Pegel von Video und Ton weiterhin ab.
+
+### Lokale Überarbeitung der Startanimation vom 06.11.2026 – unveröffentlicht
+
+Vom Nutzer beauftragt: die Startanimation mit dem UI/UX-Skill deutlich flüssiger machen;
+ausdrücklich soll der Lichtpunkt sauber von links nach rechts über die Welle wandern. Gestaltung in
+[`Design.md`](Design.md#ergänzung-startanimation-mit-wanderndem-lichtpunkt-06112026-lokal-unveröffentlicht),
+Technik im [Entwicklerhandbuch, §2.2](KRUXX-ENTWICKLERHANDBUCH.md#22-kruxx-flavor-commit-kruxx-).
+Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
+
+- **Befund zu `1.2.6`:** Die zehn Quellframes unter `icons/animation/` zeigen dieselbe Kachel,
+  dasselbe „K“ und dieselben Wellenbalken (mittlere Pixelabweichung 4,5 von 255); bewegt wird nur
+  ein Lichtpunkt auf der Mittellinie der Welle. Seine Position in den Frames 1–10 liegt bei 1, 14,
+  21, 25, 34, **73**, **70**, 81, 90 und 99 % der Breite. Bei 120 ms je Frame stand der Punkt also
+  jeweils still, sprang einmal um 40 % der Breite und lief danach zurück; das Überblenden zeigte ihn
+  zudem als verwaschenen Doppelschimmer. Im API-36-Emulator an der veröffentlichten Release-APK per
+  Bildschirmaufnahme nachgemessen: neue Position nur etwa alle 120 ms, darunter 32 % → 74 % und
+  danach 77 % → 74 % → 68 %.
+- **Umsetzung:** `scripts/make-kruxx-splash.py` erzeugt aus den Quellframes zwei Ebenen:
+  `kruxx_startup_base.webp` (Median aller Frames, also das Motiv ohne Lichtpunkt) und
+  `kruxx_startup_wave.webp` (nur die Wellenbalken). `StartupSplash.kt` zeichnet den Lichtpunkt bei
+  jeder Bildwiederholung selbst: Halo, langer Lichtstreifen, weißer Kern mit kurzem Glanz und
+  aufgehellte Balken in seiner Nähe, additiv wie im Original. In den unveränderten 2,4 Sekunden laufen
+  zwei gleichmäßige Durchläufe zu je 1,2 Sekunden; jeder beginnt knapp links außerhalb des Motivs,
+  endet rechts außerhalb und blendet an den Enden weich ein und aus. Der Leuchthof hinter dem Motiv
+  atmet im selben Takt. Der Fortschritt wird nur beim Zeichnen gelesen; ein Bild kostet keine
+  Neukomposition. Kachel, „K“, Farben, Wortmarke, Dauer und Ausblendung bleiben gleich.
+- **Ressourcen:** zwei statt zehn Bitmaps à 600 × 600 (dekodiert etwa 2,9 statt 14,4 MB, im APK 64
+  statt etwa 230 KB). Ist in Android „Animationen entfernen“ aktiv (Animator-Skala 0), bleibt das
+  Motiv ruhig.
+- **Geprüft im API-36-Emulator** (1080 × 2400 bei 420 dpi) mit Debug-Build und optimiertem Release
+  (R8, nur für den Emulator lokal mit dem Debug-Schlüssel signiert, nicht archiviert): Im Release
+  wandert der Punkt Bild für Bild in Schritten von 2–3 % der Breite von 6 % bis 99 %, ohne Stillstand
+  und ohne Rückschritt. Je drei Kaltstarts: 8–9 von rund 350 Frames verspätet (2,3–2,6 %) statt
+  10–12 (2,8–3,5 %) bei `1.2.6`, 4–6 statt 8 langsame UI-Thread-Frames.
+- **Geprüft unter Android 7** (eigens angelegter API-24-Emulator, danach gelöscht; dort ohne
+  Videoaufnahme, deshalb Einzelbilder): Lichtpunkt, Lichtstreifen und aufgehellte Balken werden über
+  den älteren Zeichenpfad korrekt dargestellt; die Bilder zeigen ihn bei 2, 36 und 83 % und im
+  zweiten Durchlauf bei 2, 46 und 91 %. Keine Abstürze in beiden Emulatoren.
+- **210 App-Tests und 58 Innertube-Tests bestanden**, darunter vier neue in `SplashLightTest`: Der
+  Punkt bewegt sich streng von links nach rechts, kein Bild bei 60 Hz verschiebt ihn um mehr als
+  2 % der Breite, der Neustart zwischen den Durchläufen ist unsichtbar, und der Leuchthof ist in der
+  Mitte am stärksten. Vollständiger Release-Lint erfolgreich, Baseline unverändert: 71 Warnungen,
+  alle zu verfügbaren Abhängigkeitsversionen (seit dem 23.10.2026 drei mehr) oder vorhandenen
+  `ObsoleteSdkInt`-Prüfungen, keine in einer geänderten Datei.
+- **Grenze:** Während der Splash läuft, baut die Startseite darunter ihre Listen auf. Laut
+  Systemtrace des Debug-Builds misst Compose dabei bis zu 85–90 ms am Stück; so lange entsteht kein
+  Bild. Im optimierten Release fehlten deshalb im Emulator vereinzelt 50–130 ms. Die alte Animation
+  war davon genauso betroffen (bis 150 ms); der Splash verursacht diese Pausen nicht. Eine Animation,
+  die auch dann weiterläuft, müsste auf dem Render-Thread laufen und wäre ein eigener Schritt.
+- **Nicht dem Splash zuzuordnen, aber auffällig:** Im Emulator dauerte der Kaltstart bis zum ersten
+  Bild mit dem neuen Release 533–559 ms, mit `1.2.6` 363–461 ms; beide Installationen liefen ohne
+  Vorkompilierung. Der Splash dekodiert jetzt weniger Bilder. Der neue Build enthält aber auch die
+  unveröffentlichten Radio- und Android-Auto-Änderungen; die Ursache ist offen.
+- **Samsung SM-S931B / Android 17:** Debug-Build am 06.11.2026 mit Datenerhalt über die Debug-App
+  `1.2.3` installiert (Erstinstallation 03.09.2026 unverändert); die Release-App `1.2.6` blieb
+  unberührt. Bei einem aufgenommenen Kaltstart wandert der Punkt in beiden Durchläufen Bild für
+  Bild in Schritten von 2–3 % nach rechts. Die darunter ladende Startseite verursacht im
+  Debug-Build zwei Pausen von je 167 ms und eine von 84 ms; danach springt der Punkt um die
+  ausgefallene Zeit weiter. Die Aufnahme auf dem Gerät wurde wieder gelöscht.
+- **Nutzerentscheidung vom 06.11.2026:** Der Stand ist nach dem Blick auf dem Samsung so
+  angenommen und wird Bestandteil des nächsten Releases. Die Render-Thread-Variante gegen die
+  kurzen Hänger ist zurückgestellt. Offen bleibt die Sichtprüfung am Dynavin D9 zusammen mit der
+  Abnahme der Autoradio-Darstellung.
+
+### Lokale Überarbeitung der Autoradio-Darstellung vom 23.10.2026 – unveröffentlicht
+
+Nach der [Nutzerrückmeldung vom 23.10.2026](#4-bekannte-grenzen-und-freigabekriterien) zur
+Darstellung von `1.2.6` am direkt installierten Autoradio, einem **Dynavin D9** (Android 11; die
+D9-Modelle mit 9 und 10,1 Zoll haben laut Hersteller- und Händlerangaben 1280 × 720 Pixel). Vom
+Nutzer vorgegeben: Das Radio-Layout wird getrennt vom Handy-Layout gestaltet, passt sich
+automatisch an die Bildschirmgröße an, beeinträchtigt das Handy-Layout nicht und erhält zusätzlich
+einen Größenregler von 80 bis 130 %. Grundlage ist eine Recherche zu Android Auto, Android
+Automotive, CarPlay, ISO 15008 und den NHTSA-Richtlinien; Regeln und Quellen stehen in
+[`Design.md`](Design.md#neugestaltung-vom-23102026--lokal-unveröffentlicht), die Architektur im
+[Entwicklerhandbuch](KRUXX-ENTWICKLERHANDBUCH.md#native-autoradio-oberfläche-seit-126-überarbeitet-am-23102026).
+Der Quellstand ist nicht committet, nicht versioniert und nicht veröffentlicht.
+
+- **Befund zu `1.2.6`:** Alle Radio-Maße waren feste Werte, und die Leseschrift wurde app-weit auf
+  Mindestgrößen angehoben; auf einem Radio mit hoher Herstellerdichte addieren sich beide. Der
+  Player gab dem Cover rund 42 % der Breite und drängte Titel, Zeitleiste und zwei Tastenreihen
+  rechts daneben. Zusätzlich schaltete „Automatisch“ allein nach der Fensterbreite um: Ein
+  Galaxy S25 im Querformat (rund 891 × 371 dp) erhielt damit die Radio-Ansicht. Im Emulator
+  nachgestellt (2340 × 1080 bei 420 dpi); die Unit-Tests von `1.2.6` deckten nur Handys bis
+  820 dp Querformatbreite ab.
+- **Erkennung:** Automatisch nur noch auf von Natur aus querformatigen Displays, ab
+  600 × 320 dp und einem Seitenverhältnis ab 1,5. Damit erkennt KruXx jetzt auch Radios mit 240 dpi
+  automatisch (1280 × 720 → 853 × 408 dp, 1024 × 600 → 683 × 328 dp), die `1.2.6` nur manuell
+  erreichte. Handys wechseln in keiner Drehung mehr automatisch; 4:3-Tablets und fast quadratische
+  Foldables bleiben beim Handy-Layout. „Autoradio“ erzwingt den Modus weiterhin überall.
+- **Maße:** Alle Radio-Größen folgen der Fensterhöhe (Referenz 1024 × 600 bei 160 dpi), sodass das
+  D9 bei 160 und 240 dpi physisch ähnlich große Elemente erhält. Trefferflächen mindestens 48 dp,
+  Play/Pause mindestens 56 dp, die Leseschrift nie kleiner als auf dem Handy. Der neue Regler
+  „Größe der Autoradio-Ansicht“ (Einstellungen → UI, 80–130 %, Vorgabe 100 %) erscheint nur im
+  Radio-Modus. Die app-weiten Mindestschriften, 80-dp-Titelzeilen und 160-dp-Kacheln entfallen.
+- **Player:** Cover quadratisch mit höchstens 45 % der Höhe und 40 % der Breite neben Titel,
+  Künstler und Album; oben Minimieren, Warteschlange und Titelmenü; darunter die Zeitleiste über
+  die volle Breite und eine mittige Transportzeile Zufall · Zurück · Play/Pause · Weiter ·
+  Wiederholen.
+- **Alle übrigen Radio-Seiten:** Leiste ab 80 dp statt 128 dp, so breit wie das längste Wort;
+  Seiten mit nur einem Reiter (Album, Neue Alben, Künstler-Alben, Lizenzen, lokale Playlist) ohne
+  Leiste. Die großen Bereichstitel der Bibliotheksreiter entfallen, Suchergebnisse zeigen Alben,
+  Künstler und Playlists als Kachelraster, Titel und Videos in Spalten. Titelmenüs öffnen
+  vollständig, kein Lauftext mehr (lange Texte enden mit „…“), die Albumseite scrollt ihre
+  Überschriften mit, und die Künstlerseite teilt Bild und Inhalt innerhalb der Leiste statt
+  außerhalb. Lokale Playlists erhalten die Radio-Hülle; das übergroße Zahnrad im Downloads-Reiter ist
+  korrigiert.
+- **Geprüft im Android-11-Emulator** (Debug-Paket `de.kruxx.music.debug`, Englisch und Deutsch):
+  1280 × 720 bei 240 dpi (D9-Profil) mit allen sechs Hauptreitern, Vorschlägen, Neuen Alben,
+  Stimmungen und einer Stimmungsseite, Suche (Eingabe, Vorschläge, alle fünf Ergebniskategorien,
+  Bibliothek, Link), Album-, Künstler- und Künstler-Alben-Seite, YouTube-Playlist, lokaler Playlist
+  (angelegt über den Dialog mit eingeblendeter Tastatur), Player, Warteschlange, Titelmenü,
+  Download-Dialog, Videoplayer, App-Menü mit Verlauf, Statistik und Profilen sowie allen neun
+  Einstellungsbereichen einschließlich Info und Lizenzen. Zusätzlich 1280 × 720 und 1024 × 600 bei
+  160 dpi, 1024 × 600 bei 240 dpi, Schriftfaktor 1,3 und der Regler bei 80 % und 130 %.
+- **Handy-Layout unverändert:** Mit 1080 × 2400 bei 420 dpi wurde gegen die letzte Version vor dem
+  Radio-Modus (`1.2.5`) verglichen, per Bildschirmfoto und Elementpositionen aus dem UI-Dump. Im
+  Hoch- und Querformat: Startseite, alle Bibliotheksreiter, Downloads, Einstellungen „Allgemein“
+  und „UI“, Verlauf, Statistik und Player. Im Hochformat zusätzlich Sucheingabe mit Vorschlägen,
+  Suchergebnisse (Künstler, Alben, Videos) sowie Album- und Künstlerseite, jeweils auch
+  gescrollt. Alle Bedienelemente stehen an derselben Stelle und in derselben Größe. Unterschiede
+  gibt es nur bei live geladenen Inhalten (Vorschläge, Trefferreihenfolge, Pegelanzeige,
+  Versionsnummer), bei einem um 21 px anders ausgefallenen Wisch und beim schon in `1.2.6`
+  ergänzten Eintrag „Bildschirm-Layout“, dessen Beschreibung jetzt in zwei Zeilen passt. Der
+  Größenregler erscheint auf dem Handy nicht. Im Querformat zeigt das Handy wieder das klassische
+  Layout statt der Radio-Ansicht. Die Ergebniskategorie „Playlists“ wurde auf dem Handy nicht
+  angetippt; ihr Handy-Zweig ist im Code unverändert.
+- **192 App-Tests und 58 Innertube-Tests bestanden**, ohne Fehler oder übersprungene Tests;
+  darunter zehn neue: drei weitere `AdaptiveLayoutTest`-Fälle (jetzt elf) und sieben in
+  `RadioMetricsTest`. Vollständiger Release-Lint erfolgreich, Baseline unverändert: 68 Warnungen,
+  alle zu verfügbaren Abhängigkeitsversionen oder vorhandenen `ObsoleteSdkInt`-Prüfungen, keine in
+  einer geänderten Datei. Ein im ersten Lauf gefundener Lint-Fehler (das Prozentzeichen im
+  Beschreibungstext des Reglers wurde als Formatangabe gelesen) ist behoben.
+- Das physische D9 ist nicht angeschlossen; die Abnahme dort bleibt offen.
+
+### Lokale Android-Auto-Überarbeitung vom 23.10.2026 – unveröffentlicht
+
+Vom Nutzer beauftragt: die Android-Auto-Steuerung auf den aktuellen Standard bringen, gestützt auf
+eine saubere Webrecherche. Maßgeblich sind nur Primärquellen von Google: die Anleitungen für
+Medien-Apps unter Android Auto und Android Automotive OS (Inhaltsbaum, Content Styles, Artwork,
+Wiedergabesteuerung, Sprachaktionen, Fehler, Ablenkungsschutz; Seitenstand August bis Oktober
+2026), die Media3-Dokumentation zu Steuerung und Media Button Preferences, die Assistant-Vorgaben,
+die Car-App-Qualitätskriterien und die Media3-Versionshinweise bis `1.11.1`. Das Verhalten der
+eingesetzten Media3 `1.10.1` ist zusätzlich im Bytecode nachgeprüft. Der Quellstand ist nicht
+committet, nicht versioniert und nicht veröffentlicht.
+
+- **Befund vor der Überarbeitung**, im Android-Automotive-Emulator nachgestellt:
+  - Listen, Raster, Suchergebnisse und Wiedergabeansicht zeigten kein Cover. KruXx gab
+    Web-Adressen weiter; Android Auto und Android Automotive laden laut Google nur lokale
+    `content://`- oder `android.resource://`-Adressen.
+  - Der Künstler fehlte überall. Bei gesetztem Anzeigetitel übernimmt Media3 nur den Untertitel,
+    und den setzte KruXx nicht.
+  - Ohne Darstellungshinweise erschienen Alben und Künstler als Textliste. Der Alben-Reiter
+    enthielt zudem automatisch angelegte Einträge ohne Cover, die die Handy-Bibliothek nicht zeigt.
+  - Die Zusatztasten hatten keine Standardsymbole. Die Suche-Taste blieb im Auto sichtbar, obwohl
+    ihr Befehl für Autos gesperrt ist.
+  - Sprachbefehle ignorierten die erkannte Kategorie (Playlist, Künstler, Album). „Musik abspielen“
+    ersetzte die laufende Warteschlange durch die Top-Titel, und eine Anfrage ohne Treffer leerte
+    die Warteschlange stillschweigend.
+  - Es gab keine Empfehlungen für die Startseite von Android Auto und kein Attributionssymbol; das
+    Benachrichtigungssymbol für Autos war das farbige Launcher-Icon.
+- **Cover:** Der neue `CarArtworkProvider` reicht Cover als `content://`-Adressen an Autos weiter.
+  Er ist für die Autosysteme exportiert und liefert ausschließlich Adressen, die KruXx mit einem
+  geräteeigenen Schlüssel (HMAC-SHA-256, in `no_backup`, nicht im Backup) signiert hat, und nur
+  von YouTube-Music-Bildservern oder als Albumcover lokaler Titel. Andere Apps können ihn damit
+  weder als Download-Proxy noch zum Lesen fremder Medien nutzen. Bilder kommen über Coil, also
+  nach Möglichkeit aus dem Bildcache des Handys und sonst mit dessen Proxy- und DNS-Einstellungen,
+  und liegen als 512-px-JPEG in einem eigenen Cache von höchstens 32 MB. Beim Abruf einer Liste lädt KruXx die
+  ersten 30 Cover vorab.
+- **Darstellung:** Alben und Künstler erscheinen als Cover-Raster, Titel als Liste, Playlists als
+  Kategorieliste mit ihren Symbolen. Künstler- und Alben-Reiter zeigen dieselbe Auswahl und
+  Sortierung wie die Handy-Bibliothek (Favoriten oder Bibliothek). Titel tragen den Künstler als
+  zweite Zeile sowie die Kennzeichen „Explicit“ und „heruntergeladen“; Titel auf dem Gerät gelten
+  als heruntergeladen. Die Künstlerzeile erhält auch die Wiedergabeansicht, weil jeder
+  Media-Item-Bauer mit Anzeigetitel jetzt auch den Untertitel setzt.
+- **Empfehlungen:** Fragt Android Auto nach Vorschlägen, erhält es die zehn meistgespielten Titel
+  des letzten Monats (sonst insgesamt) als abspielbare Liste.
+- **Tasten:** Herz, Wiederholen (aus/eins/alle), Zufall (an/aus) und Radio tragen die passenden
+  Media3-Standardsymbole, die Android Auto im eigenen Stil zeichnet. Download, Abneigung und Suche
+  haben keine Entsprechung und behalten die KruXx-Symbole. Die Benachrichtigung zeichnet weiter
+  die KruXx-Symbole. Die Suche-Taste fehlt nur, solange Android Auto oder Android Automotive
+  verbunden ist; danach kehrt sie zurück.
+- **Sprachbefehle (Gemini, Google Assistant):** Bei erkannter Playlist (auch „Favoriten“),
+  Künstler, Album oder Titel sucht KruXx zuerst in der Bibliothek, sonst wie die Suche im Auto.
+  „Musik abspielen“ ohne weitere Angabe setzt die vorhandene Warteschlange fort. Ohne Treffer
+  pausiert KruXx, wie Google es vorsieht, meldet „KruXx hat nichts zum Abspielen gefunden. Bitte
+  versuche es mit einer anderen Anfrage.“ im Wiedergabestatus und lässt die Warteschlange stehen.
+- **Manifest:** Monochrome App-Symbole für Benachrichtigungen im Auto und als
+  `TintableAttributionIcon`.
+- **Geprüft im Android-Automotive-Emulator** (API 34, 1080 × 600, Debug-Paket, Englisch) vor und
+  nach der Änderung mit Testbibliothek: alle vier Reiter, eine Playlist, Suche, Wiedergabeansicht
+  und Zusatzmenü, dazu der Zustand der Plattform-Sitzung per `dumpsys media_session`. Ein eigener
+  Test-Client mit derselben Legacy-Schnittstelle wie Android Auto bestätigt: Empfehlungen mit
+  Cover, Künstler und E-Kennzeichen; Sprachbefehle für die Playlist „Roadtrip“ (drei Titel), den
+  Künstler „Queen“ (zwei Titel), ohne Angabe (Warteschlange fortgesetzt) und ohne Treffer bei
+  getrenntem Netz (pausiert, Meldung, Warteschlange erhalten). Die Schnittstelle für Cover liefert
+  für eine signierte Adresse das JPEG und weist unsignierte, gefälschte, vertauschte und fremde
+  Adressen ab.
+- **Handy unverändert:** Im Android-16-Emulator (1080 × 2400 bei 420 dpi) ist die Mediensteuerung
+  in den Schnelleinstellungen gegenüber `1.2.6` pixelgleich, nur der Fortschrittsbalken steht
+  zeitbedingt anders. Symbole und Reihenfolge der Tasten sind unverändert, die Suche-Taste ohne
+  Auto vorhanden. Die bis Android 12 von Media3 selbst gezeichnete Benachrichtigung verwendet laut
+  Bytecode weiter die KruXx-Symbole.
+- **206 App-Tests und 58 Innertube-Tests bestanden**, darunter 14 neue: sieben in
+  `CarArtworkTest` (Signatur, Manipulation, Serverliste, Schlüssel), sechs in
+  `VoiceSearchRequestTest` und einer in `MediaLibraryIdTest`. Vollständiger Release-Lint
+  erfolgreich, Baseline unverändert: 68 Warnungen, keine in einer geänderten Datei.
+- **Offen und bekannte Grenzen:**
+  - Das echte Android Auto (Handy am Dynavin D9 oder Desktop Head Unit) ist nicht geprüft, weil
+    kein Handy per ADB angeschlossen ist. Der Automotive-Emulator ist nur ein Stellvertreter.
+  - Für den laufenden Titel gibt Media3 weiter die Web-Adresse und ein geladenes Bild an das
+    System. Android Auto verwendet das Bild; das Medienzentrum von Android Automotive zeigt in der
+    Wiedergabeansicht einen Platzhalter, ebenso die Warteschlange in beiden Systemen. Eine Lösung
+    müsste die Player-Hülle der Sitzung ändern und damit Handy-Benachrichtigung und Player
+    berühren; sie ist deshalb zurückgestellt.
+  - Android Auto, die Handy-Benachrichtigung ab Android 13 und Bluetooth teilen sich eine
+    Plattform-Sitzung. Media3 erlaubt dort keine eigene Tastenauswahl für Autos; nur die
+    Suche-Taste wird während der Verbindung ausgeblendet.
+  - Media3 `1.11.1` ist seit 10.09.2026 stabil und behebt unter anderem das Bluetooth-Browsing
+    (AVRCP) unter Android 16 und 17 sowie einen Deadlock bei älteren Browsern. Es verschärft aber
+    die Thread-Regeln der Sitzung und gibt nicht vertrauenswürdigen Controllern standardmäßig nur
+    Lesezugriff. Das Update ist deshalb ein eigener Schritt mit Prüfung am Samsung.
+  - Jede App auf dem Gerät kann den Bibliotheksbaum wie bisher abfragen; die von Google empfohlene
+    Paketprüfung der verbundenen Apps ist nicht umgesetzt.
 
 ### Lokaler Autoradio-Build 1.2.6 vom 20.10.2026
 
@@ -1403,7 +1831,10 @@ separates späteres Funktionsvorhaben.
   komponierenden Oberfläche. Zehn Frames à 120 ms laufen in 2,4 Sekunden exakt zweimal durch;
   anschließend folgt eine kurze 420-ms-Ausblendung. Die freigestellten RGBA-Quellen werden als
   transparente 600²-WebPs ausgeliefert: Frame 1 steht sofort, jeder spätere Wechsel löst beide
-  Bilder über die vollständigen 120 ms linear und damit ohne Haltepunkt ineinander auf.
+  Bilder über die vollständigen 120 ms linear und damit ohne Haltepunkt ineinander auf. Lokal
+  überarbeitet und unveröffentlicht: ein ruhendes Motiv, über das die App den Lichtpunkt bei jeder
+  Bildwiederholung gleichmäßig von links nach rechts zeichnet
+  ([§1](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht)).
 - Das freigestellte Quellbild `icons/KruXx_App_Icon.png` wurde über die KruXx-Icon-Pipeline in adaptive,
   runde und klassische Launcher-Icons, Themed Icon, Benachrichtigungssymbol, TV-Banner sowie
   Cover-Platzhalter überführt.
@@ -1617,12 +2048,39 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 - Der Benachrichtigungsschutz kann nur Android-Benachrichtigungstöne und Heads-up-Pop-ups über die
   Notification Policy steuern. Er blockiert weder Einträge im Benachrichtigungsbereich noch Medien,
   Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Für den aktuellen öffentlichen `v1.2.3` sind Quellstand, Tag, unveränderte Submodul-Pins und das
-  bytegleich veröffentlichte Archiv-APK in [§1](#veröffentlichung-von-123-am-11092026) belegt;
-  dasselbe gilt für `v1.2.2` in [§1](#veröffentlichung-von-122-am-11092026) und
-  dasselbe gilt für `v1.2.0` in [§1](#veröffentlichung-von-120-am-07092026). Die nicht
-  separat protokollierten Detailfälle bleiben Bestandteil der Regressionstest-Matrix.
-  Der oben beschriebene API-24-Downloadfehler ist eine bekannte Einschränkung.
+- Für den aktuellen öffentlichen `v1.2.6` sind Quellstand, Tag, seit `1.2.3` unveränderte
+  Submodul-Pins und das bytegleich veröffentlichte Archiv-APK in
+  [§1](#veröffentlichung-von-126-am-20102026) belegt; dasselbe gilt für `v1.2.4`
+  ([§1](#veröffentlichung-von-124-am-07102026)), `v1.2.3`
+  ([§1](#veröffentlichung-von-123-am-11092026)), `v1.2.2`
+  ([§1](#veröffentlichung-von-122-am-11092026)), `v1.2.1`
+  ([§1](#veröffentlichung-von-121-am-08092026)) und `v1.2.0`
+  ([§1](#veröffentlichung-von-120-am-07092026)). `1.2.5` wurde nicht separat veröffentlicht;
+  sein HTTPS-Fix ist in `1.2.6` enthalten. Die nicht separat protokollierten Detailfälle bleiben
+  Bestandteil der Regressionstest-Matrix. Der oben beschriebene API-24-Downloadfehler ist eine
+  bekannte Einschränkung.
+- Für `1.2.6` bleiben zusätzlich offen: die Abnahme am physischen, direkt installierten
+  Autoradio (tatsächliche Dichte, Herstellerleisten, Hardwaretasten, Audioausgabe und Leistung)
+  und die seit `1.2.4` zurückgestellte Diagnose der leeren Startseite am zweiten Testhandy.
+- **Nutzerrückmeldung vom 23.10.2026: Die Autoradio-Darstellung ist so nicht abgenommen.**
+  Bedienelemente, Grafiken und Tasten sind deutlich zu groß; im Player steht das Cover links,
+  während Titelangaben, Zeitleiste und Tasten rechts zusammengedrängt werden. Im Quellstand von
+  `1.2.6` sind die Radio-Maße fest vorgegeben (Transporttasten 56 dp, Play/Pause 72 bzw. 88 dp,
+  Navigationsleiste 128 dp, Kacheln mindestens 160 dp × Schriftfaktor, Titelzeilen mindestens
+  80 dp), und die Leseschrift wird app-weit auf Mindestgrößen angehoben. Keiner dieser Werte
+  richtet sich nach der verfügbaren Fenstergröße. Am Gerät ist es ein Dynavin D9. Die
+  Neugestaltung ist [lokal umgesetzt und im Emulator geprüft](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--unveröffentlicht);
+  die Abnahme am D9 und eine Veröffentlichung stehen aus.
+- **Auftrag vom 23.10.2026: Android-Auto-Steuerung auf den aktuellen Standard.** Cover über
+  signierte lokale Adressen, Künstlerzeile, Raster- und Listendarstellung, Kennzeichen,
+  Empfehlungen, Standardsymbole und genauere Sprachbefehle sind
+  [lokal umgesetzt und im Automotive-Emulator geprüft](#lokale-android-auto-überarbeitung-vom-23102026--unveröffentlicht);
+  die Prüfung im echten Android Auto und eine Veröffentlichung stehen aus.
+- **Auftrag vom 06.11.2026: Startanimation flüssiger.** Der Lichtpunkt wird jetzt gezeichnet und
+  wandert gleichmäßig von links nach rechts;
+  [lokal umgesetzt, gemessen und auf dem Samsung angenommen](#lokale-überarbeitung-der-startanimation-vom-06112026--unveröffentlicht).
+  Er wird Bestandteil des nächsten Releases. Kurze Hänger durch die darunter ladende Startseite
+  bleiben; eine Render-Thread-Variante ist zurückgestellt.
 - Für `1.2.3` bleiben zusätzlich offen: die ausdrückliche Aktion „Radio starten“, der Abgleich des
   Zufallszustands mit Benachrichtigung und Android Auto in beide Richtungen sowie die
   Trefferflächen der Player-Aktionsleiste im Querformat und mit zusätzlich aktivierten
@@ -1641,6 +2099,11 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 
 ## 5. Sicherheit und GitHub-Secret-Scanning
 
+- Nachprüfung am 23.10.2026: Die GitHub-API meldet für `Massefehler/KruXx`,
+  `Massefehler/KruXx-innertube` und `Massefehler/KruXx-metrolist` jeweils **0 offene
+  Secret-Scanning-Alarme**; abgefragt wurde nur die Anzahl, keine Alarminhalte. Vor der
+  Veröffentlichung von `1.2.6` am 20.10.2026 war derselbe Befund für App- und
+  Innertube-Repository festgehalten; für `1.2.4` ist keine gesonderte Abfrage dokumentiert.
 - Vor der Veröffentlichung von `1.2.3` am 11.09.2026 meldete die GitHub-API für alle drei
   Repositories erneut **0 offene Secret-Scanning-Alarme**; dasselbe galt zuvor für `1.2.2`.
   Beide Releases enthalten keine Diagnoseexporte, privaten Gerätedaten oder Schlüsseldateien.
