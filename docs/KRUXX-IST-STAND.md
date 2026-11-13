@@ -314,8 +314,8 @@ Mit `1.2.7` veröffentlicht ([Release 1.2.7](#release-127-vom-13112026)).
   die auch dann weiterläuft, müsste auf dem Render-Thread laufen und wäre ein eigener Schritt.
 - **Nicht dem Splash zuzuordnen, aber auffällig:** Im Emulator dauerte der Kaltstart bis zum ersten
   Bild mit dem neuen Release 533–559 ms, mit `1.2.6` 363–461 ms; beide Installationen liefen ohne
-  Vorkompilierung. Der Splash dekodiert jetzt weniger Bilder. Der neue Build enthält aber auch die
-  unveröffentlichten Radio- und Android-Auto-Änderungen; die Ursache ist offen.
+  Vorkompilierung. Der Splash dekodiert jetzt weniger Bilder. Der neue Build enthielt aber auch die
+  damals noch unveröffentlichten Radio- und Android-Auto-Änderungen; die Ursache ist offen.
 - **Samsung SM-S931B / Android 17:** Debug-Build am 06.11.2026 mit Datenerhalt über die Debug-App
   `1.2.3` installiert (Erstinstallation 03.09.2026 unverändert); die Release-App `1.2.6` blieb
   unberührt. Bei einem aufgenommenen Kaltstart wandert der Punkt in beiden Durchläufen Bild für
@@ -1818,6 +1818,29 @@ separates späteres Funktionsvorhaben.
 - Alle Media3-Player-Zugriffe des Wiedergabediensts, einschließlich des optionalen
   Benachrichtigungsschutzes, laufen auf dem Android-Hauptthread. Damit ist der zuletzt aufgetretene
   Startabsturz durch einen Player-Zugriff vom IO-Thread behoben.
+- Seit `1.2.7` läuft ein Video im Videofenster bei ausgeschaltetem Display oder verlassener App
+  ohne Lücke als Ton weiter, mit Mediensitzung, Benachrichtigung und Sperrbildschirm-Steuerung.
+  Beim Zurückkehren bleibt der Ton beim nativen Player; das Video erscheint ohne eigenen Ton und
+  folgt ihm. Pause, Wiedergabe und Zeitleiste im Video steuern dann den Ton, und puffert der Ton,
+  wartet das Video. Gespeicherte Videos verhalten sich ebenso.
+- Videos spielen mit der KruXx-Wiedergabelautstärke und damit so laut wie die Musik.
+- Bei einem Video mit eigenem Ton öffnet sich das schwebende Fenster nicht, sondern der Ton läuft
+  wie bei ausgeschaltetem Display weiter; mit stummem Video zeigt das Fenster das Cover. Ein Play
+  über Benachrichtigung oder Kopfhörer setzt ein solches Video fort, statt den Ton doppelt zu starten.
+
+### Autoradio und Android Auto
+
+- Bei direkt installierter App erkennt KruXx Autoradios automatisch an einem von Natur aus
+  querformatigen Display (ab 600 × 320 dp, Seitenverhältnis ab 1,5); unter Einstellungen →
+  Benutzeroberfläche → Bildschirm-Layout lässt sich `Automatisch`, `Handy` oder `Autoradio` wählen.
+  Handys wechseln auch im Querformat nicht automatisch.
+- Die Autoradio-Ansicht leitet seit `1.2.7` alle Maße aus der Fensterhöhe ab, zeigt im Player das
+  Cover neben Titel, Künstler und Album mit Zeitleiste und Tastenzeile darunter und bietet den
+  Regler „Größe der Autoradio-Ansicht“ (80–130 %). Die Abnahme am Dynavin D9 steht aus.
+- Android Auto zeigt seit `1.2.7` Cover über signierte lokale Adressen, den Künstler als zweite
+  Zeile, Alben und Künstler als Raster, Kennzeichen für Explicit und Downloads sowie Empfehlungen
+  und setzt Sprachbefehle für Playlists, Künstler und Alben genauer um. Geprüft im
+  Android-Automotive-Emulator; die Prüfung im echten Android Auto steht aus.
 
 ### Audio und Benachrichtigungen
 
@@ -1853,16 +1876,17 @@ separates späteres Funktionsvorhaben.
   auflöst. Unvereinbare Teilstücke aus älteren Qualitätsrichtlinien werden nicht vermischt.
 - Fünf Verbindungen garantieren keinen bestimmten Durchsatz: YTM/CDN-Drosselung, Serverwahl,
   Funkqualität, Energiesparmodi und parallele Systemlast bleiben außerhalb der App kontrolliert.
+- Bekannte Einschränkung seit Herbst 2026: „Video mit Ton“ scheitert, weil YouTube über InnerTubeX
+  `v0.7.4` keinen direkt ladbaren Videostream liefert; Musik-Downloads sind nicht betroffen
+  ([Release 1.2.7](#release-127-vom-13112026)).
 
 ### Branding
 
 - Nur bei einem kalten App-Start liegt ein animierter KruXx-Vollbildscreen über der bereits
-  komponierenden Oberfläche. Zehn Frames à 120 ms laufen in 2,4 Sekunden exakt zweimal durch;
-  anschließend folgt eine kurze 420-ms-Ausblendung. Die freigestellten RGBA-Quellen werden als
-  transparente 600²-WebPs ausgeliefert: Frame 1 steht sofort, jeder spätere Wechsel löst beide
-  Bilder über die vollständigen 120 ms linear und damit ohne Haltepunkt ineinander auf. Lokal
-  überarbeitet und unveröffentlicht: ein ruhendes Motiv, über das die App den Lichtpunkt bei jeder
-  Bildwiederholung gleichmäßig von links nach rechts zeichnet
+  komponierenden Oberfläche. Seit `1.2.7` ist das Motiv eine ruhende Ebene, über die die App den
+  Lichtpunkt bei jeder Bildwiederholung gleichmäßig von links nach rechts über die Welle zeichnet:
+  zwei Durchläufe in 2,4 Sekunden, danach eine kurze 420-ms-Ausblendung. Bei „Animationen
+  entfernen“ bleibt das Motiv ruhig. Bis `1.2.6` wurden zehn Frames à 120 ms überblendet
   ([§1](#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127)).
 - Das freigestellte Quellbild `icons/KruXx_App_Icon.png` wurde über die KruXx-Icon-Pipeline in adaptive,
   runde und klassische Launcher-Icons, Themed Icon, Benachrichtigungssymbol, TV-Banner sowie
@@ -2077,9 +2101,10 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
 - Der Benachrichtigungsschutz kann nur Android-Benachrichtigungstöne und Heads-up-Pop-ups über die
   Notification Policy steuern. Er blockiert weder Einträge im Benachrichtigungsbereich noch Medien,
   Wecker oder Anrufe und umgeht keine Gerätevorgaben.
-- Für den aktuellen öffentlichen `v1.2.6` sind Quellstand, Tag, seit `1.2.3` unveränderte
+- Für den aktuellen öffentlichen `v1.2.7` sind Quellstand, Tag, seit `1.2.3` unveränderte
   Submodul-Pins und das bytegleich veröffentlichte Archiv-APK in
-  [§1](#veröffentlichung-von-126-am-20102026) belegt; dasselbe gilt für `v1.2.4`
+  [§1](#release-127-vom-13112026) belegt; dasselbe gilt für `v1.2.6`
+  ([§1](#veröffentlichung-von-126-am-20102026)), `v1.2.4`
   ([§1](#veröffentlichung-von-124-am-07102026)), `v1.2.3`
   ([§1](#veröffentlichung-von-123-am-11092026)), `v1.2.2`
   ([§1](#veröffentlichung-von-122-am-11092026)), `v1.2.1`
@@ -2103,17 +2128,17 @@ nicht umgesetzt und keinem Release-Termin zugeordnet.
   Navigationsleiste 128 dp, Kacheln mindestens 160 dp × Schriftfaktor, Titelzeilen mindestens
   80 dp), und die Leseschrift wird app-weit auf Mindestgrößen angehoben. Keiner dieser Werte
   richtet sich nach der verfügbaren Fenstergröße. Am Gerät ist es ein Dynavin D9. Die
-  Neugestaltung ist [lokal umgesetzt und im Emulator geprüft](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127);
-  sie ist mit `1.2.7` veröffentlicht, die Abnahme am D9 steht aus.
+  Neugestaltung ist [umgesetzt und im Emulator geprüft](#lokale-überarbeitung-der-autoradio-darstellung-vom-23102026--veröffentlicht-mit-127)
+  und mit `1.2.7` veröffentlicht; die Abnahme am D9 steht aus.
 - **Auftrag vom 23.10.2026: Android-Auto-Steuerung auf den aktuellen Standard.** Cover über
   signierte lokale Adressen, Künstlerzeile, Raster- und Listendarstellung, Kennzeichen,
   Empfehlungen, Standardsymbole und genauere Sprachbefehle sind
-  [lokal umgesetzt und im Automotive-Emulator geprüft](#lokale-android-auto-überarbeitung-vom-23102026--veröffentlicht-mit-127);
-  sie ist mit `1.2.7` veröffentlicht, die Prüfung im echten Android Auto steht aus.
+  [umgesetzt und im Automotive-Emulator geprüft](#lokale-android-auto-überarbeitung-vom-23102026--veröffentlicht-mit-127)
+  und mit `1.2.7` veröffentlicht; die Prüfung im echten Android Auto steht aus.
 - **Auftrag vom 06.11.2026: Startanimation flüssiger.** Der Lichtpunkt wird jetzt gezeichnet und
   wandert gleichmäßig von links nach rechts;
-  [lokal umgesetzt, gemessen und auf dem Samsung angenommen](#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127).
-  Er ist mit `1.2.7` veröffentlicht. Kurze Hänger durch die darunter ladende Startseite
+  [umgesetzt, gemessen und auf dem Samsung angenommen](#lokale-überarbeitung-der-startanimation-vom-06112026--veröffentlicht-mit-127)
+  und mit `1.2.7` veröffentlicht. Kurze Hänger durch die darunter ladende Startseite
   bleiben; eine Render-Thread-Variante ist zurückgestellt.
 - Für `1.2.3` bleiben zusätzlich offen: die ausdrückliche Aktion „Radio starten“, der Abgleich des
   Zufallszustands mit Benachrichtigung und Android Auto in beide Richtungen sowie die
